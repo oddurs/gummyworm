@@ -1,0 +1,127 @@
+# ============================================================================
+# Gummyworm .gitignore
+# ============================================================================
+
+# ============================================================================
+# OS Generated Files
+# ============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ============================================================================
+# Editor & IDE
+# ============================================================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# JetBrains (PyCharm, IntelliJ, etc.)
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*.swn
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# ============================================================================
+# Temporary & Generated Files
+# ============================================================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*.orig
+*.log
+
+# Temp directories
+tmp/
+temp/
+.tmp/
+
+# ============================================================================
+# Test Artifacts
+# ============================================================================
+tests/output/
+tests/*.png
+tests/*.jpg
+tests/*.txt
+coverage/
+.coverage
+
+# ============================================================================
+# Build & Distribution
+# ============================================================================
+dist/
+build/
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+
+# ============================================================================
+# Shell-specific
+# ============================================================================
+# Bash history in project
+.bash_history
+
+# ShellCheck directive files (if generated)
+.shellcheckrc.local
+
+# ============================================================================
+# Project-specific
+# ============================================================================
+# Output files (user-generated ASCII art)
+output/
+*.ascii
+*.ansi
+
+# Local configuration overrides
+config.local.sh
+.env
+.env.local
+
+# Custom palettes that shouldn't be shared
+palettes/local/
+palettes/*.local.palette
+
+# Example/test images (keep examples/ dir but not large images)
+examples/*.png
+examples/*.jpg
+examples/*.jpeg
+examples/*.gif
+examples/*.bmp
+examples/*.tiff
+!examples/.gitkeep
+
+# User data
+user-data/
+
+# ============================================================================
+# Documentation build
+# ============================================================================
+docs/_build/
+docs/site/
+*.html
+!docs/**/*.html
