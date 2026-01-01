@@ -34,18 +34,19 @@ readonly DEFAULT_OUTPUT=""
 readonly DEFAULT_QUIET=false
 readonly DEFAULT_PRESERVE_ASPECT=true
 
-# ANSI color codes
-declare -gA COLORS=(
-    ["reset"]="\033[0m"
-    ["bold"]="\033[1m"
-    ["dim"]="\033[2m"
-    ["red"]="\033[31m"
-    ["green"]="\033[32m"
-    ["yellow"]="\033[33m"
-    ["blue"]="\033[34m"
-    ["magenta"]="\033[35m"
-    ["cyan"]="\033[36m"
-    ["white"]="\033[37m"
+# ANSI color codes - declare first, then populate
+declare -A COLORS
+COLORS=(
+    [reset]="\033[0m"
+    [bold]="\033[1m"
+    [dim]="\033[2m"
+    [red]="\033[31m"
+    [green]="\033[32m"
+    [yellow]="\033[33m"
+    [blue]="\033[34m"
+    [magenta]="\033[35m"
+    [cyan]="\033[36m"
+    [white]="\033[37m"
 )
 
 # Export for subshells

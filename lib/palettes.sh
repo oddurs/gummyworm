@@ -15,40 +15,42 @@ readonly _GUMMYWORM_PALETTES_LOADED=1
 # ============================================================================
 # Characters ordered from darkest/empty to brightest/filled
 
-declare -gA BUILTIN_PALETTES=(
+declare -A BUILTIN_PALETTES
+BUILTIN_PALETTES=(
     # Standard ASCII palettes
-    ["standard"]=" .:-=+*#%@"
-    ["detailed"]=" .'°\`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@\$"
-    ["simple"]=" .oO@"
-    ["binary"]=" █"
-    ["matrix"]=" 01"
+    [standard]=" .:-=+*#%@"
+    [detailed]=" .'°\`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@\$"
+    [simple]=" .oO@"
+    [binary]=" █"
+    [matrix]=" 01"
     
     # Unicode block palettes
-    ["blocks"]=" ░▒▓█"
-    ["shades"]=" ░▒▓█▓▒░"
-    ["retro"]=" .:░▒▓█"
-    ["dots"]=" ⠁⠃⠇⠿⣿"
+    [blocks]=" ░▒▓█"
+    [shades]=" ░▒▓█▓▒░"
+    [retro]=" .:░▒▓█"
+    [dots]=" ⠁⠃⠇⠿⣿"
     
     # Fun/decorative palettes  
-    ["emoji"]="  🌑🌒🌓🌔🌕"
-    ["stars"]=" ·✦★✷✸✹"
-    ["hearts"]=" ♡♥❤💖💗"
+    [emoji]="  🌑🌒🌓🌔🌕"
+    [stars]=" ·✦★✷✸✹"
+    [hearts]=" ♡♥❤💖💗"
 )
 
 # Palette descriptions for help text
-declare -gA PALETTE_DESCRIPTIONS=(
-    ["standard"]="General purpose, good balance"
-    ["detailed"]="Maximum detail, 72 ASCII chars"
-    ["simple"]="Quick previews, minimal chars"
-    ["binary"]="Silhouettes, two-tone"
-    ["matrix"]="Hacker/Matrix aesthetic"
-    ["blocks"]="Unicode blocks, high contrast"
-    ["shades"]="Symmetric shading effect"
-    ["retro"]="Retro computing style"
-    ["dots"]="Braille-style patterns"
-    ["emoji"]="Moon phases, fun for social"
-    ["stars"]="Dreamy, sparkly effect"
-    ["hearts"]="Love-themed art"
+declare -A PALETTE_DESCRIPTIONS
+PALETTE_DESCRIPTIONS=(
+    [standard]="General purpose, good balance"
+    [detailed]="Maximum detail, 72 ASCII chars"
+    [simple]="Quick previews, minimal chars"
+    [binary]="Silhouettes, two-tone"
+    [matrix]="Hacker/Matrix aesthetic"
+    [blocks]="Unicode blocks, high contrast"
+    [shades]="Symmetric shading effect"
+    [retro]="Retro computing style"
+    [dots]="Braille-style patterns"
+    [emoji]="Moon phases, fun for social"
+    [stars]="Dreamy, sparkly effect"
+    [hearts]="Love-themed art"
 )
 
 # ============================================================================
