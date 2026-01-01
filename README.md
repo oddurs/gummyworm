@@ -49,7 +49,23 @@ gummyworm/
 
 ## Installation
 
-### Prerequisites
+### Homebrew (macOS/Linux)
+
+The easiest way to install gummyworm on macOS or Linux:
+
+```bash
+# Add the tap (first time only)
+brew tap oddurs/gummyworm
+
+# Install gummyworm
+brew install gummyworm
+```
+
+This automatically installs ImageMagick as a dependency.
+
+### Manual Installation
+
+#### Prerequisites
 
 - **Bash** 4.0+ (most Linux/macOS systems)
 - **ImageMagick** (for image processing)
@@ -66,11 +82,11 @@ brew install imagemagick
 sudo dnf install ImageMagick
 ```
 
-### Install
+#### Install from Source
 
 ```bash
 # Clone or download
-git clone https://github.com/example/gummyworm.git
+git clone https://github.com/oddurs/gummyworm.git
 cd gummyworm
 
 # Make executable
