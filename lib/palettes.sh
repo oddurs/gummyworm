@@ -114,8 +114,38 @@ palette_list() {
         # Get visual character count (handles unicode)
         char_count=$(echo -n "$chars" | wc -m | tr -d ' ')
         
-        printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %-20s │ %s\n" \
-            "$name" "$chars" "($char_count chars) $desc"
+        # Calculate terminal display width (accounts for wide chars like emojis)
+        local display_width=20
+        local visual_len
+        visual_len=$(str_display_width "$chars")
+        
+        # Truncate long palettes and add ellipsis
+        local display_chars="$chars"
+        if [[ "$visual_len" -gt "$display_width" ]]; then
+            # Truncate character by character until we fit
+            display_chars=""
+            local current_width=0
+            local max_width=$((display_width - 1))
+            while IFS= read -r char; do
+                local char_width
+                char_width=$(str_display_width "$char")
+                if [[ $((current_width + char_width)) -le $max_width ]]; then
+                    display_chars+="$char"
+                    current_width=$((current_width + char_width))
+                else
+                    break
+                fi
+            done < <(echo -n "$chars" | grep -o .)
+            display_chars+="…"
+            visual_len=$((current_width + 1))
+        fi
+        
+        local padding=$((display_width - visual_len))
+        [[ "$padding" -lt 0 ]] && padding=0
+        local padded_chars="$display_chars$(printf '%*s' "$padding" '')"
+        
+        printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %s │ %s\n" \
+            "$name" "$padded_chars" "($char_count chars) $desc"
     done
     
     # Check for custom palettes
@@ -153,6 +183,29 @@ palette_validate() {
     fi
     
     return 0
+}
+
+# Check if palette contains wide characters (emojis, CJK, etc.)
+# Usage: palette_has_wide_chars <palette_string>
+# Returns: 0 if has wide chars, 1 if not
+palette_has_wide_chars() {
+    local palette="$1"
+    local char_count display_width
+    char_count=$(echo -n "$palette" | wc -m | tr -d ' ')
+    display_width=$(str_display_width "$palette")
+    [[ "$display_width" -gt "$char_count" ]]
+}
+
+# Get the maximum display width of any character in the palette (1 or 2)
+# Usage: palette_char_width <palette_string>
+# Returns: 1 for normal chars, 2 if any wide chars exist
+palette_char_width() {
+    local palette="$1"
+    if palette_has_wide_chars "$palette"; then
+        echo 2
+    else
+        echo 1
+    fi
 }
 
 # Parse palette into array (handles unicode)

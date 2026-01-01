@@ -11,6 +11,56 @@
 readonly _GUMMYWORM_UTILS_LOADED=1
 
 # ============================================================================
+# Character Width Functions
+# ============================================================================
+
+# Calculate terminal display width of a string (accounting for wide chars like emojis)
+# Usage: str_display_width <string>
+# Returns: integer width in terminal columns
+str_display_width() {
+    local str="$1"
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "
+import unicodedata
+import sys
+s = sys.argv[1]
+width = 0
+for c in s:
+    # East Asian Width: F(ull), W(ide) = 2 columns, others = 1
+    w = unicodedata.east_asian_width(c)
+    if w in ('F', 'W'):
+        width += 2
+    else:
+        width += 1
+print(width)
+" "$str"
+    else
+        # Fallback: just count characters
+        echo -n "$str" | wc -m | tr -d ' '
+    fi
+}
+
+# Check if a character is wide (takes 2 terminal columns)
+# Usage: char_is_wide <char>
+# Returns: 0 if wide, 1 if not
+char_is_wide() {
+    local char="$1"
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "
+import unicodedata
+import sys
+c = sys.argv[1]
+if len(c) > 0:
+    w = unicodedata.east_asian_width(c[0])
+    sys.exit(0 if w in ('F', 'W') else 1)
+sys.exit(1)
+" "$char"
+    else
+        return 1
+    fi
+}
+
+# ============================================================================
 # Logging Functions
 # ============================================================================
 

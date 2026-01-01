@@ -51,9 +51,18 @@ convert_to_ascii() {
     orig_dims=$(image_dimensions "$image")
     read -r orig_w orig_h <<< "$orig_dims"
     
+    # Adjust width for wide-character palettes (emojis take 2 columns)
+    local char_width
+    char_width=$(palette_char_width "$palette")
+    local adjusted_width=$width
+    if [[ "$char_width" -gt 1 ]]; then
+        adjusted_width=$((width / char_width))
+        log_debug "Wide char palette detected (char_width=$char_width), adjusted width: $width -> $adjusted_width"
+    fi
+    
     # Calculate output dimensions
     local out_dims out_w out_h
-    out_dims=$(calc_dimensions "$orig_w" "$orig_h" "$width" "$height" "$preserve_aspect")
+    out_dims=$(calc_dimensions "$orig_w" "$orig_h" "$adjusted_width" "$height" "$preserve_aspect")
     read -r out_w out_h <<< "$out_dims"
     
     log_debug "Original: ${orig_w}x${orig_h}, Output: ${out_w}x${out_h}"
