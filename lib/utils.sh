@@ -113,6 +113,63 @@ is_blank() {
 }
 
 # ============================================================================
+# File & Directory Functions
+# ============================================================================
+
+# Common image file extensions
+readonly IMAGE_EXTENSIONS="jpg|jpeg|png|gif|bmp|tiff|tif|webp|ico|ppm|pgm|pbm"
+
+# Check if file has an image extension
+# Usage: is_image_file <filepath>
+is_image_file() {
+    local file="$1"
+    local ext="${file##*.}"
+    [[ "${ext,,}" =~ ^($IMAGE_EXTENSIONS)$ ]]
+}
+
+# Find all image files in a directory
+# Usage: find_images_in_dir <directory> [recursive]
+# Output: null-separated list of image paths (for safe handling of filenames with spaces)
+find_images_in_dir() {
+    local dir="$1"
+    local recursive="${2:-false}"
+    
+    # Build find command with multiple -iname patterns
+    # Using -iname for case-insensitive matching (portable across BSD/GNU find)
+    if [[ "$recursive" == "true" ]]; then
+        find "$dir" -type f \( \
+            -iname "*.jpg" -o \
+            -iname "*.jpeg" -o \
+            -iname "*.png" -o \
+            -iname "*.gif" -o \
+            -iname "*.bmp" -o \
+            -iname "*.tiff" -o \
+            -iname "*.tif" -o \
+            -iname "*.webp" -o \
+            -iname "*.ico" -o \
+            -iname "*.ppm" -o \
+            -iname "*.pgm" -o \
+            -iname "*.pbm" \
+        \) -print0 2>/dev/null | sort -z
+    else
+        find "$dir" -maxdepth 1 -type f \( \
+            -iname "*.jpg" -o \
+            -iname "*.jpeg" -o \
+            -iname "*.png" -o \
+            -iname "*.gif" -o \
+            -iname "*.bmp" -o \
+            -iname "*.tiff" -o \
+            -iname "*.tif" -o \
+            -iname "*.webp" -o \
+            -iname "*.ico" -o \
+            -iname "*.ppm" -o \
+            -iname "*.pgm" -o \
+            -iname "*.pbm" \
+        \) -print0 2>/dev/null | sort -z
+    fi
+}
+
+# ============================================================================
 # Exit Handlers
 # ============================================================================
 

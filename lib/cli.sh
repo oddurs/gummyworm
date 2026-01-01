@@ -34,7 +34,9 @@ EOF
 show_help() {
     show_banner
     echo -e "${COLOR_BOLD}USAGE:${COLOR_RESET}"
-    echo "    $GUMMYWORM_NAME [OPTIONS] <image_file>"
+    echo "    $GUMMYWORM_NAME [OPTIONS] <image_file> [image_file2 ...]"
+    echo "    $GUMMYWORM_NAME [OPTIONS] < image_data    (stdin)"
+    echo "    cat image.png | $GUMMYWORM_NAME [OPTIONS]"
     echo ""
     echo -e "${COLOR_BOLD}OPTIONS:${COLOR_RESET}"
     echo "    -w, --width <N>       Output width in characters (default: $DEFAULT_WIDTH)"
@@ -42,9 +44,12 @@ show_help() {
     echo "    -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)"
     echo "    -c, --color           Enable ANSI color output"
     echo "    -i, --invert          Invert brightness (dark ↔ light)"
-    echo "    -o, --output <FILE>   Save output to file instead of stdout"
+    echo "    -o, --output <FILE>   Save output to file (or append in batch mode)"
+    echo "    -d, --output-dir <DIR>  Save each output to directory with auto-naming"
+    echo "    -r, --recursive       Process directories recursively"
     echo "    -l, --list-palettes   Show available character palettes"
     echo "    -q, --quiet           Suppress info messages"
+    echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
     echo "    --help                Show this help message"
     echo "    --version             Show version information"
@@ -67,6 +72,21 @@ show_help() {
     echo ""
     echo -e "    ${COLOR_CYAN}# Custom palette${COLOR_RESET}"
     echo "    $GUMMYWORM_NAME -p \" .oO0@#\" image.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Batch processing - multiple files${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME *.jpg *.png"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Batch to directory with auto-naming${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -d output/ photos/*.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Process directory recursively${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -r -d ascii_art/ ./images/"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# From URL${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME https://example.com/image.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# From stdin (pipe)${COLOR_RESET}"
+    echo "    curl -s https://example.com/image.jpg | $GUMMYWORM_NAME"
     echo ""
     echo -e "${COLOR_BOLD}SUPPORTED FORMATS:${COLOR_RESET}"
     echo "    JPEG, PNG, GIF, BMP, TIFF, WebP, and any format supported by ImageMagick"
@@ -115,9 +135,12 @@ parse_args() {
     ARG_INVERT="$DEFAULT_INVERT"
     ARG_COLOR="$DEFAULT_COLOR"
     ARG_OUTPUT="$DEFAULT_OUTPUT"
+    ARG_OUTPUT_DIR=""
+    ARG_RECURSIVE="false"
+    ARG_CONTINUE_ON_ERROR="false"
     ARG_QUIET="$DEFAULT_QUIET"
     ARG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
-    ARG_IMAGE=""
+    ARG_IMAGES=()
     
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -151,6 +174,19 @@ parse_args() {
                 ARG_OUTPUT="$2"
                 shift 2
                 ;;
+            -d|--output-dir)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                ARG_OUTPUT_DIR="$2"
+                shift 2
+                ;;
+            -r|--recursive)
+                ARG_RECURSIVE="true"
+                shift
+                ;;
+            --continue-on-error)
+                ARG_CONTINUE_ON_ERROR="true"
+                shift
+                ;;
             -l|--list-palettes)
                 show_palettes
                 exit 0
@@ -175,19 +211,53 @@ parse_args() {
                 die_usage "Unknown option: $1"
                 ;;
             *)
-                if [[ -z "$ARG_IMAGE" ]]; then
-                    ARG_IMAGE="$1"
-                else
-                    die_usage "Multiple images specified. Process one at a time."
-                fi
+                # Collect raw inputs - will expand after all options parsed
+                ARG_IMAGES+=("$1")
                 shift
                 ;;
         esac
     done
     
-    # Validate required args
-    if [[ -z "$ARG_IMAGE" ]]; then
-        show_help
-        exit 1
+    # Now expand directories and handle special inputs
+    # Only process if we have inputs (handles empty array in strict mode)
+    if [[ ${#ARG_IMAGES[@]} -gt 0 ]]; then
+        local raw_inputs=("${ARG_IMAGES[@]}")
+        ARG_IMAGES=()
+        
+        for input in "${raw_inputs[@]}"; do
+            if is_url "$input"; then
+                ARG_IMAGES+=("$input")
+            elif [[ -d "$input" ]]; then
+                # Directory input - expand to image files
+                local found_images=0
+                while IFS= read -r -d '' img; do
+                    ARG_IMAGES+=("$img")
+                    found_images=$((found_images + 1))
+                done < <(find_images_in_dir "$input" "$ARG_RECURSIVE")
+                if [[ $found_images -eq 0 ]]; then
+                    log_warn "No images found in directory: $input"
+                fi
+            else
+                # Regular file
+                ARG_IMAGES+=("$input")
+            fi
+        done
+    fi
+    
+    # Check for stdin input if no images provided
+    if [[ ${#ARG_IMAGES[@]} -eq 0 ]]; then
+        if [[ ! -t 0 ]]; then
+            # stdin is piped - save to temp file
+            ARG_IMAGES+=("$(image_from_stdin)")
+            ARG_STDIN_TEMP="${ARG_IMAGES[0]}"
+        else
+            show_help
+            exit 1
+        fi
+    fi
+    
+    # Validate output-dir if specified
+    if [[ -n "$ARG_OUTPUT_DIR" ]]; then
+        mkdir -p "$ARG_OUTPUT_DIR" 2>/dev/null || die "Cannot create output directory: $ARG_OUTPUT_DIR"
     fi
 }

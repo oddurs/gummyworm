@@ -66,10 +66,7 @@ main() {
     # Parse command line arguments
     parse_args "$@"
     
-    # Validate image file
-    image_validate "$ARG_IMAGE"
-    
-    # Resolve palette
+    # Resolve palette once (shared across all images)
     local palette
     if palette_exists "$ARG_PALETTE"; then
         palette=$(palette_get "$ARG_PALETTE")
@@ -81,44 +78,151 @@ main() {
     # Validate palette
     palette_validate "$palette" || exit 1
     
-    # Show info (unless quiet)
-    if [[ "$ARG_QUIET" != "true" ]]; then
-        local dims
-        dims=$(image_dimensions "$ARG_IMAGE")
-        log_info "Converting: $(basename "$ARG_IMAGE") (${dims// /x})"
-        log_info "Output size: ${ARG_WIDTH} chars wide"
-        [[ "$ARG_COLOR" == "true" ]] && log_info "Color mode: enabled 🎨"
-        [[ "$ARG_INVERT" == "true" ]] && log_info "Inverted: yes"
+    # Batch processing statistics
+    local total_images=${#ARG_IMAGES[@]}
+    local processed=0
+    local failed=0
+    local failed_files=()
+    
+    # Show batch info
+    if [[ "$ARG_QUIET" != "true" && $total_images -gt 1 ]]; then
+        log_info "Processing $total_images images..."
     fi
     
-    # Perform conversion
-    local result
-    result=$(convert_to_ascii \
-        "$ARG_IMAGE" \
-        "$ARG_WIDTH" \
-        "$ARG_HEIGHT" \
-        "$palette" \
-        "$ARG_INVERT" \
-        "$ARG_COLOR" \
-        "$ARG_PRESERVE_ASPECT"
-    )
-    
-    # Output results
-    if [[ -n "$ARG_OUTPUT" ]]; then
-        # Save to file
-        local strip_ansi="true"
-        [[ "$ARG_COLOR" == "true" ]] && strip_ansi="false"
+    # Process each image
+    for image in "${ARG_IMAGES[@]}"; do
+        processed=$((processed + 1))
         
-        save_to_file "$result" "$ARG_OUTPUT" "$strip_ansi"
+        # Resolve the actual file (download URL if needed)
+        local resolved_image="$image"
+        local temp_downloaded=""
         
-        if [[ "$ARG_QUIET" != "true" ]]; then
-            log_success "Saved to: $ARG_OUTPUT"
+        if is_url "$image"; then
+            if [[ "$ARG_QUIET" != "true" ]]; then
+                log_info "Downloading: $image"
+            fi
+            resolved_image=$(download_image "$image") || {
+                log_error "Failed to download: $image"
+                failed=$((failed + 1))
+                failed_files+=("$image")
+                [[ "$ARG_CONTINUE_ON_ERROR" == "true" ]] && continue || exit 1
+            }
+            temp_downloaded="$resolved_image"
         fi
-    else
-        # Print to stdout
+        
+        # Validate image file
+        if ! image_is_valid "$resolved_image"; then
+            log_error "Invalid image: $image"
+            failed=$((failed + 1))
+            failed_files+=("$image")
+            [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+            [[ "$ARG_CONTINUE_ON_ERROR" == "true" ]] && continue || exit 1
+        fi
+        
+        # Show progress info (unless quiet)
+        if [[ "$ARG_QUIET" != "true" ]]; then
+            local dims
+            dims=$(image_dimensions "$resolved_image")
+            if [[ $total_images -gt 1 ]]; then
+                log_info "[$processed/$total_images] Converting: $(basename "$image") (${dims// /x})"
+            else
+                log_info "Converting: $(basename "$image") (${dims// /x})"
+                log_info "Output size: ${ARG_WIDTH} chars wide"
+                [[ "$ARG_COLOR" == "true" ]] && log_info "Color mode: enabled 🎨"
+                [[ "$ARG_INVERT" == "true" ]] && log_info "Inverted: yes"
+            fi
+        fi
+        
+        # Perform conversion
+        local result
+        result=$(convert_to_ascii \
+            "$resolved_image" \
+            "$ARG_WIDTH" \
+            "$ARG_HEIGHT" \
+            "$palette" \
+            "$ARG_INVERT" \
+            "$ARG_COLOR" \
+            "$ARG_PRESERVE_ASPECT"
+        ) || {
+            log_error "Conversion failed: $image"
+            failed=$((failed + 1))
+            failed_files+=("$image")
+            [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+            [[ "$ARG_CONTINUE_ON_ERROR" == "true" ]] && continue || exit 1
+        }
+        
+        # Clean up temp downloaded file
+        [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+        
+        # Output results
+        if [[ -n "$ARG_OUTPUT_DIR" ]]; then
+            # Save to output directory with auto-generated name
+            local base_name
+            base_name=$(basename "$image")
+            base_name="${base_name%.*}.ascii.txt"
+            local out_file="$ARG_OUTPUT_DIR/$base_name"
+            
+            local strip_ansi="true"
+            [[ "$ARG_COLOR" == "true" ]] && strip_ansi="false"
+            
+            save_to_file "$result" "$out_file" "$strip_ansi"
+            
+            if [[ "$ARG_QUIET" != "true" ]]; then
+                log_success "Saved to: $out_file"
+            fi
+        elif [[ -n "$ARG_OUTPUT" ]]; then
+            # Save to single file (append in batch mode)
+            local strip_ansi="true"
+            [[ "$ARG_COLOR" == "true" ]] && strip_ansi="false"
+            
+            if [[ $total_images -gt 1 ]]; then
+                # Batch mode: append with separator
+                {
+                    echo ""
+                    echo "# ============ $(basename "$image") ============"
+                    echo ""
+                    if [[ "$strip_ansi" == "true" ]]; then
+                        echo -e "$result" | sed 's/\x1b\[[0-9;]*m//g'
+                    else
+                        echo -e "$result"
+                    fi
+                } >> "$ARG_OUTPUT"
+            else
+                save_to_file "$result" "$ARG_OUTPUT" "$strip_ansi"
+            fi
+            
+            if [[ "$ARG_QUIET" != "true" && $total_images -eq 1 ]]; then
+                log_success "Saved to: $ARG_OUTPUT"
+            fi
+        else
+            # Print to stdout
+            if [[ $total_images -gt 1 ]]; then
+                echo ""
+                echo "# ============ $(basename "$image") ============"
+            fi
+            echo ""
+            echo -e "$result"
+            echo ""
+        fi
+    done
+    
+    # Clean up stdin temp file if used
+    [[ -n "${ARG_STDIN_TEMP:-}" ]] && rm -f "$ARG_STDIN_TEMP"
+    
+    # Batch summary
+    if [[ "$ARG_QUIET" != "true" && $total_images -gt 1 ]]; then
         echo ""
-        echo -e "$result"
-        echo ""
+        if [[ $failed -eq 0 ]]; then
+            log_success "Completed: $processed images processed successfully"
+        else
+            log_warn "Completed: $((processed - failed))/$processed successful, $failed failed"
+            for f in "${failed_files[@]}"; do
+                echo "  - $f"
+            done
+        fi
+        if [[ -n "$ARG_OUTPUT" ]]; then
+            log_success "All output saved to: $ARG_OUTPUT"
+        fi
     fi
 }
 

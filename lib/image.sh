@@ -26,10 +26,78 @@ image_check_deps() {
 }
 
 # ============================================================================
+# URL & Stdin Helpers
+# ============================================================================
+
+# Check if a string is a URL
+# Usage: is_url <string>
+is_url() {
+    [[ "$1" =~ ^https?:// ]]
+}
+
+# Download image from URL to temp file
+# Usage: download_image <url>
+# Output: path to temp file
+download_image() {
+    local url="$1"
+    local temp_file
+    temp_file=$(mktemp "${TMPDIR:-/tmp}/gummyworm_download.XXXXXX")
+    
+    # Try curl first, then wget
+    if command_exists curl; then
+        if ! curl -fsSL --max-time 30 -o "$temp_file" "$url" 2>/dev/null; then
+            rm -f "$temp_file"
+            return 1
+        fi
+    elif command_exists wget; then
+        if ! wget -q --timeout=30 -O "$temp_file" "$url" 2>/dev/null; then
+            rm -f "$temp_file"
+            return 1
+        fi
+    else
+        rm -f "$temp_file"
+        die "Either curl or wget is required to download URLs"
+    fi
+    
+    echo "$temp_file"
+}
+
+# Save stdin to temp file for processing
+# Usage: image_from_stdin
+# Output: path to temp file
+image_from_stdin() {
+    local temp_file
+    temp_file=$(mktemp "${TMPDIR:-/tmp}/gummyworm_stdin.XXXXXX")
+    
+    # Read all stdin to temp file
+    cat > "$temp_file"
+    
+    # Verify it's a valid image
+    if ! identify "$temp_file" &>/dev/null; then
+        rm -f "$temp_file"
+        die "Stdin does not contain valid image data"
+    fi
+    
+    echo "$temp_file"
+}
+
+# ============================================================================
 # Image Validation
 # ============================================================================
 
-# Validate that a file is a readable image
+# Check if a file is a valid readable image (non-fatal)
+# Usage: image_is_valid <filepath>
+# Returns: 0 if valid, 1 if not
+image_is_valid() {
+    local image="$1"
+    
+    [[ -f "$image" ]] || return 1
+    [[ -r "$image" ]] || return 1
+    identify "$image" &>/dev/null || return 1
+    return 0
+}
+
+# Validate that a file is a readable image (fatal on error)
 # Usage: image_validate <filepath>
 image_validate() {
     local image="$1"

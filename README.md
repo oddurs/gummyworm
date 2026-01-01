@@ -24,6 +24,10 @@ A playful, feature-rich, and extensible command-line tool for converting images 
 - 💾 **File output** - Save ASCII art to files
 - 🔧 **Extensible** - Custom palettes via files or inline strings
 - 📦 **Modular architecture** - Clean, maintainable code structure
+- 📁 **Batch processing** - Convert multiple files at once
+- 🔍 **Recursive directories** - Process entire folders of images
+- 🌐 **URL support** - Download and convert images from URLs
+- 📥 **Stdin piping** - Pipe image data directly
 
 ## Project Structure
 
@@ -113,12 +117,23 @@ sudo ln -s "$(pwd)/bin/gummyworm" /usr/local/bin/gummyworm
 
 # Emoji mode! 🌕
 ./gummyworm -p emoji cat.jpg
+
+# Batch process multiple files
+./gummyworm photos/*.jpg
+
+# Process from URL
+./gummyworm https://example.com/image.jpg
+
+# Pipe from stdin
+curl -s https://example.com/image.png | ./gummyworm
 ```
 
 ## Usage
 
 ```
-gummyworm [OPTIONS] <image_file>
+gummyworm [OPTIONS] <image_file> [image_file2 ...]
+gummyworm [OPTIONS] < image_data
+cat image.png | gummyworm [OPTIONS]
 ```
 
 ### Options
@@ -130,7 +145,10 @@ gummyworm [OPTIONS] <image_file>
 | `-p, --palette <n>` | Character palette to use | standard |
 | `-c, --color` | Enable ANSI color output | off |
 | `-i, --invert` | Invert brightness (dark ↔ light) | off |
-| `-o, --output <FILE>` | Save output to file | stdout |
+| `-o, --output <FILE>` | Save output to file (appends in batch mode) | stdout |
+| `-d, --output-dir <DIR>` | Save each output to directory with auto-naming | - |
+| `-r, --recursive` | Process directories recursively | off |
+| `--continue-on-error` | Continue batch processing if one file fails | off |
 | `-l, --list-palettes` | Show available palettes | - |
 | `-q, --quiet` | Suppress info messages | off |
 | `--no-aspect` | Don't preserve aspect ratio | - |
@@ -183,6 +201,7 @@ Utility functions:
 - `command_exists`, `file_readable`
 - `is_positive_int`, `is_non_negative_int`
 - `trim`, `is_blank`
+- `find_images_in_dir <dir> [recursive]` - Find image files in directory
 
 ### lib/palettes.sh
 Palette management:
@@ -195,9 +214,13 @@ Palette management:
 ### lib/image.sh
 Image processing:
 - `image_check_deps` - Verify ImageMagick installed
-- `image_validate <file>` - Validate image file
+- `image_validate <file>` - Validate image file (fatal)
+- `image_is_valid <file>` - Check if valid image (non-fatal)
 - `image_dimensions <file>` - Get "width height"
 - `image_extract_pixels <file> <w> <h> <output>` - Extract pixel data
+- `is_url <string>` - Check if string is a URL
+- `download_image <url>` - Download image to temp file
+- `image_from_stdin` - Save stdin to temp file
 - `calc_brightness <r> <g> <b>` - Calculate luminance
 - `calc_dimensions <ow> <oh> <tw> <th> <preserve>` - Calculate output size
 
@@ -210,7 +233,7 @@ Core conversion:
 ### lib/cli.sh
 User interface:
 - `show_banner`, `show_help`, `show_version`, `show_palettes`
-- `parse_args "$@"` - Parse CLI arguments (sets `ARG_*` globals)
+- `parse_args "$@"` - Parse CLI arguments (sets `ARG_*` globals including `ARG_IMAGES` array)
 
 ## Testing
 
