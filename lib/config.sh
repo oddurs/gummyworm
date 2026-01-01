@@ -34,20 +34,17 @@ readonly DEFAULT_OUTPUT=""
 readonly DEFAULT_QUIET=false
 readonly DEFAULT_PRESERVE_ASPECT=true
 
-# ANSI color codes - declare first, then populate
-declare -A COLORS
-COLORS=(
-    [reset]="\033[0m"
-    [bold]="\033[1m"
-    [dim]="\033[2m"
-    [red]="\033[31m"
-    [green]="\033[32m"
-    [yellow]="\033[33m"
-    [blue]="\033[34m"
-    [magenta]="\033[35m"
-    [cyan]="\033[36m"
-    [white]="\033[37m"
-)
+# ANSI color codes - bash 3.x compatible (no associative arrays)
+COLOR_RESET="\033[0m"
+COLOR_BOLD="\033[1m"
+COLOR_DIM="\033[2m"
+COLOR_RED="\033[31m"
+COLOR_GREEN="\033[32m"
+COLOR_YELLOW="\033[33m"
+COLOR_BLUE="\033[34m"
+COLOR_MAGENTA="\033[35m"
+COLOR_CYAN="\033[36m"
+COLOR_WHITE="\033[37m"
 
 # Export for subshells
 export GUMMYWORM_VERSION GUMMYWORM_NAME GUMMYWORM_ROOT

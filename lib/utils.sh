@@ -19,37 +19,50 @@ readonly _GUMMYWORM_UTILS_LOADED=1
 print_color() {
     local color="$1"
     shift
-    echo -e "${COLORS[$color]:-}$*${COLORS[reset]}"
+    local color_code=""
+    case "$color" in
+        reset)   color_code="$COLOR_RESET" ;;
+        bold)    color_code="$COLOR_BOLD" ;;
+        dim)     color_code="$COLOR_DIM" ;;
+        red)     color_code="$COLOR_RED" ;;
+        green)   color_code="$COLOR_GREEN" ;;
+        yellow)  color_code="$COLOR_YELLOW" ;;
+        blue)    color_code="$COLOR_BLUE" ;;
+        magenta) color_code="$COLOR_MAGENTA" ;;
+        cyan)    color_code="$COLOR_CYAN" ;;
+        white)   color_code="$COLOR_WHITE" ;;
+    esac
+    echo -e "${color_code}$*${COLOR_RESET}"
 }
 
 # Print error message to stderr
 # Usage: log_error <message>
 log_error() {
-    echo -e "${COLORS[red]}✖ Error:${COLORS[reset]} $*" >&2
+    echo -e "${COLOR_RED}✖ Error:${COLOR_RESET} $*" >&2
 }
 
 # Print success message
 # Usage: log_success <message>
 log_success() {
-    echo -e "${COLORS[green]}✔${COLORS[reset]} $*"
+    echo -e "${COLOR_GREEN}✔${COLOR_RESET} $*"
 }
 
 # Print info message
 # Usage: log_info <message>
 log_info() {
-    echo -e "${COLORS[cyan]}ℹ${COLORS[reset]} $*"
+    echo -e "${COLOR_CYAN}ℹ${COLOR_RESET} $*"
 }
 
 # Print warning message
 # Usage: log_warn <message>
 log_warn() {
-    echo -e "${COLORS[yellow]}⚠${COLORS[reset]} $*"
+    echo -e "${COLOR_YELLOW}⚠${COLOR_RESET} $*"
 }
 
 # Print debug message (only if DEBUG is set)
 # Usage: log_debug <message>
 log_debug() {
-    [[ -n "${DEBUG:-}" ]] && echo -e "${COLORS[dim]}[DEBUG]${COLORS[reset]} $*" >&2
+    [[ -n "${DEBUG:-}" ]] && echo -e "${COLOR_DIM}[DEBUG]${COLOR_RESET} $*" >&2
 }
 
 # ============================================================================

@@ -66,10 +66,9 @@ convert_to_ascii() {
     # Extract pixels
     image_extract_pixels "$image" "$out_w" "$out_h" "$tmpfile"
     
-    # Parse palette into array
-    local -a palette_chars
-    palette_to_array "$palette" palette_chars
-    local palette_len=${#palette_chars[@]}
+    # Parse palette into array (uses global _PALETTE_CHARS)
+    palette_to_array "$palette" _PALETTE_CHARS
+    local palette_len=${#_PALETTE_CHARS[@]}
     
     log_debug "Palette length: $palette_len"
     
@@ -109,7 +108,7 @@ convert_to_ascii() {
             [[ $char_index -ge $palette_len ]] && char_index=$((palette_len - 1))
             [[ $char_index -lt 0 ]] && char_index=0
             
-            local char="${palette_chars[$char_index]}"
+            local char="${_PALETTE_CHARS[$char_index]}"
             
             # Add color escape if enabled
             if [[ "$use_color" == "true" ]]; then

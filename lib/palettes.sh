@@ -3,6 +3,7 @@
 # gummyworm/lib/palettes.sh - Character palette management
 # ============================================================================
 # Handles loading, listing, and managing character palettes for ASCII art.
+# Compatible with bash 3.x (no associative arrays)
 # Requires: lib/config.sh, lib/utils.sh
 # ============================================================================
 
@@ -13,59 +14,63 @@ readonly _GUMMYWORM_PALETTES_LOADED=1
 # ============================================================================
 # Built-in Palettes
 # ============================================================================
-# Characters ordered from darkest/empty to brightest/filled
+# Using functions instead of associative arrays for bash 3.x compatibility
 
-declare -A BUILTIN_PALETTES
-BUILTIN_PALETTES=(
-    # Standard ASCII palettes
-    [standard]=" .:-=+*#%@"
-    [detailed]=" .'°\`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@\$"
-    [simple]=" .oO@"
-    [binary]=" █"
-    [matrix]=" 01"
-    
-    # Unicode block palettes
-    [blocks]=" ░▒▓█"
-    [shades]=" ░▒▓█▓▒░"
-    [retro]=" .:░▒▓█"
-    [dots]=" ⠁⠃⠇⠿⣿"
-    
-    # Fun/decorative palettes  
-    [emoji]="  🌑🌒🌓🌔🌕"
-    [stars]=" ·✦★✷✸✹"
-    [hearts]=" ♡♥❤💖💗"
-)
+# Get built-in palette by name
+_get_builtin_palette() {
+    case "$1" in
+        standard) echo " .:-=+*#%@" ;;
+        detailed) echo " .'°\`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@\$" ;;
+        simple)   echo " .oO@" ;;
+        binary)   echo " █" ;;
+        matrix)   echo " 01" ;;
+        blocks)   echo " ░▒▓█" ;;
+        shades)   echo " ░▒▓█▓▒░" ;;
+        retro)    echo " .:░▒▓█" ;;
+        dots)     echo " ⠁⠃⠇⠿⣿" ;;
+        emoji)    echo "  🌑🌒🌓🌔🌕" ;;
+        stars)    echo " ·✦★✷✸✹" ;;
+        hearts)   echo " ♡♥❤💖💗" ;;
+        *)        return 1 ;;
+    esac
+}
 
-# Palette descriptions for help text
-declare -A PALETTE_DESCRIPTIONS
-PALETTE_DESCRIPTIONS=(
-    [standard]="General purpose, good balance"
-    [detailed]="Maximum detail, 72 ASCII chars"
-    [simple]="Quick previews, minimal chars"
-    [binary]="Silhouettes, two-tone"
-    [matrix]="Hacker/Matrix aesthetic"
-    [blocks]="Unicode blocks, high contrast"
-    [shades]="Symmetric shading effect"
-    [retro]="Retro computing style"
-    [dots]="Braille-style patterns"
-    [emoji]="Moon phases, fun for social"
-    [stars]="Dreamy, sparkly effect"
-    [hearts]="Love-themed art"
-)
+# Get palette description
+_get_palette_description() {
+    case "$1" in
+        standard) echo "General purpose, good balance" ;;
+        detailed) echo "Maximum detail, 72 ASCII chars" ;;
+        simple)   echo "Quick previews, minimal chars" ;;
+        binary)   echo "Silhouettes, two-tone" ;;
+        matrix)   echo "Hacker/Matrix aesthetic" ;;
+        blocks)   echo "Unicode blocks, high contrast" ;;
+        shades)   echo "Symmetric shading effect" ;;
+        retro)    echo "Retro computing style" ;;
+        dots)     echo "Braille-style patterns" ;;
+        emoji)    echo "Moon phases, fun for social" ;;
+        stars)    echo "Dreamy, sparkly effect" ;;
+        hearts)   echo "Love-themed art" ;;
+        *)        echo "" ;;
+    esac
+}
+
+# List of all built-in palette names
+BUILTIN_PALETTE_NAMES="standard detailed simple binary matrix blocks shades retro dots emoji stars hearts"
 
 # ============================================================================
 # Palette Functions
 # ============================================================================
 
 # Get a palette by name (built-in or custom file)
-# Usage: palette_get <name>
+# Usage: palette_get <n>
 # Returns: palette string via stdout, or empty if not found
 palette_get() {
     local name="$1"
+    local result
     
     # Check built-in palettes first
-    if [[ -n "${BUILTIN_PALETTES[$name]:-}" ]]; then
-        echo "${BUILTIN_PALETTES[$name]}"
+    if result=$(_get_builtin_palette "$name" 2>/dev/null); then
+        echo "$result"
         return 0
     fi
     
@@ -82,10 +87,10 @@ palette_get() {
 }
 
 # Check if a palette exists
-# Usage: palette_exists <name>
+# Usage: palette_exists <n>
 palette_exists() {
     local name="$1"
-    [[ -n "${BUILTIN_PALETTES[$name]:-}" ]] || \
+    _get_builtin_palette "$name" >/dev/null 2>&1 || \
     [[ -f "${GUMMYWORM_PALETTES_DIR}/${name}.palette" ]]
 }
 
@@ -97,24 +102,26 @@ palette_list() {
     
     # Sort palette names
     local names
-    names=$(echo "${!BUILTIN_PALETTES[@]}" | tr ' ' '\n' | sort)
+    names=$(echo "$BUILTIN_PALETTE_NAMES" | tr ' ' '\n' | sort)
     
     for name in $names; do
-        local chars="${BUILTIN_PALETTES[$name]}"
-        local desc="${PALETTE_DESCRIPTIONS[$name]:-}"
+        local chars
+        chars=$(_get_builtin_palette "$name")
+        local desc
+        desc=$(_get_palette_description "$name")
         local char_count
         
         # Get visual character count (handles unicode)
-        char_count=$(echo -n "$chars" | wc -m)
+        char_count=$(echo -n "$chars" | wc -m | tr -d ' ')
         
-        printf "  ${COLORS[cyan]}%-12s${COLORS[reset]} │ %-20s │ %s\n" \
+        printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %-20s │ %s\n" \
             "$name" "$chars" "($char_count chars) $desc"
     done
     
     # Check for custom palettes
     if [[ -d "$GUMMYWORM_PALETTES_DIR" ]]; then
         local custom_palettes
-        custom_palettes=$(find "$GUMMYWORM_PALETTES_DIR" -name "*.palette" 2>/dev/null | wc -l)
+        custom_palettes=$(find "$GUMMYWORM_PALETTES_DIR" -name "*.palette" 2>/dev/null | wc -l | tr -d ' ')
         
         if [[ "$custom_palettes" -gt 0 ]]; then
             echo ""
@@ -125,7 +132,7 @@ palette_list() {
                 pname=$(basename "$f" .palette)
                 local pchars
                 pchars=$(grep -v '^#' "$f" | grep -v '^$' | head -1)
-                printf "  ${COLORS[cyan]}%-12s${COLORS[reset]} │ %s\n" "$pname" "$pchars"
+                printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %s\n" "$pname" "$pchars"
             done
         fi
     fi
@@ -138,7 +145,7 @@ palette_validate() {
     local palette="$1"
     local len
     
-    len=$(echo -n "$palette" | wc -m)
+    len=$(echo -n "$palette" | wc -m | tr -d ' ')
     
     if [[ "$len" -lt 2 ]]; then
         log_error "Palette must have at least 2 characters"
@@ -150,33 +157,47 @@ palette_validate() {
 
 # Parse palette into array (handles unicode)
 # Usage: palette_to_array <palette_string> <array_name>
+# Note: Uses eval for bash 3.x compatibility (no nameref)
 palette_to_array() {
     local palette="$1"
-    local -n arr=$2  # nameref to array
+    local arr_name="$2"
     
-    arr=()
+    # Clear the array
+    eval "$arr_name=()"
     
     # Check if pure ASCII for fast path
-    if [[ "$palette" =~ ^[[:ascii:]]*$ ]]; then
-        local i
-        for ((i=0; i<${#palette}; i++)); do
-            arr+=("${palette:$i:1}")
+    if echo "$palette" | grep -qE '^[[:print:]]*$' 2>/dev/null && \
+       ! echo "$palette" | grep -q '[^[:ascii:]]' 2>/dev/null; then
+        # Pure ASCII - simple indexing
+        local i=0
+        while [[ $i -lt ${#palette} ]]; do
+            eval "$arr_name+=(\"\${palette:\$i:1}\")"
+            i=$((i + 1))
         done
     else
         # Unicode - use python for reliable character splitting
-        if command_exists python3; then
+        if command -v python3 >/dev/null 2>&1; then
             while IFS= read -r char; do
-                arr+=("$char")
+                eval "$arr_name+=(\"\$char\")"
             done < <(python3 -c "
+import sys
+for c in sys.argv[1]:
+    print(c)
+" "$palette")
+        elif command -v python >/dev/null 2>&1; then
+            while IFS= read -r char; do
+                eval "$arr_name+=(\"\$char\")"
+            done < <(python -c "
 import sys
 for c in sys.argv[1]:
     print(c)
 " "$palette")
         else
             # Fallback: byte-by-byte (may not work for all unicode)
-            local i
-            for ((i=0; i<${#palette}; i++)); do
-                arr+=("${palette:$i:1}")
+            local i=0
+            while [[ $i -lt ${#palette} ]]; do
+                eval "$arr_name+=(\"\${palette:\$i:1}\")"
+                i=$((i + 1))
             done
         fi
     fi

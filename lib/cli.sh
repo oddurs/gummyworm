@@ -34,10 +34,10 @@ EOF
 show_help() {
     show_banner
     cat << EOF
-${COLORS[bold]}USAGE:${COLORS[reset]}
+${COLOR_BOLD}USAGE:${COLOR_RESET}
     $GUMMYWORM_NAME [OPTIONS] <image_file>
 
-${COLORS[bold]}OPTIONS:${COLORS[reset]}
+${COLOR_BOLD}OPTIONS:${COLOR_RESET}
     -w, --width <N>       Output width in characters (default: $DEFAULT_WIDTH)
     -h, --height <N>      Output height in lines (default: auto)
     -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)
@@ -50,29 +50,29 @@ ${COLORS[bold]}OPTIONS:${COLORS[reset]}
     --help                Show this help message
     --version             Show version information
 
-${COLORS[bold]}EXAMPLES:${COLORS[reset]}
-    ${COLORS[cyan]}# Basic conversion${COLORS[reset]}
+${COLOR_BOLD}EXAMPLES:${COLOR_RESET}
+    ${COLOR_CYAN}# Basic conversion${COLOR_RESET}
     $GUMMYWORM_NAME photo.jpg
 
-    ${COLORS[cyan]}# Colored output, 100 characters wide${COLORS[reset]}
+    ${COLOR_CYAN}# Colored output, 100 characters wide${COLOR_RESET}
     $GUMMYWORM_NAME -c -w 100 landscape.png
 
-    ${COLORS[cyan]}# Use block characters, inverted${COLORS[reset]}
+    ${COLOR_CYAN}# Use block characters, inverted${COLOR_RESET}
     $GUMMYWORM_NAME -p blocks -i portrait.jpg
 
-    ${COLORS[cyan]}# Emoji mode! 🌕${COLORS[reset]}
+    ${COLOR_CYAN}# Emoji mode! 🌕${COLOR_RESET}
     $GUMMYWORM_NAME -p emoji sunset.png
 
-    ${COLORS[cyan]}# Save to file${COLORS[reset]}
+    ${COLOR_CYAN}# Save to file${COLOR_RESET}
     $GUMMYWORM_NAME -o art.txt -w 120 image.jpg
 
-    ${COLORS[cyan]}# Custom palette${COLORS[reset]}
+    ${COLOR_CYAN}# Custom palette${COLOR_RESET}
     $GUMMYWORM_NAME -p " .oO0@#" image.jpg
 
-${COLORS[bold]}SUPPORTED FORMATS:${COLORS[reset]}
+${COLOR_BOLD}SUPPORTED FORMATS:${COLOR_RESET}
     JPEG, PNG, GIF, BMP, TIFF, WebP, and any format supported by ImageMagick
 
-${COLORS[bold]}PRO TIPS:${COLORS[reset]}
+${COLOR_BOLD}PRO TIPS:${COLOR_RESET}
     🎨 Use --color for terminal display, omit for plain text files
     📐 Wider outputs = more detail (try -w 120 or -w 200)
     🌙 Use --invert for images with dark backgrounds
@@ -91,12 +91,12 @@ show_version() {
 # Display palette list
 show_palettes() {
     show_banner
-    echo -e "${COLORS[bold]}Available Character Palettes:${COLORS[reset]}\n"
+    echo -e "${COLOR_BOLD}Available Character Palettes:${COLOR_RESET}\n"
     palette_list
     echo ""
-    echo -e "${COLORS[bold]}Custom Palettes:${COLORS[reset]}"
+    echo -e "${COLOR_BOLD}Custom Palettes:${COLOR_RESET}"
     echo "  You can pass any string of characters as a custom palette:"
-    echo -e "  ${COLORS[cyan]}$GUMMYWORM_NAME -p \" .oO0@\" image.jpg${COLORS[reset]}"
+    echo -e "  ${COLOR_CYAN}$GUMMYWORM_NAME -p \" .oO0@\" image.jpg${COLOR_RESET}"
     echo ""
     echo "  Or create palette files in: $GUMMYWORM_PALETTES_DIR/"
     echo ""
