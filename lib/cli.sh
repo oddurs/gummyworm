@@ -33,53 +33,51 @@ EOF
 # Display help message
 show_help() {
     show_banner
-    cat << EOF
-${COLOR_BOLD}USAGE:${COLOR_RESET}
-    $GUMMYWORM_NAME [OPTIONS] <image_file>
-
-${COLOR_BOLD}OPTIONS:${COLOR_RESET}
-    -w, --width <N>       Output width in characters (default: $DEFAULT_WIDTH)
-    -h, --height <N>      Output height in lines (default: auto)
-    -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)
-    -c, --color           Enable ANSI color output
-    -i, --invert          Invert brightness (dark ↔ light)
-    -o, --output <FILE>   Save output to file instead of stdout
-    -l, --list-palettes   Show available character palettes
-    -q, --quiet           Suppress info messages
-    --no-aspect           Don't preserve aspect ratio
-    --help                Show this help message
-    --version             Show version information
-
-${COLOR_BOLD}EXAMPLES:${COLOR_RESET}
-    ${COLOR_CYAN}# Basic conversion${COLOR_RESET}
-    $GUMMYWORM_NAME photo.jpg
-
-    ${COLOR_CYAN}# Colored output, 100 characters wide${COLOR_RESET}
-    $GUMMYWORM_NAME -c -w 100 landscape.png
-
-    ${COLOR_CYAN}# Use block characters, inverted${COLOR_RESET}
-    $GUMMYWORM_NAME -p blocks -i portrait.jpg
-
-    ${COLOR_CYAN}# Emoji mode! 🌕${COLOR_RESET}
-    $GUMMYWORM_NAME -p emoji sunset.png
-
-    ${COLOR_CYAN}# Save to file${COLOR_RESET}
-    $GUMMYWORM_NAME -o art.txt -w 120 image.jpg
-
-    ${COLOR_CYAN}# Custom palette${COLOR_RESET}
-    $GUMMYWORM_NAME -p " .oO0@#" image.jpg
-
-${COLOR_BOLD}SUPPORTED FORMATS:${COLOR_RESET}
-    JPEG, PNG, GIF, BMP, TIFF, WebP, and any format supported by ImageMagick
-
-${COLOR_BOLD}PRO TIPS:${COLOR_RESET}
-    🎨 Use --color for terminal display, omit for plain text files
-    📐 Wider outputs = more detail (try -w 120 or -w 200)
-    🌙 Use --invert for images with dark backgrounds
-    🔲 The 'blocks' palette looks great for high-contrast images
-    🐛 Try 'emoji' palette for fun social media posts!
-
-EOF
+    echo -e "${COLOR_BOLD}USAGE:${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME [OPTIONS] <image_file>"
+    echo ""
+    echo -e "${COLOR_BOLD}OPTIONS:${COLOR_RESET}"
+    echo "    -w, --width <N>       Output width in characters (default: $DEFAULT_WIDTH)"
+    echo "    -h, --height <N>      Output height in lines (default: auto)"
+    echo "    -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)"
+    echo "    -c, --color           Enable ANSI color output"
+    echo "    -i, --invert          Invert brightness (dark ↔ light)"
+    echo "    -o, --output <FILE>   Save output to file instead of stdout"
+    echo "    -l, --list-palettes   Show available character palettes"
+    echo "    -q, --quiet           Suppress info messages"
+    echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --help                Show this help message"
+    echo "    --version             Show version information"
+    echo ""
+    echo -e "${COLOR_BOLD}EXAMPLES:${COLOR_RESET}"
+    echo -e "    ${COLOR_CYAN}# Basic conversion${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME photo.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Colored output, 100 characters wide${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -c -w 100 landscape.png"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Use block characters, inverted${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -p blocks -i portrait.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Emoji mode! 🌕${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -p emoji sunset.png"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Save to file${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -o art.txt -w 120 image.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Custom palette${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -p \" .oO0@#\" image.jpg"
+    echo ""
+    echo -e "${COLOR_BOLD}SUPPORTED FORMATS:${COLOR_RESET}"
+    echo "    JPEG, PNG, GIF, BMP, TIFF, WebP, and any format supported by ImageMagick"
+    echo ""
+    echo -e "${COLOR_BOLD}PRO TIPS:${COLOR_RESET}"
+    echo "    🎨 Use --color for terminal display, omit for plain text files"
+    echo "    📐 Wider outputs = more detail (try -w 120 or -w 200)"
+    echo "    🌙 Use --invert for images with dark backgrounds"
+    echo "    🔲 The 'blocks' palette looks great for high-contrast images"
+    echo "    🐛 Try 'emoji' palette for fun social media posts!"
+    echo ""
 }
 
 # Display version
