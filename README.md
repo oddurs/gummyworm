@@ -9,20 +9,43 @@
  ╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚═╝   ╚═╝    ╚══╝╚══╝  ╚═════╝ ╚═╝  ╚═╝╚═╝     ╚═╝
 ```
 
-**Transform images into glorious ASCII art!** ✨
+**Transform images into glorious ASCII art!** 🐛
 
-A playful, feature-rich, and extensible command-line tool for converting images to ASCII art with support for multiple character palettes, color output, and customization options.
+A playful, feature-rich, and extensible command-line tool for converting images to ASCII art.
 
 ## Features
 
 - 🖼️ **Multiple image format support** - JPEG, PNG, GIF, BMP, TIFF, WebP, and more
-- 🎭 **12 built-in character palettes** - From simple to detailed, blocks to emoji
+- 🎭 **12+ built-in character palettes** - From simple to detailed, blocks to emoji
 - 🎨 **256-color ANSI output** - Full color mode for terminal display
 - 🔄 **Aspect ratio preservation** - Images look right in the terminal
 - 📏 **Customizable dimensions** - Control width and height
 - 🌙 **Invert mode** - For images with dark backgrounds
 - 💾 **File output** - Save ASCII art to files
-- 🔧 **Extensible** - Use custom character palettes
+- 🔧 **Extensible** - Custom palettes via files or inline strings
+- 📦 **Modular architecture** - Clean, maintainable code structure
+
+## Project Structure
+
+```
+gummyworm/
+├── gummyworm           # Main entry point (convenience wrapper)
+├── bin/
+│   └── gummyworm       # Primary executable
+├── lib/
+│   ├── config.sh       # Configuration and constants
+│   ├── utils.sh        # Logging and utility functions
+│   ├── palettes.sh     # Palette management
+│   ├── image.sh        # Image processing functions
+│   ├── converter.sh    # Core ASCII conversion engine
+│   └── cli.sh          # Command-line interface
+├── palettes/
+│   └── *.palette       # Custom palette files
+├── tests/
+│   └── test_basic.sh   # Test suite
+├── docs/               # Additional documentation
+└── README.md
+```
 
 ## Installation
 
@@ -43,15 +66,18 @@ brew install imagemagick
 sudo dnf install ImageMagick
 ```
 
-### Install gummyworm
+### Install
 
 ```bash
-# Download and make executable
-curl -o gummyworm https://raw.githubusercontent.com/example/gummyworm/main/gummyworm
-chmod +x gummyworm
+# Clone or download
+git clone https://github.com/example/gummyworm.git
+cd gummyworm
 
-# Move to a directory in your PATH (optional)
-sudo mv gummyworm /usr/local/bin/
+# Make executable
+chmod +x gummyworm bin/gummyworm
+
+# Optional: symlink to PATH
+sudo ln -s "$(pwd)/bin/gummyworm" /usr/local/bin/gummyworm
 ```
 
 ## Quick Start
@@ -69,7 +95,7 @@ sudo mv gummyworm /usr/local/bin/
 # Use block characters
 ./gummyworm -p blocks portrait.png
 
-# Emoji mode! 🎉
+# Emoji mode! 🌕
 ./gummyworm -p emoji cat.jpg
 ```
 
@@ -85,7 +111,7 @@ gummyworm [OPTIONS] <image_file>
 |--------|-------------|---------|
 | `-w, --width <N>` | Output width in characters | 80 |
 | `-h, --height <N>` | Output height in lines | auto |
-| `-p, --palette <name>` | Character palette to use | standard |
+| `-p, --palette <n>` | Character palette to use | standard |
 | `-c, --color` | Enable ANSI color output | off |
 | `-i, --invert` | Invert brightness (dark ↔ light) | off |
 | `-o, --output <FILE>` | Save output to file | stdout |
@@ -112,160 +138,116 @@ View available palettes with `gummyworm --list-palettes`:
 | `hearts` | ` ♡♥❤💖💗` | Love-themed art |
 | `matrix` | ` 01` | Matrix/hacker vibe |
 | `retro` | ` .:░▒▓█` | Retro computing |
-| `shades` | ` ░▒▓█▓▒░` | Symmetric shading |
 
 ### Custom Palettes
 
-You can use any string of characters as a custom palette:
-
+**Inline:**
 ```bash
-# Space-separated for simple sets
 ./gummyworm -p " .oO0@#" image.jpg
-
-# Any unicode characters work
-./gummyworm -p " ·•●◉" image.jpg
 ```
 
-Characters should be ordered from lightest (or darkest with `-i`) to darkest.
+**File-based:** Create `palettes/mypalette.palette`:
+```
+# My custom palette
+# Characters from light to dark
+ ·•●◉⬤
+```
 
-## Examples
+Then use: `./gummyworm -p mypalette image.jpg`
 
-### Basic Usage
+## Module Reference
+
+### lib/config.sh
+Global configuration, constants, version info, and color codes.
+
+### lib/utils.sh
+Utility functions:
+- `log_info`, `log_error`, `log_success`, `log_warn`, `log_debug`
+- `die`, `die_usage`
+- `command_exists`, `file_readable`
+- `is_positive_int`, `is_non_negative_int`
+- `trim`, `is_blank`
+
+### lib/palettes.sh
+Palette management:
+- `palette_get <name>` - Get palette string
+- `palette_exists <name>` - Check if palette exists
+- `palette_list` - List all palettes
+- `palette_validate <string>` - Validate palette
+- `palette_to_array <string> <arrayname>` - Parse to array
+
+### lib/image.sh
+Image processing:
+- `image_check_deps` - Verify ImageMagick installed
+- `image_validate <file>` - Validate image file
+- `image_dimensions <file>` - Get "width height"
+- `image_extract_pixels <file> <w> <h> <output>` - Extract pixel data
+- `calc_brightness <r> <g> <b>` - Calculate luminance
+- `calc_dimensions <ow> <oh> <tw> <th> <preserve>` - Calculate output size
+
+### lib/converter.sh
+Core conversion:
+- `convert_to_ascii <image> <w> <h> <palette> <invert> <color> <aspect>` - Main conversion
+- `rgb_to_ansi <r> <g> <b>` - RGB to ANSI color code
+- `save_to_file <content> <file> <strip_ansi>` - Save output
+
+### lib/cli.sh
+User interface:
+- `show_banner`, `show_help`, `show_version`, `show_palettes`
+- `parse_args "$@"` - Parse CLI arguments (sets `ARG_*` globals)
+
+## Testing
 
 ```bash
-# Convert a photo with default settings
-./gummyworm vacation.jpg
-```
-```
-        .:-=+**#%%@@@%%#*+=--:.        
-      :+%@@@@@@@@@@@@@@@@@@@@@@#=      
-    .+@@@@@%%%%%%%%%%%%%%%%%%%%@@%-    
-   .*@@@@%+--::::::::::::::--=#@@@@-   
+# Run test suite
+chmod +x tests/test_basic.sh
+./tests/test_basic.sh
 ```
 
-### Colored Terminal Output
+## Extending Gummyworm
 
-```bash
-# Full color ASCII art
-./gummyworm -c -w 100 sunset.png
-```
+### Adding a New Palette
 
-### High Detail
-
-```bash
-# Use detailed palette for maximum detail
-./gummyworm -w 200 -p detailed photo.jpg
-```
-
-### Block Art
-
-```bash
-# Great for logos and high-contrast images
-./gummyworm -p blocks logo.png
-```
-```
-    ██████████████████████    
-  ██░░░░░░░░░░░░░░░░░░░░░░██  
-  ██░░▓▓▓▓▓▓░░░░▓▓▓▓▓▓░░░░██  
-  ██░░▓▓░░░░░░░░░░░░▓▓░░░░██  
-```
-
-### Save to File
-
-```bash
-# Save ASCII art to a text file
-./gummyworm -w 120 -o art.txt image.jpg
-
-# Save with colors (for terminals that support it)
-./gummyworm -c -w 120 -o art.ansi image.jpg
-```
-
-### Dark Background Images
-
-```bash
-# Use invert for images with dark backgrounds
-./gummyworm -i space_photo.jpg
-```
-
-## Pro Tips
-
-1. **Width matters**: Wider output (100-200 chars) gives more detail
-2. **Terminal font**: Use a monospace font for proper alignment
-3. **Color mode**: Use `-c` only for terminal display, not text files
-4. **Dark images**: Use `-i` for images with dark backgrounds
-5. **Blocks palette**: Great for logos and high-contrast images
-6. **Aspect ratio**: Terminal characters are taller than wide; the tool compensates automatically
-
-## Extending gummyworm
-
-### Adding New Palettes
-
-Edit the `PALETTES` associative array in the script:
-
-```bash
-declare -A PALETTES=(
-    # ... existing palettes ...
-    ["mynewpalette"]=" ·∘○◎●"
-)
-```
+1. **Built-in:** Edit `lib/palettes.sh`, add to `BUILTIN_PALETTES` array
+2. **Custom file:** Create `palettes/yourname.palette`
 
 ### Using as a Library
 
-Source the script in your own bash scripts:
-
 ```bash
 #!/bin/bash
-source /path/to/gummyworm
+export GUMMYWORM_ROOT="/path/to/gummyworm"
 
-# Use the convert_to_ascii function directly
+source "$GUMMYWORM_ROOT/lib/config.sh"
+source "$GUMMYWORM_ROOT/lib/utils.sh"
+source "$GUMMYWORM_ROOT/lib/palettes.sh"
+source "$GUMMYWORM_ROOT/lib/image.sh"
+source "$GUMMYWORM_ROOT/lib/converter.sh"
+
+# Use functions directly
 result=$(convert_to_ascii "image.jpg" 80 0 " .:-=+*#%@" false false true)
 echo "$result"
 ```
 
+### Adding New Features
+
+The modular structure makes it easy to extend:
+- Add new output formats in `lib/converter.sh`
+- Add new CLI options in `lib/cli.sh`
+- Add new image operations in `lib/image.sh`
+
 ## Technical Details
 
-- Uses ImageMagick's `convert` command for image processing
-- Calculates luminance using the standard formula: `(R×299 + G×587 + B×114) / 1000`
-- Supports both ASCII and Unicode character palettes
-- Color output uses 256-color ANSI escape sequences
-- Aspect ratio correction assumes 2:1 terminal character height:width ratio
-
-## Troubleshooting
-
-### "ImageMagick is required but not installed"
-
-Install ImageMagick using your system's package manager.
-
-### Unicode characters display incorrectly
-
-- Ensure your terminal supports Unicode
-- Set `LANG` environment variable: `export LANG=en_US.UTF-8`
-
-### Colors don't display
-
-- Ensure your terminal supports 256 colors
-- Some terminals need `TERM=xterm-256color`
-
-### Output looks stretched
-
-- Use `--no-aspect` if automatic aspect ratio doesn't work
-- Manually specify `-h` height parameter
+- Uses ImageMagick for image processing
+- Luminance formula: `(R×299 + G×587 + B×114) / 1000`
+- Color output: 256-color ANSI (6×6×6 color cube)
+- Aspect ratio: Assumes 2:1 terminal character height:width
 
 ## License
 
 MIT License - feel free to use, modify, and share!
 
-## Contributing
-
-Contributions welcome! Ideas for enhancement:
-- Additional palettes
-- Different aspect ratio presets
-- Dithering algorithms
-- Animation support (GIF frames to ASCII)
-- HTML/ANSI output formats
-
 ---
 
-Made with ❤️ and ☕
+Made with ❤️ and 🐛
 
-*"Because sometimes you just need to see your cat in ASCII"*
+*"Wiggling your images into ASCII since 2024"*

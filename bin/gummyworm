@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+# ============================================================================
+# gummyworm - Transform images into glorious ASCII art! 🐛
+# ============================================================================
+# A playful, feature-rich image-to-ASCII converter
+#
+# Usage: gummyworm [OPTIONS] <image_file>
+#
+# For help: gummyworm --help
+# ============================================================================
+
+# Strict mode
+set -euo pipefail
+
+# ============================================================================
+# Initialization
+# ============================================================================
+
+# Determine script location and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Support both installed (bin/) and development layouts
+if [[ -d "$SCRIPT_DIR/../lib" ]]; then
+    # Running from bin/ directory
+    GUMMYWORM_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+elif [[ -d "$SCRIPT_DIR/lib" ]]; then
+    # Running from project root
+    GUMMYWORM_ROOT="$SCRIPT_DIR"
+else
+    echo "Error: Cannot find gummyworm lib directory" >&2
+    exit 1
+fi
+
+export GUMMYWORM_ROOT
+
+# ============================================================================
+# Load Modules
+# ============================================================================
+
+# shellcheck source=lib/config.sh
+source "${GUMMYWORM_ROOT}/lib/config.sh"
+
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_ROOT}/lib/utils.sh"
+
+# shellcheck source=lib/palettes.sh
+source "${GUMMYWORM_ROOT}/lib/palettes.sh"
+
+# shellcheck source=lib/image.sh
+source "${GUMMYWORM_ROOT}/lib/image.sh"
+
+# shellcheck source=lib/converter.sh
+source "${GUMMYWORM_ROOT}/lib/converter.sh"
+
+# shellcheck source=lib/cli.sh
+source "${GUMMYWORM_ROOT}/lib/cli.sh"
+
+# ============================================================================
+# Main Function
+# ============================================================================
+
+main() {
+    # Check dependencies
+    image_check_deps
+    
+    # Parse command line arguments
+    parse_args "$@"
+    
+    # Validate image file
+    image_validate "$ARG_IMAGE"
+    
+    # Resolve palette
+    local palette
+    if palette_exists "$ARG_PALETTE"; then
+        palette=$(palette_get "$ARG_PALETTE")
+    else
+        # Treat as custom inline palette
+        palette="$ARG_PALETTE"
+    fi
+    
+    # Validate palette
+    palette_validate "$palette" || exit 1
+    
+    # Show info (unless quiet)
+    if [[ "$ARG_QUIET" != "true" ]]; then
+        local dims
+        dims=$(image_dimensions "$ARG_IMAGE")
+        log_info "Converting: $(basename "$ARG_IMAGE") (${dims// /x})"
+        log_info "Output size: ${ARG_WIDTH} chars wide"
+        [[ "$ARG_COLOR" == "true" ]] && log_info "Color mode: enabled 🎨"
+        [[ "$ARG_INVERT" == "true" ]] && log_info "Inverted: yes"
+    fi
+    
+    # Perform conversion
+    local result
+    result=$(convert_to_ascii \
+        "$ARG_IMAGE" \
+        "$ARG_WIDTH" \
+        "$ARG_HEIGHT" \
+        "$palette" \
+        "$ARG_INVERT" \
+        "$ARG_COLOR" \
+        "$ARG_PRESERVE_ASPECT"
+    )
+    
+    # Output results
+    if [[ -n "$ARG_OUTPUT" ]]; then
+        # Save to file
+        local strip_ansi="true"
+        [[ "$ARG_COLOR" == "true" ]] && strip_ansi="false"
+        
+        save_to_file "$result" "$ARG_OUTPUT" "$strip_ansi"
+        
+        if [[ "$ARG_QUIET" != "true" ]]; then
+            log_success "Saved to: $ARG_OUTPUT"
+        fi
+    else
+        # Print to stdout
+        echo ""
+        echo -e "$result"
+        echo ""
+    fi
+}
+
+# ============================================================================
+# Entry Point
+# ============================================================================
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
