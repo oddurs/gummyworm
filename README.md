@@ -153,6 +153,15 @@ gummyworm --list-palettes
 | `dots` | Braille art |
 | `detailed` | Portraits |
 
+Create custom palettes in `palettes/` folder with optional metadata:
+
+```bash
+# palettes/custom.palette
+# Name: My Custom
+# Description: A custom palette for artistic effects
+ .oO0@#
+```
+
 See [Palettes Guide](docs/palettes.md) for all 12+ palettes and custom creation.
 
 ## Project Structure
@@ -167,7 +176,10 @@ gummyworm/
 │   ├── converter.sh    # ASCII conversion
 │   ├── palettes.sh     # Palette management
 │   └── export.sh       # Format export
-├── palettes/           # Custom palette files
+├── palettes/           # Palette files (built-in + custom)
+│   ├── *.palette       # 12 built-in palettes
+│   ├── _template.palette # Template for custom palettes
+│   └── README.md       # Palette format docs
 ├── docs/               # Documentation
 └── tests/              # Test suite
 ```
