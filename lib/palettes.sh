@@ -12,11 +12,30 @@
 readonly _GUMMYWORM_PALETTES_LOADED=1
 
 # ============================================================================
-# Built-in Palettes
+# Palette File Format
 # ============================================================================
-# Using functions instead of associative arrays for bash 3.x compatibility
+# Palette files (.palette) support optional metadata headers:
+#
+#   # Name: My Palette
+#   # Description: A brief description of the palette
+#   # Author: Your Name
+#   # Tags: unicode, high-contrast, artistic
+#   
+#   <characters from light to dark>
+#
+# - Lines starting with # are comments (or metadata if matching "# Key: Value")
+# - The first non-comment, non-empty line is the character set
+# - Characters go from lightest (space) to darkest
+# - Minimum 2 characters required
+# ============================================================================
 
-# Get built-in palette by name
+# ============================================================================
+# Built-in Palette Fallbacks
+# ============================================================================
+# These are fallbacks if .palette files are missing. The canonical source
+# is now the palettes/*.palette files.
+
+# Get built-in palette by name (fallback only)
 # Note: Wide-char palettes (emoji, hearts) use full-width space (U+3000) for alignment
 _get_builtin_palette() {
     case "$1" in
@@ -36,7 +55,7 @@ _get_builtin_palette() {
     esac
 }
 
-# Get palette description
+# Get palette description (fallback only)
 _get_palette_description() {
     case "$1" in
         standard) echo "General purpose, good balance" ;;
@@ -59,27 +78,64 @@ _get_palette_description() {
 BUILTIN_PALETTE_NAMES="standard detailed simple binary matrix blocks shades retro dots emoji stars hearts"
 
 # ============================================================================
+# Palette Metadata Functions
+# ============================================================================
+
+# Get metadata field from a palette file
+# Usage: palette_get_metadata <palette_file> <field>
+# Returns: metadata value or empty if not found
+palette_get_metadata() {
+    local palette_file="$1"
+    local field="$2"
+    
+    [[ -f "$palette_file" ]] || return 1
+    
+    # Match "# Field: Value" pattern (case-insensitive field name)
+    grep -i "^# *${field}:" "$palette_file" 2>/dev/null | head -1 | sed "s/^# *${field}: *//i"
+}
+
+# Get palette description from file or fallback
+# Usage: palette_description <name>
+palette_description() {
+    local name="$1"
+    local palette_file="${GUMMYWORM_PALETTES_DIR}/${name}.palette"
+    local desc
+    
+    # Try to get from file metadata first
+    if [[ -f "$palette_file" ]]; then
+        desc=$(palette_get_metadata "$palette_file" "Description")
+        [[ -n "$desc" ]] && { echo "$desc"; return 0; }
+    fi
+    
+    # Fallback to built-in description
+    _get_palette_description "$name"
+}
+
+# ============================================================================
 # Palette Functions
 # ============================================================================
 
-# Get a palette by name (built-in or custom file)
-# Usage: palette_get <n>
+# Get a palette by name (file-based or built-in fallback)
+# Usage: palette_get <name>
 # Returns: palette string via stdout, or empty if not found
 palette_get() {
     local name="$1"
     local result
     
-    # Check built-in palettes first
-    if result=$(_get_builtin_palette "$name" 2>/dev/null); then
-        echo "$result"
-        return 0
-    fi
-    
-    # Check for custom palette file
+    # Check for palette file first (canonical source)
     local palette_file="${GUMMYWORM_PALETTES_DIR}/${name}.palette"
     if [[ -f "$palette_file" ]]; then
         # Read first non-comment, non-empty line
-        grep -v '^#' "$palette_file" | grep -v '^$' | head -1
+        result=$(grep -v '^#' "$palette_file" | grep -v '^$' | head -1)
+        if [[ -n "$result" ]]; then
+            echo "$result"
+            return 0
+        fi
+    fi
+    
+    # Fallback to built-in palettes (for backwards compatibility)
+    if result=$(_get_builtin_palette "$name" 2>/dev/null); then
+        echo "$result"
         return 0
     fi
     
@@ -88,11 +144,11 @@ palette_get() {
 }
 
 # Check if a palette exists
-# Usage: palette_exists <n>
+# Usage: palette_exists <name>
 palette_exists() {
     local name="$1"
-    _get_builtin_palette "$name" >/dev/null 2>&1 || \
-    [[ -f "${GUMMYWORM_PALETTES_DIR}/${name}.palette" ]]
+    [[ -f "${GUMMYWORM_PALETTES_DIR}/${name}.palette" ]] || \
+    _get_builtin_palette "$name" >/dev/null 2>&1
 }
 
 # List all available palettes
@@ -107,9 +163,9 @@ palette_list() {
     
     for name in $names; do
         local chars
-        chars=$(_get_builtin_palette "$name")
+        chars=$(palette_get "$name")
         local desc
-        desc=$(_get_palette_description "$name")
+        desc=$(palette_description "$name")
         local char_count
         
         # Get visual character count (handles unicode)
@@ -149,23 +205,36 @@ palette_list() {
             "$name" "$padded_chars" "($char_count chars) $desc"
     done
     
-    # Check for custom palettes
+    # Check for custom palettes (excluding built-in .palette files)
     if [[ -d "$GUMMYWORM_PALETTES_DIR" ]]; then
-        local custom_palettes
-        custom_palettes=$(find "$GUMMYWORM_PALETTES_DIR" -name "*.palette" 2>/dev/null | wc -l | tr -d ' ')
-        
-        if [[ "$custom_palettes" -gt 0 ]]; then
-            echo ""
-            echo "Custom palettes (in $GUMMYWORM_PALETTES_DIR):"
-            for f in "$GUMMYWORM_PALETTES_DIR"/*.palette; do
-                [[ -f "$f" ]] || continue
-                local pname
-                pname=$(basename "$f" .palette)
-                local pchars
-                pchars=$(grep -v '^#' "$f" | grep -v '^$' | head -1)
-                printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %s\n" "$pname" "$pchars"
-            done
-        fi
+        local has_custom=0
+        for f in "$GUMMYWORM_PALETTES_DIR"/*.palette; do
+            [[ -f "$f" ]] || continue
+            local pname
+            pname=$(basename "$f" .palette)
+            # Skip if it's a built-in palette name or template
+            [[ " $BUILTIN_PALETTE_NAMES " == *" $pname "* ]] && continue
+            [[ "$pname" == "_template" ]] && continue
+            
+            if [[ "$has_custom" -eq 0 ]]; then
+                echo ""
+                echo "Custom palettes (in $GUMMYWORM_PALETTES_DIR):"
+                has_custom=1
+            fi
+            
+            local pchars pdesc
+            pchars=$(grep -v '^#' "$f" | grep -v '^$' | head -1)
+            pdesc=$(palette_get_metadata "$f" "Description")
+            
+            local pchar_count
+            pchar_count=$(echo -n "$pchars" | wc -m | tr -d ' ')
+            
+            if [[ -n "$pdesc" ]]; then
+                printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %s │ (%d chars) %s\n" "$pname" "$pchars" "$pchar_count" "$pdesc"
+            else
+                printf "  ${COLOR_CYAN}%-12s${COLOR_RESET} │ %s │ (%d chars)\n" "$pname" "$pchars" "$pchar_count"
+            fi
+        done
     fi
 }
 
