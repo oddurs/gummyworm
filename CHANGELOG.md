@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Animated GIF support:** Process animated GIFs frame-by-frame with new animation options
+- **Terminal animation playback:** Play animated GIFs as ASCII art directly in the terminal with `-a` flag
+- **GIF export format:** Export animated ASCII art as GIF files with `-f gif`
+- **`-a, --animate` flag:** Enable animation processing for animated inputs
+- **`--no-animate` flag:** Disable animation, use first frame only
+- **`--frame-delay <N>` option:** Set delay between frames in milliseconds for playback/export
+- **`--max-frames <N>` option:** Limit the number of frames to process
+- **`--loops <N>` option:** Set loop count for animation playback/export (0 = infinite)
+- Animation detection functions: `image_is_animated()`, `image_frame_count()`, `image_get_delays()`, `image_extract_frames()`
+- Animated GIF export function: `export_animated_gif()`
+- Frame extraction with `-coalesce` for proper frame handling
+- Graceful Ctrl+C handling during animation playback
+- Test fixture `tests/fixtures/animated_test.gif` for animation tests
+- 12 new animation-related unit tests
 - **True color (24-bit RGB) support:** New `--truecolor` flag enables full RGB color output (`\e[38;2;r;g;bm` sequences), preserving exact colors from the source image
 - **Auto-detection of true color terminals:** When using `-c`, gummyworm automatically enables true color if `$COLORTERM` is set to `truecolor` or `24bit`
 - **`--no-truecolor` flag:** Force 256-color mode even when terminal supports true color
