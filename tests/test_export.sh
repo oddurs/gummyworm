@@ -197,6 +197,66 @@ test_rgb_to_ansi_escape_format() {
 }
 
 # ============================================================================
+# Tests: rgb_to_truecolor() from converter.sh
+# ============================================================================
+
+test_rgb_to_truecolor_red() {
+    local ansi
+    ansi=$(rgb_to_truecolor 255 0 0)
+    assert_contains "$ansi" "38;2;255;0;0" "red produces true color sequence"
+}
+
+test_rgb_to_truecolor_green() {
+    local ansi
+    ansi=$(rgb_to_truecolor 0 255 0)
+    assert_contains "$ansi" "38;2;0;255;0" "green produces true color sequence"
+}
+
+test_rgb_to_truecolor_blue() {
+    local ansi
+    ansi=$(rgb_to_truecolor 0 0 255)
+    assert_contains "$ansi" "38;2;0;0;255" "blue produces true color sequence"
+}
+
+test_rgb_to_truecolor_arbitrary() {
+    local ansi
+    ansi=$(rgb_to_truecolor 128 64 192)
+    assert_contains "$ansi" "38;2;128;64;192" "arbitrary color produces true color sequence"
+}
+
+test_rgb_to_truecolor_escape_format() {
+    local ansi
+    ansi=$(rgb_to_truecolor 100 150 200)
+    assert_matches "$ansi" "\\\\033\[38;2;[0-9]+;[0-9]+;[0-9]+m" "correct true color escape format"
+}
+
+# ============================================================================
+# Tests: detect_truecolor_support() from converter.sh
+# ============================================================================
+
+test_detect_truecolor_with_colorterm_truecolor() {
+    (
+        export COLORTERM="truecolor"
+        assert_true 'detect_truecolor_support' "COLORTERM=truecolor detected"
+    )
+}
+
+test_detect_truecolor_with_colorterm_24bit() {
+    (
+        export COLORTERM="24bit"
+        assert_true 'detect_truecolor_support' "COLORTERM=24bit detected"
+    )
+}
+
+test_detect_truecolor_without_support() {
+    (
+        unset COLORTERM
+        export TERM="xterm"
+        assert_false 'detect_truecolor_support' "no truecolor detected without COLORTERM"
+    )
+}
+
+# ============================================================================
 # Tests: export_html() output structure
 # ============================================================================
 
@@ -261,6 +321,55 @@ test_format_extension_roundtrip() {
         detected=$(export_detect_format "test.$ext")
         assert_equals "$format" "$detected" "roundtrip for $format"
     done
+}
+
+# ============================================================================
+# Tests: True color (24-bit) parsing in HTML export
+# ============================================================================
+
+test_export_html_truecolor_parsing() {
+    # Create content with a true color escape sequence (38;2;r;g;b)
+    local content=$'\033[38;2;255;128;64mX\033[0m'
+    local html
+    html=$(export_html "$content")
+    # Should convert to #ff8040 hex color
+    assert_contains "$html" "#ff8040" "true color parsed to hex in HTML"
+}
+
+test_export_html_truecolor_red() {
+    local content=$'\033[38;2;255;0;0mR\033[0m'
+    local html
+    html=$(export_html "$content")
+    assert_contains "$html" "#ff0000" "true color red parsed correctly"
+}
+
+test_export_html_truecolor_mixed_with_256() {
+    # Mix of truecolor and 256-color codes
+    local content=$'\033[38;2;255;0;0mR\033[38;5;46mG\033[0m'
+    local html
+    html=$(export_html "$content")
+    assert_contains "$html" "#ff0000" "true color in mixed content"
+    # 46 = pure green in 256-color = #00ff00
+    assert_contains "$html" "#00ff00" "256-color in mixed content"
+}
+
+# ============================================================================
+# Tests: True color (24-bit) parsing in SVG export
+# ============================================================================
+
+test_export_svg_truecolor_parsing() {
+    local content=$'\033[38;2;128;64;192mX\033[0m'
+    local svg
+    svg=$(export_svg "$content")
+    # Should convert to #8040c0 hex color
+    assert_contains "$svg" "#8040c0" "true color parsed to hex in SVG"
+}
+
+test_export_svg_truecolor_fill() {
+    local content=$'\033[38;2;255;255;0mY\033[0m'
+    local svg
+    svg=$(export_svg "$content")
+    assert_contains "$svg" 'fill="#ffff00"' "true color used as SVG fill"
 }
 
 # ============================================================================
