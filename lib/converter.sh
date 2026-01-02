@@ -77,66 +77,105 @@ convert_to_ascii() {
     # Extract pixels
     image_extract_pixels "$image" "$out_w" "$out_h" "$tmpfile"
     
-    # Parse palette into array (uses global _PALETTE_CHARS)
+    # Parse palette into array for awk
+    # Build a comma-separated list of palette characters
+    local palette_chars_str=""
     palette_to_array "$palette" _PALETTE_CHARS
     local palette_len=${#_PALETTE_CHARS[@]}
     
+    # Build palette string for awk (handle special chars)
+    local i
+    for ((i=0; i<palette_len; i++)); do
+        if [[ $i -gt 0 ]]; then
+            palette_chars_str+="|"
+        fi
+        palette_chars_str+="${_PALETTE_CHARS[$i]}"
+    done
+    
     log_debug "Palette length: $palette_len"
     
-    # Process pixels
-    local output=""
-    local current_y=-1
+    # Process pixels using awk for performance
+    # This is 10-100x faster than bash while-read loop
+    # Uses portable awk syntax (BSD/GNU compatible)
+    awk -v palette_str="$palette_chars_str" \
+        -v palette_len="$palette_len" \
+        -v invert="$invert" \
+        -v use_color="$use_color" \
+        '
+    BEGIN {
+        # Split palette into array
+        n = split(palette_str, palette_arr, "|")
+        current_y = -1
+    }
     
-    # Store regex pattern in variable for Bash 3.2 compatibility
-    local pixel_re='^([0-9]+),([0-9]+):.*\(([0-9]+),([0-9]+),([0-9]+)'
+    # Match pixel data lines: "X,Y: (R,G,B...)  #RRGGBB  colorname"
+    /^[0-9]+,[0-9]+:.*\(/ {
+        # Portable parsing (BSD awk compatible - no regex capture groups)
+        # Format: "0,0: (255,0,0)  #FF0000  red"
+        
+        # Parse X,Y from first field "X,Y:"
+        split($1, coords, ",")
+        x = coords[1]
+        sub(/:.*/, "", coords[2])
+        y = coords[2]
+        
+        # Extract RGB: find the parentheses content
+        # $2 is "(R,G,B)" or "(R,G,B,A)" depending on image
+        rgb_field = $2
+        gsub(/[()]/, "", rgb_field)  # Remove parentheses
+        split(rgb_field, rgb, ",")
+        r = int(rgb[1])
+        g = int(rgb[2])
+        b = int(rgb[3])
+        
+        # Handle new row
+        if (y != current_y) {
+            if (current_y >= 0) {
+                printf "\n"
+            }
+            current_y = y
+            if (use_color == "true") {
+                printf "\033[0m"
+            }
+        }
+        
+        # Calculate brightness using standard luminance formula
+        brightness = int((r * 299 + g * 587 + b * 114) / 1000)
+        
+        # Apply inversion
+        if (invert == "true") {
+            brightness = 255 - brightness
+        }
+        
+        # Map brightness to character index
+        char_index = int((brightness * (palette_len - 1)) / 255) + 1
+        
+        # Bounds check
+        if (char_index > palette_len) char_index = palette_len
+        if (char_index < 1) char_index = 1
+        
+        char = palette_arr[char_index]
+        
+        # Output with or without color
+        if (use_color == "true") {
+            # ANSI 256-color: map RGB to 6x6x6 cube
+            r_idx = int((r * 5) / 255)
+            g_idx = int((g * 5) / 255)
+            b_idx = int((b * 5) / 255)
+            color_code = 16 + (r_idx * 36) + (g_idx * 6) + b_idx
+            printf "\033[38;5;%dm%s", color_code, char
+        } else {
+            printf "%s", char
+        }
+    }
     
-    while IFS= read -r line; do
-        # Parse: "X,Y: (R,G,B...)  #RRGGBB  colorname"
-        if [[ "$line" =~ $pixel_re ]]; then
-            local x="${BASH_REMATCH[1]}"
-            local y="${BASH_REMATCH[2]}"
-            local r="${BASH_REMATCH[3]}"
-            local g="${BASH_REMATCH[4]}"
-            local b="${BASH_REMATCH[5]}"
-            
-            # Handle new row
-            if [[ "$y" -ne "$current_y" ]]; then
-                [[ "$current_y" -ge 0 ]] && output+="\n"
-                current_y="$y"
-                [[ "$use_color" == "true" ]] && output+="\033[0m"
-            fi
-            
-            # Calculate brightness
-            local brightness
-            brightness=$(calc_brightness "$r" "$g" "$b")
-            
-            # Apply inversion
-            if [[ "$invert" == "true" ]]; then
-                brightness=$((255 - brightness))
-            fi
-            
-            # Map brightness to character
-            local char_index=$(( (brightness * (palette_len - 1)) / 255 ))
-            
-            # Bounds check
-            [[ $char_index -ge $palette_len ]] && char_index=$((palette_len - 1))
-            [[ $char_index -lt 0 ]] && char_index=0
-            
-            local char="${_PALETTE_CHARS[$char_index]}"
-            
-            # Add color escape if enabled
-            if [[ "$use_color" == "true" ]]; then
-                output+="$(rgb_to_ansi "$r" "$g" "$b")$char"
-            else
-                output+="$char"
-            fi
-        fi
-    done < "$tmpfile"
-    
-    # Reset color at end
-    [[ "$use_color" == "true" ]] && output+="\033[0m"
-    
-    echo -e "$output"
+    END {
+        if (use_color == "true") {
+            printf "\033[0m"
+        }
+        printf "\n"
+    }
+    ' "$tmpfile"
 }
 
 # ============================================================================
