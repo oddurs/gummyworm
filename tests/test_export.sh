@@ -38,6 +38,12 @@ test_export_detect_format_png() {
     assert_equals "png" "$format" ".png detected as png"
 }
 
+test_export_detect_format_gif() {
+    local format
+    format=$(export_detect_format "output.gif")
+    assert_equals "gif" "$format" ".gif detected as gif"
+}
+
 test_export_detect_format_ansi() {
     local format
     format=$(export_detect_format "output.ans")
@@ -93,12 +99,12 @@ test_export_validate_format_valid() {
     assert_true 'export_validate_format "html"' "html is valid format"
     assert_true 'export_validate_format "svg"' "svg is valid format"
     assert_true 'export_validate_format "png"' "png is valid format"
+    assert_true 'export_validate_format "gif"' "gif is valid format"
 }
 
 test_export_validate_format_invalid() {
     assert_false 'export_validate_format "pdf"' "pdf is not valid format"
     assert_false 'export_validate_format "jpg"' "jpg is not valid format"
-    assert_false 'export_validate_format "gif"' "gif is not valid format"
     assert_false 'export_validate_format ""' "empty is not valid format"
     assert_false 'export_validate_format "invalid"' "invalid is not valid format"
 }
@@ -135,6 +141,12 @@ test_export_get_extension_png() {
     local ext
     ext=$(export_get_extension "png")
     assert_equals "png" "$ext" "png -> png"
+}
+
+test_export_get_extension_gif() {
+    local ext
+    ext=$(export_get_extension "gif")
+    assert_equals "gif" "$ext" "gif -> gif"
 }
 
 test_export_get_extension_unknown() {
