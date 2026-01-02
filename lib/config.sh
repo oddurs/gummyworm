@@ -63,6 +63,12 @@ readonly DEFAULT_PRESERVE_ASPECT=true
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 
+# Animation defaults
+readonly DEFAULT_ANIMATE="auto"  # auto, true, false
+readonly DEFAULT_FRAME_DELAY=100  # milliseconds between frames (for playback)
+readonly DEFAULT_MAX_FRAMES=0     # 0 = no limit
+readonly DEFAULT_LOOPS=0          # 0 = infinite loop for playback
+
 # ============================================================================
 # Shared Regex Patterns (Bash 3.2 compatible - stored in variables)
 # ============================================================================
