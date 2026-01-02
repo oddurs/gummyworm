@@ -228,3 +228,96 @@ calc_brightness() {
     # Standard luminance formula
     echo $(( (r * 299 + g * 587 + b * 114) / 1000 ))
 }
+
+# ============================================================================
+# Animation Support
+# ============================================================================
+
+# Check if an image is animated (has multiple frames)
+# Usage: image_is_animated <filepath>
+# Returns: 0 if animated (>1 frame), 1 if static
+image_is_animated() {
+    local image="$1"
+    local frame_count
+    frame_count=$(image_frame_count "$image")
+    [[ "$frame_count" -gt 1 ]]
+}
+
+# Get number of frames in an image
+# Usage: image_frame_count <filepath>
+# Output: integer frame count
+image_frame_count() {
+    local image="$1"
+    $_MAGICK_IDENTIFY -format "%n\n" "$image" 2>/dev/null | head -1
+}
+
+# Get frame delays in centiseconds (1/100th second)
+# Usage: image_get_delays <filepath>
+# Output: newline-separated delay values (one per frame)
+image_get_delays() {
+    local image="$1"
+    $_MAGICK_IDENTIFY -format "%T\n" "$image" 2>/dev/null
+}
+
+# Get loop count for animated image
+# Usage: image_get_loop_count <filepath>
+# Output: loop count (0 = infinite)
+image_get_loop_count() {
+    local image="$1"
+    local loop
+    loop=$($_MAGICK_IDENTIFY -format "%[gif:loop]" "$image[0]" 2>/dev/null)
+    # Default to 0 (infinite) if not set
+    echo "${loop:-0}"
+}
+
+# Extract all frames from an animated image
+# Usage: image_extract_frames <filepath> <output_dir> [max_frames]
+# Creates frame_000.png, frame_001.png, etc. in output_dir
+# Output: prints number of frames extracted
+image_extract_frames() {
+    local image="$1"
+    local output_dir="$2"
+    local max_frames="${3:-0}"
+    
+    # Ensure output directory exists
+    mkdir -p "$output_dir"
+    
+    # Use -coalesce to properly handle GIF disposal methods
+    # This flattens each frame to a complete image
+    if [[ "$max_frames" -gt 0 ]]; then
+        # Limit number of frames
+        $_MAGICK_CONVERT "$image" -coalesce \
+            -scene 0 \
+            "${output_dir}/frame_%03d.png" 2>/dev/null
+        
+        # Remove frames beyond max
+        local count=0
+        for f in "$output_dir"/frame_*.png; do
+            if [[ $count -ge $max_frames ]]; then
+                rm -f "$f"
+            fi
+            ((count++))
+        done
+        echo "$((count < max_frames ? count : max_frames))"
+    else
+        $_MAGICK_CONVERT "$image" -coalesce \
+            "${output_dir}/frame_%03d.png" 2>/dev/null
+        
+        # Count extracted frames
+        local count=0
+        for _ in "$output_dir"/frame_*.png; do
+            ((count++))
+        done
+        echo "$count"
+    fi
+}
+
+# Extract a single frame from an animated image
+# Usage: image_extract_frame <filepath> <frame_index> <output_file>
+image_extract_frame() {
+    local image="$1"
+    local frame_idx="$2"
+    local output="$3"
+    
+    $_MAGICK_CONVERT "${image}[${frame_idx}]" -coalesce "$output" 2>/dev/null
+}
