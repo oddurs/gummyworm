@@ -31,7 +31,7 @@ _get_builtin_palette() {
         dots)     echo " ⠁⠃⠇⠿⣿" ;;
         emoji)    echo "　🌑🌒🌓🌔🌕" ;;
         stars)    echo " ·✦★✷✸✹" ;;
-        hearts)   echo "　🤍🩷�💖💘" ;;
+        hearts)   echo "　🤍💓💗💖💘" ;;
         *)        return 1 ;;
     esac
 }
