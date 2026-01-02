@@ -24,7 +24,7 @@ export_detect_format() {
     local filepath="$1"
     local ext="${filepath##*.}"
     # Convert to lowercase (bash 3.x compatible)
-    ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
+    ext=$(tr '[:upper:]' '[:lower:]' <<< "$ext")
     
     case "$ext" in
         html|htm) echo "html" ;;

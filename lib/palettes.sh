@@ -103,7 +103,7 @@ palette_list() {
     
     # Sort palette names
     local names
-    names=$(echo "$BUILTIN_PALETTE_NAMES" | tr ' ' '\n' | sort)
+    names=$(tr ' ' '\n' <<< "$BUILTIN_PALETTE_NAMES" | sort)
     
     for name in $names; do
         local chars
