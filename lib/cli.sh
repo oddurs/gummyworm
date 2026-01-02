@@ -49,7 +49,8 @@ show_help() {
     echo "    -f, --format <type>   Output format: text, ansi, html, svg, png, gif (default: text)"
     echo "    -o, --output <FILE>   Save output to file (or append in batch mode)"
     echo "    -d, --output-dir <DIR>  Save each output to directory with auto-naming"
-    echo "    --background <color>  Background color for html/svg/png (default: #1e1e1e)"
+    echo "    --background <color>  Background color for html/svg/png/gif (default: #1e1e1e)"
+    echo "    --padding <N>         Padding in pixels for html/svg/png/gif (default: 0)"
     echo "    -a, --animate         Enable animation processing for GIFs"
     echo "    --no-animate          Disable animation (extract first frame only)"
     echo "    --frame-delay <N>     Delay between frames in ms for playback (default: $DEFAULT_FRAME_DELAY)"
@@ -170,6 +171,7 @@ parse_args() {
     ARG_OUTPUT="$DEFAULT_OUTPUT"
     ARG_FORMAT="$DEFAULT_FORMAT"
     ARG_BACKGROUND="$DEFAULT_BACKGROUND"
+    ARG_PADDING="$DEFAULT_PADDING"
     ARG_OUTPUT_DIR=""
     ARG_RECURSIVE="false"
     ARG_CONTINUE_ON_ERROR="false"
@@ -233,6 +235,14 @@ parse_args() {
             --background)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 ARG_BACKGROUND="$2"
+                shift 2
+                ;;
+            --padding)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                if ! [[ "$2" =~ $RE_INTEGER ]]; then
+                    die_usage "Padding must be a non-negative integer"
+                fi
+                ARG_PADDING="$2"
                 shift 2
                 ;;
             -o|--output)
