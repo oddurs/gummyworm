@@ -46,10 +46,15 @@ show_help() {
     echo "    --truecolor           Enable true color (24-bit RGB) output"
     echo "    --no-truecolor        Disable true color (force 256-color)"
     echo "    -i, --invert          Invert brightness (dark ↔ light)"
-    echo "    -f, --format <type>   Output format: text, ansi, html, svg, png (default: text)"
+    echo "    -f, --format <type>   Output format: text, ansi, html, svg, png, gif (default: text)"
     echo "    -o, --output <FILE>   Save output to file (or append in batch mode)"
     echo "    -d, --output-dir <DIR>  Save each output to directory with auto-naming"
     echo "    --background <color>  Background color for html/svg/png (default: #1e1e1e)"
+    echo "    -a, --animate         Enable animation processing for GIFs"
+    echo "    --no-animate          Disable animation (extract first frame only)"
+    echo "    --frame-delay <N>     Delay between frames in ms for playback (default: $DEFAULT_FRAME_DELAY)"
+    echo "    --max-frames <N>      Maximum frames to process (default: 0 = all)"
+    echo "    --loops <N>           Loop count for playback/export (default: 0 = infinite)"
     echo "    -r, --recursive       Process directories recursively"
     echo "    -l, --list-palettes   Show available character palettes"
     echo "    -q, --quiet           Suppress info messages"
@@ -101,6 +106,12 @@ show_help() {
     echo -e "    ${COLOR_CYAN}# Export as PNG image${COLOR_RESET}"
     echo "    $GUMMYWORM_NAME -f png -o artwork.png photo.jpg"
     echo ""
+    echo -e "    ${COLOR_CYAN}# Play animated GIF in terminal${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -c -a animation.gif"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Export animated GIF as ASCII GIF${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -f gif -o ascii.gif animation.gif"
+    echo ""
     echo -e "${COLOR_BOLD}INPUT FORMATS:${COLOR_RESET}"
     echo "    JPEG, PNG, GIF, BMP, TIFF, WebP, and any format supported by ImageMagick"
     echo ""
@@ -110,6 +121,7 @@ show_help() {
     echo "    html     HTML document with CSS styling"
     echo "    svg      Scalable Vector Graphics"
     echo "    png      PNG image (requires ImageMagick)"
+    echo "    gif      Animated GIF (for animated inputs)"
     echo ""
     echo -e "${COLOR_BOLD}PRO TIPS:${COLOR_RESET}"
     echo "    🎨 Use --color for terminal display, omit for plain text files"
@@ -163,6 +175,10 @@ parse_args() {
     ARG_CONTINUE_ON_ERROR="false"
     ARG_QUIET="$DEFAULT_QUIET"
     ARG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
+    ARG_ANIMATE="$DEFAULT_ANIMATE"
+    ARG_FRAME_DELAY="$DEFAULT_FRAME_DELAY"
+    ARG_MAX_FRAMES="$DEFAULT_MAX_FRAMES"
+    ARG_LOOPS="$DEFAULT_LOOPS"
     ARG_IMAGES=()
     
     while [[ $# -gt 0 ]]; do
@@ -205,11 +221,11 @@ parse_args() {
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 # Validate format
                 case "$2" in
-                    text|ansi|html|svg|png)
+                    text|ansi|html|svg|png|gif)
                         ARG_FORMAT="$2"
                         ;;
                     *)
-                        die_usage "Invalid format: $2 (valid: text, ansi, html, svg, png)"
+                        die_usage "Invalid format: $2 (valid: text, ansi, html, svg, png, gif)"
                         ;;
                 esac
                 shift 2
@@ -232,6 +248,32 @@ parse_args() {
             -r|--recursive)
                 ARG_RECURSIVE="true"
                 shift
+                ;;
+            -a|--animate)
+                ARG_ANIMATE="true"
+                shift
+                ;;
+            --no-animate)
+                ARG_ANIMATE="false"
+                shift
+                ;;
+            --frame-delay)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                is_positive_int "$2" || die_usage "Frame delay must be a positive integer"
+                ARG_FRAME_DELAY="$2"
+                shift 2
+                ;;
+            --max-frames)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                is_non_negative_int "$2" || die_usage "Max frames must be a non-negative integer"
+                ARG_MAX_FRAMES="$2"
+                shift 2
+                ;;
+            --loops)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                is_non_negative_int "$2" || die_usage "Loops must be a non-negative integer"
+                ARG_LOOPS="$2"
+                shift 2
                 ;;
             --continue-on-error)
                 ARG_CONTINUE_ON_ERROR="true"
