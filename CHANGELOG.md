@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **True color (24-bit RGB) support:** New `--truecolor` flag enables full RGB color output (`\e[38;2;r;g;bm` sequences), preserving exact colors from the source image
+- **Auto-detection of true color terminals:** When using `-c`, gummyworm automatically enables true color if `$COLORTERM` is set to `truecolor` or `24bit`
+- **`--no-truecolor` flag:** Force 256-color mode even when terminal supports true color
+- True color parsing in HTML and SVG exports for exact color reproduction
 - Expanded documentation with linkable markdown files
 - Documentation index at `docs/README.md`
 - Installation guide (`docs/installation.md`)
