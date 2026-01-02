@@ -19,24 +19,28 @@ readonly _GUMMYWORM_UTILS_LOADED=1
 # Returns: integer width in terminal columns
 str_display_width() {
     local str="$1"
+    
+    # Fast path for empty string
+    [[ -z "$str" ]] && echo 0 && return
+    
+    # Fast path for pure ASCII (most common case, no external tools needed)
+    if [[ "$str" =~ ^[[:ascii:]]*$ ]]; then
+        echo "${#str}"
+        return
+    fi
+    
+    # Unicode width requires Python for accurate East Asian Width detection
     if command -v python3 >/dev/null 2>&1; then
         python3 -c "
 import unicodedata
 import sys
 s = sys.argv[1]
-width = 0
-for c in s:
-    # East Asian Width: F(ull), W(ide) = 2 columns, others = 1
-    w = unicodedata.east_asian_width(c)
-    if w in ('F', 'W'):
-        width += 2
-    else:
-        width += 1
+width = sum(2 if unicodedata.east_asian_width(c) in ('F', 'W') else 1 for c in s)
 print(width)
 " "$str"
     else
-        # Fallback: just count characters
-        echo -n "$str" | wc -m | tr -d ' '
+        # Fallback: count characters (may be inaccurate for wide chars)
+        printf '%s' "$str" | wc -m | tr -d ' '
     fi
 }
 
@@ -45,6 +49,14 @@ print(width)
 # Returns: 0 if wide, 1 if not
 char_is_wide() {
     local char="$1"
+    [[ -z "$char" ]] && return 1
+    
+    # Quick check: ASCII is never wide
+    if [[ "$char" =~ ^[[:ascii:]]$ ]]; then
+        return 1
+    fi
+    
+    # Unicode requires Python for accurate detection
     if command -v python3 >/dev/null 2>&1; then
         python3 -c "
 import unicodedata
@@ -56,7 +68,8 @@ if len(c) > 0:
 sys.exit(1)
 " "$char"
     else
-        return 1
+        # Heuristic fallback: 3+ byte UTF-8 chars are often wide
+        [[ ${#char} -ge 3 ]]
     fi
 }
 
