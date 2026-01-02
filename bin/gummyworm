@@ -59,6 +59,32 @@ source "${GUMMYWORM_ROOT}/lib/cli.sh"
 source "${GUMMYWORM_ROOT}/lib/export.sh"
 
 # ============================================================================
+# Helper Functions
+# ============================================================================
+
+# Get content for export, re-converting with color if needed for graphical formats
+# Usage: get_export_content <format> <plain_result> <image> <width> <height> <palette> <invert> <color> <preserve_aspect>
+# Output: Content suitable for the export format
+get_export_content() {
+    local format="$1"
+    local plain_result="$2"
+    local image="$3"
+    local width="$4"
+    local height="$5"
+    local palette="$6"
+    local invert="$7"
+    local color="$8"
+    local preserve_aspect="$9"
+    
+    # For graphical formats without color, re-convert with color enabled
+    if [[ "$format" =~ $RE_GRAPHICAL_FORMAT && "$color" != "true" ]]; then
+        convert_to_ascii "$image" "$width" "$height" "$palette" "$invert" "true" "$preserve_aspect"
+    else
+        echo -e "$plain_result"
+    fi
+}
+
+# ============================================================================
 # Main Function
 # ============================================================================
 
@@ -172,22 +198,10 @@ main() {
             base_name="${base_name%.*}.ascii.${ext}"
             local out_file="$ARG_OUTPUT_DIR/$base_name"
             
-            # Enable color for non-text formats
-            local export_content_arg="$result"
-            if [[ "$output_format" != "text" && "$ARG_COLOR" != "true" ]]; then
-                # Re-convert with color for html/svg/png if not already colored
-                if [[ "$output_format" =~ ^(html|svg|png)$ ]]; then
-                    export_content_arg=$(convert_to_ascii \
-                        "$resolved_image" \
-                        "$ARG_WIDTH" \
-                        "$ARG_HEIGHT" \
-                        "$palette" \
-                        "$ARG_INVERT" \
-                        "true" \
-                        "$ARG_PRESERVE_ASPECT"
-                    )
-                fi
-            fi
+            # Get content for export (re-converts with color if needed)
+            local export_content_arg
+            export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
+                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT")
             
             export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND"
             
@@ -204,29 +218,14 @@ main() {
                 fi
             fi
             
-            # Enable color for non-text formats
-            local export_content_arg="$result"
-            # Store regex patterns in variables for Bash 3.2 compatibility
-            local re_graphical='^(html|svg|png)$'
-            local re_text='^(text|ansi)$'
-            if [[ "$output_format" != "text" && "$ARG_COLOR" != "true" ]]; then
-                # Re-convert with color for html/svg/png if not already colored
-                if [[ "$output_format" =~ $re_graphical ]]; then
-                    export_content_arg=$(convert_to_ascii \
-                        "$resolved_image" \
-                        "$ARG_WIDTH" \
-                        "$ARG_HEIGHT" \
-                        "$palette" \
-                        "$ARG_INVERT" \
-                        "true" \
-                        "$ARG_PRESERVE_ASPECT"
-                    )
-                fi
-            fi
+            # Get content for export (re-converts with color if needed)
+            local export_content_arg
+            export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
+                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT")
             
             if [[ $total_images -gt 1 ]]; then
                 # Batch mode: append with separator (only for text/ansi)
-                if [[ "$output_format" =~ $re_text ]]; then
+                if [[ "$output_format" =~ $RE_TEXT_FORMAT ]]; then
                     {
                         echo ""
                         echo "# ============ $(basename "$image") ============"
