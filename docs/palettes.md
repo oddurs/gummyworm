@@ -90,51 +90,81 @@ gummyworm -p " *#" photo.jpg
 
 ### Palette Files
 
-Create reusable palette files in the `palettes/` directory.
+Create reusable palette files in the `palettes/` directory with optional metadata.
 
 **File format:** `palettes/<name>.palette`
 
 ```
-# Comment lines start with #
-# Blank lines are ignored
-# The palette string goes on its own line
+# Name: My Palette
+# Description: A brief description of the palette
+# Author: Your Name
+# Tags: unicode, artistic, high-contrast
 
  ~≈≋⌇░▒▓█
 ```
 
+#### Metadata Fields
+
+Palette files support optional metadata headers:
+
+| Field | Description |
+|-------|-------------|
+| `Name` | Display name shown in `--list-palettes` |
+| `Description` | Brief description of the palette |
+| `Author` | Creator's name |
+| `Tags` | Comma-separated tags for categorization |
+
+All metadata is optional. Lines starting with `#` are comments. The first non-comment, non-empty line is the character set.
+
 **Example: Creating a custom palette**
 
-1. Create the file `palettes/ocean.palette`:
+1. Copy the template:
+   ```bash
+   cp palettes/_template.palette palettes/ocean.palette
    ```
-   # Ocean-themed palette
-   # Waves from calm to stormy
+
+2. Edit `palettes/ocean.palette`:
+   ```
+   # Name: Ocean
+   # Description: Wave-themed palette for water images
+   # Author: Your Name
+   # Tags: unicode, water, nature
+   
     ~≈≋⌇░▒▓█
    ```
 
-2. Use it:
+3. Use it:
    ```bash
    gummyworm -p ocean beach.jpg
    ```
 
-**Example palette files:**
+**More example palettes:**
 
 `palettes/arrows.palette`:
 ```
-# Arrow-based palette
+# Name: Arrows
+# Description: Directional arrow characters
+# Tags: unicode, artistic
  ·→⇒▸▶►
 ```
 
 `palettes/boxes.palette`:
 ```
-# Box drawing characters
+# Name: Box Drawing
+# Description: Box drawing and shade characters
+# Tags: unicode, retro
  ╌╎┆┊░▒▓█
 ```
 
 `palettes/currency.palette`:
 ```
-# Money-themed
+# Name: Currency
+# Description: Money-themed with currency symbols
+# Tags: unicode, fun
  ·¢$€£¥₿
 ```
+
+See `palettes/README.md` for more examples and the complete format specification.
 
 ## Unicode and Emoji Considerations
 
