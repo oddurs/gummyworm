@@ -219,6 +219,172 @@ test_palette_get_custom_file() {
 }
 
 # ============================================================================
+# Tests: palette_get_metadata()
+# ============================================================================
+
+test_palette_get_metadata_name() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local test_palette="$palette_dir/test_meta.palette"
+    
+    mkdir -p "$palette_dir"
+    cat > "$test_palette" << 'EOF'
+# Name: Test Palette
+# Description: A test palette with metadata
+# Author: Test Author
+# Tags: test, unit-test
+ .oO@
+EOF
+    
+    local result
+    result=$(palette_get_metadata "$test_palette" "Name")
+    rm -f "$test_palette"
+    
+    assert_equals "Test Palette" "$result" "metadata Name field"
+}
+
+test_palette_get_metadata_description() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local test_palette="$palette_dir/test_meta2.palette"
+    
+    mkdir -p "$palette_dir"
+    cat > "$test_palette" << 'EOF'
+# Name: Test
+# Description: A detailed description here
+# Author: Someone
+ abc
+EOF
+    
+    local result
+    result=$(palette_get_metadata "$test_palette" "Description")
+    rm -f "$test_palette"
+    
+    assert_equals "A detailed description here" "$result" "metadata Description field"
+}
+
+test_palette_get_metadata_author() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local test_palette="$palette_dir/test_meta3.palette"
+    
+    mkdir -p "$palette_dir"
+    cat > "$test_palette" << 'EOF'
+# Name: Test
+# Author: John Doe
+ xyz
+EOF
+    
+    local result
+    result=$(palette_get_metadata "$test_palette" "Author")
+    rm -f "$test_palette"
+    
+    assert_equals "John Doe" "$result" "metadata Author field"
+}
+
+test_palette_get_metadata_tags() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local test_palette="$palette_dir/test_meta4.palette"
+    
+    mkdir -p "$palette_dir"
+    cat > "$test_palette" << 'EOF'
+# Tags: unicode, artistic, high-contrast
+ ░▒▓█
+EOF
+    
+    local result
+    result=$(palette_get_metadata "$test_palette" "Tags")
+    rm -f "$test_palette"
+    
+    assert_equals "unicode, artistic, high-contrast" "$result" "metadata Tags field"
+}
+
+test_palette_get_metadata_missing_field() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local test_palette="$palette_dir/test_meta5.palette"
+    
+    mkdir -p "$palette_dir"
+    cat > "$test_palette" << 'EOF'
+# Name: Test
+ abc
+EOF
+    
+    local result
+    result=$(palette_get_metadata "$test_palette" "Description")
+    rm -f "$test_palette"
+    
+    assert_equals "" "$result" "missing metadata field returns empty"
+}
+
+# ============================================================================
+# Tests: palette_description()
+# ============================================================================
+
+test_palette_description_from_file() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local test_palette="$palette_dir/test_desc.palette"
+    
+    mkdir -p "$palette_dir"
+    cat > "$test_palette" << 'EOF'
+# Name: Test Description
+# Description: File-based description
+ abc
+EOF
+    
+    local result
+    result=$(palette_description "test_desc")
+    rm -f "$test_palette"
+    
+    assert_equals "File-based description" "$result" "description from file metadata"
+}
+
+test_palette_description_builtin_fallback() {
+    # Standard palette should have a description (from file or fallback)
+    local result
+    result=$(palette_description "standard")
+    
+    assert_not_equals "" "$result" "standard palette has description"
+}
+
+# ============================================================================
+# Tests: Built-in palette files
+# ============================================================================
+
+test_builtin_palette_files_exist() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    
+    for name in standard detailed simple binary matrix blocks shades retro dots emoji stars hearts; do
+        local palette_file="$palette_dir/${name}.palette"
+        assert_true "[[ -f '$palette_file' ]]" "palette file exists: $name.palette"
+    done
+}
+
+test_builtin_palette_files_have_metadata() {
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    
+    for name in standard blocks emoji; do
+        local palette_file="$palette_dir/${name}.palette"
+        local desc
+        desc=$(palette_get_metadata "$palette_file" "Description")
+        assert_not_equals "" "$desc" "palette $name has Description metadata"
+    done
+}
+
+test_palette_file_priority_over_builtin() {
+    # palette_get should read from file, not hardcoded fallback
+    local palette_dir="$GUMMYWORM_PALETTES_DIR"
+    local standard_file="$palette_dir/standard.palette"
+    
+    # Verify standard.palette file exists and is being used
+    assert_true "[[ -f '$standard_file' ]]" "standard.palette file exists"
+    
+    local file_chars
+    file_chars=$(grep -v '^#' "$standard_file" | grep -v '^$' | head -1)
+    
+    local result
+    result=$(palette_get "standard")
+    
+    assert_equals "$file_chars" "$result" "palette_get reads from file"
+}
+
+# ============================================================================
 # Run Tests
 # ============================================================================
 
