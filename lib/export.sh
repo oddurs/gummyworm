@@ -150,8 +150,6 @@ EOF
 # Usage: _ansi_to_html <content>
 _ansi_to_html() {
     local content="$1"
-    local in_span=false
-    local result=""
     
     # Process the content character by character, handling escape sequences
     # Using awk for more reliable ANSI parsing
