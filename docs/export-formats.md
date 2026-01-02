@@ -11,6 +11,7 @@ gummyworm can export ASCII art in multiple formats for different use cases. This
 | `html` | .html | Yes (full RGB) | Web pages, email, documents |
 | `svg` | .svg | Yes (full RGB) | Scalable graphics, print, web |
 | `png` | .png | Yes (full RGB) | Images, social media, sharing |
+| `gif` | .gif | Yes (full RGB) | Animated ASCII art, animated input |
 
 ## Specifying Format
 
@@ -217,6 +218,68 @@ gummyworm -c -w 100 -f png -o hires.png photo.jpg
 - Image galleries
 - Thumbnails
 
+## GIF Format
+
+Animated GIF output for creating ASCII animations from animated input files.
+
+```bash
+gummyworm -a -c -f gif -o ascii-animation.gif animation.gif
+gummyworm -a --frame-delay 100 -f gif -o slow.gif fast-animation.gif
+```
+
+**Characteristics:**
+- Preserves animation from source GIF
+- Each frame converted to ASCII independently
+- Full color support
+- Customizable frame timing
+- Configurable loop count
+- Requires ImageMagick
+
+**Animation options:**
+```bash
+# Basic animation export
+gummyworm -a -f gif -o output.gif animation.gif
+
+# Custom frame delay (milliseconds)
+gummyworm -a --frame-delay 200 -f gif -o slow.gif animation.gif
+
+# Limit number of frames
+gummyworm -a --max-frames 10 -f gif -o short.gif long-animation.gif
+
+# Set loop count (0 = infinite)
+gummyworm -a --loops 3 -f gif -o limited.gif animation.gif
+```
+
+**Terminal playback:**
+```bash
+# Play animation in terminal with color
+gummyworm -a -c animation.gif
+
+# Slower playback
+gummyworm -a -c --frame-delay 200 animation.gif
+
+# Play 5 times then stop
+gummyworm -a -c --loops 5 animation.gif
+```
+
+**Best practices:**
+- Use smaller widths (`-w 40-60`) for reasonable file sizes
+- Higher frame counts = larger file size
+- Use `--max-frames` to limit very long animations
+- Consider the `blocks` palette for bold, visible characters
+
+**Use cases:**
+- Social media animated posts
+- Discord/Slack animated reactions
+- Animated documentation examples
+- Fun visual effects
+
+**Disabling animation:**
+```bash
+# Convert animated GIF to static ASCII (first frame only)
+gummyworm --no-animate animation.gif
+```
+
 ## Background Color
 
 Customize the background color for HTML, SVG, and PNG exports:
@@ -273,6 +336,7 @@ gummyworm -c -f png -d ./png-output/ photos/*.jpg
 | HTML | ~5 KB | ~50-100 KB |
 | SVG | ~10 KB | ~100-200 KB |
 | PNG | N/A | ~50-150 KB |
+| GIF | N/A | ~100-500 KB (varies by frame count) |
 
 ### Compatibility
 
@@ -283,6 +347,7 @@ gummyworm -c -f png -d ./png-output/ photos/*.jpg
 | HTML | ❌ | ✅ | ✅ | ❌ |
 | SVG | ❌ | ✅ | ✅ | ✅ |
 | PNG | ❌ | ✅ | ✅ | ✅ |
+| GIF | ❌ | ✅ | ✅ | ✅ |
 
 ## Troubleshooting
 
