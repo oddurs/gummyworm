@@ -17,6 +17,7 @@ readonly _GUMMYWORM_PALETTES_LOADED=1
 # Using functions instead of associative arrays for bash 3.x compatibility
 
 # Get built-in palette by name
+# Note: Wide-char palettes (emoji, hearts) use full-width space (U+3000) for alignment
 _get_builtin_palette() {
     case "$1" in
         standard) echo " .:-=+*#%@" ;;
@@ -28,9 +29,9 @@ _get_builtin_palette() {
         shades)   echo " ░▒▓█▓▒░" ;;
         retro)    echo " .:░▒▓█" ;;
         dots)     echo " ⠁⠃⠇⠿⣿" ;;
-        emoji)    echo "  🌑🌒🌓🌔🌕" ;;
+        emoji)    echo "　🌑🌒🌓🌔🌕" ;;
         stars)    echo " ·✦★✷✸✹" ;;
-        hearts)   echo " ♡♥❤💖💗" ;;
+        hearts)   echo "　🤍🩷�💖💘" ;;
         *)        return 1 ;;
     esac
 }
