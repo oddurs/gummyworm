@@ -189,6 +189,62 @@ gummyworm -i logo-dark-bg.png
 gummyworm -c -i photo.jpg
 ```
 
+### Image Preprocessing Options
+
+#### `--brightness <N>`
+
+Adjust image brightness before conversion.
+
+| | |
+|---|---|
+| **Default** | 0 (no change) |
+| **Type** | Integer from -100 to 100 |
+
+```bash
+# Brighten a dark image
+gummyworm --brightness 30 dark-photo.jpg
+
+# Darken a bright image
+gummyworm --brightness -20 bright-photo.jpg
+```
+
+#### `--contrast <N>`
+
+Adjust image contrast before conversion.
+
+| | |
+|---|---|
+| **Default** | 0 (no change) |
+| **Type** | Integer from -100 to 100 |
+
+```bash
+# Increase contrast for more dramatic output
+gummyworm --contrast 40 photo.jpg
+
+# Decrease contrast for softer output
+gummyworm --contrast -20 photo.jpg
+```
+
+#### `--gamma <N>`
+
+Adjust image gamma (midtone brightness) before conversion.
+
+| | |
+|---|---|
+| **Default** | 1.0 (no change) |
+| **Type** | Positive number from 0.1 to 10.0 |
+
+```bash
+# Lighten midtones
+gummyworm --gamma 1.5 photo.jpg
+
+# Darken midtones
+gummyworm --gamma 0.7 photo.jpg
+
+# Combine all preprocessing options
+gummyworm --brightness 10 --contrast 20 --gamma 1.2 photo.jpg
+```
+
 ### Output Options
 
 #### `-f, --format <type>`
