@@ -56,6 +56,7 @@ readonly DEFAULT_HEIGHT=0  # 0 = auto-calculate from aspect ratio
 readonly DEFAULT_PALETTE="standard"
 readonly DEFAULT_INVERT=false
 readonly DEFAULT_COLOR=false
+readonly DEFAULT_TRUECOLOR=false
 readonly DEFAULT_OUTPUT=""
 readonly DEFAULT_QUIET=false
 readonly DEFAULT_PRESERVE_ASPECT=true
