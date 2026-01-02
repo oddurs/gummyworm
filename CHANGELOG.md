@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **zsh support:** Full compatibility with zsh 5.0+ alongside bash 3.2+
+- Shell detection utilities (`_is_bash()`, `_is_zsh()`) for portable scripting
+- Portable `_script_source()` function replacing bash-specific `BASH_SOURCE`
+- 15 new zsh-specific compatibility tests in `tests/test_zsh_compat.sh`
 - **Modular palette system:** All 12 built-in palettes now stored as individual `.palette` files in `palettes/` folder
 - **Palette metadata support:** `.palette` files support optional headers (`# Name:`, `# Description:`, `# Author:`, `# Tags:`)
 - **Palette template:** New `palettes/_template.palette` as starting point for custom palettes
@@ -48,6 +52,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Troubleshooting guide (`docs/troubleshooting.md`)
 - Architecture documentation (`docs/architecture.md`)
 - Contributing guidelines (`CONTRIBUTING.md`)
+
+### Changed
+- Updated documentation to reflect zsh support alongside bash
+- Replaced `[[:ascii:]]` regex patterns with portable byte-count comparisons
+- Prioritized Python over awk for Unicode character splitting (fixes macOS awk UTF-8 issues)
 
 ## [2.0.0] - 2024-12-01
 
