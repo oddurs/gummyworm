@@ -234,9 +234,10 @@ export_svg() {
     local content="$1"
     local bg_color="${2:-#1e1e1e}"
     
-    # Calculate dimensions
-    local char_width=7.2     # Approximate width of monospace char at 12px
-    local line_height=14.4   # Line height at 12px with 1.2 factor
+    # Calculate dimensions (using integers scaled by 10 for decimal precision)
+    # char_width=7.2, line_height=14.4, padding=20
+    local char_width_x10=72    # 7.2 * 10
+    local line_height_x10=144  # 14.4 * 10
     local padding=20
     
     # Get content dimensions
@@ -254,9 +255,10 @@ export_svg() {
         line_count=$((line_count + 1))
     done < <(echo -e "$content")
     
-    # Calculate SVG dimensions
-    local svg_width=$(echo "$max_width * $char_width + $padding * 2" | bc)
-    local svg_height=$(echo "$line_count * $line_height + $padding * 2" | bc)
+    # Calculate SVG dimensions using awk for floating-point (faster than bc)
+    local svg_width svg_height
+    svg_width=$(awk -v w="$max_width" -v p="$padding" 'BEGIN { printf "%.1f", w * 7.2 + p * 2 }')
+    svg_height=$(awk -v h="$line_count" -v p="$padding" 'BEGIN { printf "%.1f", h * 14.4 + p * 2 }')
     
     # Start SVG
     cat << EOF
@@ -278,11 +280,14 @@ export_svg() {
   <g class="ascii-text">
 EOF
 
-    # Process each line
-    local y_pos=$padding
+    # Process each line - use awk for y position calculation
+    local y_pos_x10=$((padding * 10))  # Start with padding * 10 for precision
     for line in "${lines[@]}"; do
-        y_pos=$(echo "$y_pos + $line_height" | bc)
-        _svg_render_line "$line" "$padding" "$y_pos" "$char_width"
+        y_pos_x10=$((y_pos_x10 + line_height_x10))
+        # Convert back to decimal for SVG
+        local y_pos
+        y_pos=$(awk -v y="$y_pos_x10" 'BEGIN { printf "%.1f", y / 10 }')
+        _svg_render_line "$line" "$padding" "$y_pos" "7.2"
     done
     
     # Close SVG
