@@ -24,7 +24,10 @@ str_display_width() {
     [[ -z "$str" ]] && echo 0 && return
     
     # Fast path for pure ASCII (most common case, no external tools needed)
-    if [[ "$str" =~ ^[[:ascii:]]*$ ]]; then
+    # Use printf to check if all bytes are ASCII (0-127)
+    # Note: [[:ascii:]] is not portable to zsh
+    if printf '%s' "$str" | LC_ALL=C grep -qE '^[[:print:][:space:]]*$' 2>/dev/null && \
+       [[ $(printf '%s' "$str" | wc -c | tr -d ' ') -eq ${#str} ]]; then
         echo "${#str}"
         return
     fi
@@ -51,8 +54,9 @@ char_is_wide() {
     local char="$1"
     [[ -z "$char" ]] && return 1
     
-    # Quick check: ASCII is never wide
-    if [[ "$char" =~ ^[[:ascii:]]$ ]]; then
+    # Quick check: single-byte characters are ASCII and never wide
+    # Note: [[:ascii:]] is not portable to zsh, so we check byte count
+    if [[ ${#char} -eq 1 ]] && printf '%s' "$char" | LC_ALL=C grep -qE '^[[:print:][:space:]]$' 2>/dev/null; then
         return 1
     fi
     

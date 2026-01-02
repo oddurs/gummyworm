@@ -289,7 +289,12 @@ palette_to_array() {
     eval "$arr_name=()"
     
     # Check if pure ASCII for fast path (no external tools needed)
-    if [[ "$palette" =~ ^[[:print:]]*$ ]] && ! [[ "$palette" =~ [^[:ascii:]] ]]; then
+    # Note: [[:ascii:]] is not portable to zsh, so we compare byte count to char count
+    # In pure ASCII, byte count equals character count
+    local byte_count char_count
+    byte_count=$(printf '%s' "$palette" | LC_ALL=C wc -c | tr -d ' ')
+    char_count=${#palette}
+    if [[ "$byte_count" -eq "$char_count" ]]; then
         # Pure ASCII - simple indexing (fastest)
         local i=0
         while [[ $i -lt ${#palette} ]]; do
@@ -297,25 +302,23 @@ palette_to_array() {
             i=$((i + 1))
         done
     else
-        # Unicode - use awk for reliable character splitting (faster than Python)
-        # LC_ALL=C.UTF-8 ensures proper Unicode handling
-        while IFS= read -r char; do
-            [[ -n "$char" ]] && eval "$arr_name+=(\"\$char\")"
-        done < <(printf '%s' "$palette" | LC_ALL=C.UTF-8 awk '{
-            # Split string into individual characters
-            n = split($0, chars, "")
-            for (i = 1; i <= n; i++) {
-                print chars[i]
-            }
-        }')
-        
-        # Fallback to Python if awk failed (some systems may have issues)
-        if [[ $(eval "echo \${#$arr_name[@]}") -eq 0 ]]; then
-            if command -v python3 >/dev/null 2>&1; then
-                while IFS= read -r char; do
-                    eval "$arr_name+=(\"\$char\")"
-                done < <(python3 -c "import sys; [print(c) for c in sys.argv[1]]" "$palette")
-            fi
+        # Unicode - prefer Python for reliable character splitting (awk on macOS doesn't handle UTF-8 properly)
+        if command -v python3 >/dev/null 2>&1; then
+            while IFS= read -r char; do
+                eval "$arr_name+=(\"\$char\")"
+            done < <(python3 -c "import sys; [print(c) for c in sys.argv[1]]" "$palette")
+        else
+            # Fallback to awk (works on some systems like Linux with gawk)
+            # LC_ALL=en_US.UTF-8 for proper Unicode handling  
+            while IFS= read -r char; do
+                [[ -n "$char" ]] && eval "$arr_name+=(\"\$char\")"
+            done < <(printf '%s' "$palette" | LC_ALL=en_US.UTF-8 awk '{
+                # Split string into individual characters
+                n = split($0, chars, "")
+                for (i = 1; i <= n; i++) {
+                    print chars[i]
+                }
+            }')
         fi
     fi
 }
