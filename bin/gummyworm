@@ -264,11 +264,21 @@ main() {
     
     # Auto-detect truecolor support if not explicitly set
     # Check $COLORTERM environment variable for 'truecolor' or '24bit'
+    # Skip auto-detection for file exports (gif, png, svg, html) where terminal capabilities don't apply
+    local output_format="$ARG_FORMAT"
+    if [[ -n "$ARG_OUTPUT" && "$output_format" == "text" ]]; then
+        output_format=$(export_detect_format "$ARG_OUTPUT")
+    fi
+    
     if [[ "$ARG_TRUECOLOR" != "true" && "$ARG_COLOR" == "true" ]]; then
-        if detect_truecolor_support; then
-            ARG_TRUECOLOR="true"
-            if [[ "$ARG_QUIET" != "true" ]]; then
-                log_debug "Auto-detected true color support" || true
+        # Only auto-detect for terminal output formats (text, ansi)
+        if [[ "$output_format" != "gif" && "$output_format" != "png" && \
+              "$output_format" != "svg" && "$output_format" != "html" ]]; then
+            if detect_truecolor_support; then
+                ARG_TRUECOLOR="true"
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_debug "Auto-detected true color support" || true
+                fi
             fi
         fi
     fi
