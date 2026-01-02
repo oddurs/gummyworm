@@ -97,12 +97,13 @@ function truecolor_to_rgb(code) {
 # ============================================================================
 
 # Convert ASCII art to HTML with CSS styling
-# Usage: export_html <ascii_content> [background_color]
+# Usage: export_html <ascii_content> [background_color] [padding] [title]
 # Output: Complete HTML document
 export_html() {
     local content="$1"
     local bg_color="${2:-#1e1e1e}"
-    local title="${3:-ASCII Art - gummyworm}"
+    local padding="${3:-0}"
+    local title="${4:-ASCII Art - gummyworm}"
     
     # Start HTML document
     cat << EOF
@@ -124,7 +125,7 @@ export_html() {
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: ${padding}px;
         }
         .ascii-art {
             font-family: 'Courier New', Courier, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
@@ -243,17 +244,17 @@ _ansi_to_html() {
 # ============================================================================
 
 # Convert ASCII art to SVG
-# Usage: export_svg <ascii_content> [background_color]
+# Usage: export_svg <ascii_content> [background_color] [padding]
 # Output: Complete SVG document
 export_svg() {
     local content="$1"
     local bg_color="${2:-#1e1e1e}"
+    local padding="${3:-0}"
     
     # Calculate dimensions (using integers scaled by 10 for decimal precision)
-    # char_width=7.2, line_height=14.4, padding=20
+    # char_width=7.2, line_height=14.4
     local char_width_x10=72    # 7.2 * 10
     local line_height_x10=144  # 14.4 * 10
-    local padding=20
     
     # Get content dimensions
     local lines=()
@@ -394,13 +395,14 @@ _svg_render_line() {
 # ============================================================================
 
 # Convert ASCII art to PNG using ImageMagick
-# Usage: export_png <ascii_content> <output_file> [background_color] [font]
+# Usage: export_png <ascii_content> <output_file> [background_color] [font] [padding]
 # Returns: 0 on success, 1 on failure
 export_png() {
     local content="$1"
     local output_file="$2"
     local bg_color="${3:-#1e1e1e}"
     local font="${4:-}"
+    local padding="${5:-0}"
     
     # Check that ImageMagick was initialized (should be done by image_check_deps)
     if [[ -z "$_MAGICK_CONVERT" ]]; then
@@ -417,7 +419,7 @@ export_png() {
     trap "rm -f '$tmpsvg'" RETURN
     
     # Generate SVG
-    export_svg "$content" "$bg_color" > "$tmpsvg"
+    export_svg "$content" "$bg_color" "$padding" > "$tmpsvg"
     
     # Convert SVG to PNG
     local convert_args=(-background "$bg_color")
@@ -442,12 +444,13 @@ export_png() {
 # ============================================================================
 
 # Convert multiple ASCII frames to an animated GIF
-# Usage: export_animated_gif <output_file> <delay_ms> <loops> <bg_color> <frame1_content> [frame2_content ...]
+# Usage: export_animated_gif <output_file> <delay_ms> <loops> <bg_color> <padding> <frame1_content> [frame2_content ...]
 # Arguments:
 #   output_file - Path to output GIF file
 #   delay_ms    - Delay between frames in milliseconds
 #   loops       - Number of loops (0 = infinite)
 #   bg_color    - Background color for frames
+#   padding     - Padding in pixels around content
 #   frameN      - ASCII content for each frame
 # Returns: 0 on success, 1 on failure
 export_animated_gif() {
@@ -455,7 +458,8 @@ export_animated_gif() {
     local delay_ms="$2"
     local loops="$3"
     local bg_color="$4"
-    shift 4
+    local padding="$5"
+    shift 5
     local frames=("$@")
     
     # Check that ImageMagick was initialized
@@ -487,7 +491,7 @@ export_animated_gif() {
         local frame_file="${tmpdir}/frame_$(printf '%04d' $frame_num).png"
         
         # Generate PNG for this frame
-        if ! export_png "$frame_content" "$frame_file" "$bg_color"; then
+        if ! export_png "$frame_content" "$frame_file" "$bg_color" "" "$padding"; then
             log_error "Failed to generate frame $frame_num"
             return 1
         fi
@@ -513,13 +517,14 @@ export_animated_gif() {
 }
 
 # Export frames as individual files (for debugging or frame extraction)
-# Usage: export_frames <output_dir> <format> <bg_color> <frame1_content> [frame2_content ...]
+# Usage: export_frames <output_dir> <format> <bg_color> <padding> <frame1_content> [frame2_content ...]
 # Returns: 0 on success, 1 on failure
 export_frames() {
     local output_dir="$1"
     local format="$2"
     local bg_color="$3"
-    shift 3
+    local padding="$4"
+    shift 4
     local frames=("$@")
     
     # Create output directory if needed
@@ -535,7 +540,7 @@ export_frames() {
     for frame_content in "${frames[@]}"; do
         local frame_file="${output_dir}/frame_$(printf '%04d' $frame_num).${ext}"
         
-        if ! export_content "$format" "$frame_content" "$frame_file" "$bg_color"; then
+        if ! export_content "$format" "$frame_content" "$frame_file" "$bg_color" "$padding"; then
             log_error "Failed to export frame $frame_num"
             return 1
         fi
@@ -551,7 +556,7 @@ export_frames() {
 # ============================================================================
 
 # Export ASCII art to the specified format
-# Usage: export_content <format> <content> <output_file> [options...]
+# Usage: export_content <format> <content> <output_file> [bg_color] [padding]
 # Note: For animated GIF, use export_animated_gif() directly with multiple frames
 # Returns: 0 on success, 1 on failure
 export_content() {
@@ -559,6 +564,7 @@ export_content() {
     local content="$2"
     local output_file="$3"
     local bg_color="${4:-#1e1e1e}"
+    local padding="${5:-0}"
     
     case "$format" in
         text)
@@ -570,19 +576,19 @@ export_content() {
             echo -e "$content" > "$output_file"
             ;;
         html)
-            export_html "$content" "$bg_color" > "$output_file"
+            export_html "$content" "$bg_color" "$padding" > "$output_file"
             ;;
         svg)
-            export_svg "$content" "$bg_color" > "$output_file"
+            export_svg "$content" "$bg_color" "$padding" > "$output_file"
             ;;
         png)
-            export_png "$content" "$output_file" "$bg_color"
+            export_png "$content" "$output_file" "$bg_color" "" "$padding"
             return $?
             ;;
         gif)
             # For single-frame GIF, create a static GIF
             # Use export_animated_gif with single frame for consistency
-            export_animated_gif "$output_file" 100 0 "$bg_color" "$content"
+            export_animated_gif "$output_file" 100 0 "$bg_color" "$padding" "$content"
             return $?
             ;;
         *)
