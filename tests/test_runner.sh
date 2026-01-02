@@ -71,6 +71,11 @@ load_gummyworm_libs() {
     source "$PROJECT_ROOT/lib/converter.sh"
     source "$PROJECT_ROOT/lib/export.sh"
     source "$PROJECT_ROOT/lib/cli.sh"
+    
+    # Initialize ImageMagick wrappers (if available) 
+    if command_exists magick || command_exists convert; then
+        image_check_deps 2>/dev/null || true
+    fi
 }
 
 # ============================================================================
@@ -201,7 +206,8 @@ mock_identify() {
     export _MOCK_IDENTIFY_HEIGHT="$mock_height"
     export _MOCK_IDENTIFY_FORMAT="$mock_format"
     
-    identify() {
+    # Create mock function for $_MAGICK_IDENTIFY wrapper
+    _mock_identify() {
         local format_arg=""
         for arg in "$@"; do
             if [[ "$arg" == "-format" ]]; then
@@ -219,13 +225,21 @@ mock_identify() {
         done
         return 0
     }
-    export -f identify
+    export -f _mock_identify
+    
+    # Override the wrapper variable to use our mock function
+    export _ORIG_MAGICK_IDENTIFY="${_MAGICK_IDENTIFY:-}"
+    export _MAGICK_IDENTIFY="_mock_identify"
 }
 
 # Restore original commands after mocking
 restore_mocks() {
-    unset -f convert 2>/dev/null || true
-    unset -f identify 2>/dev/null || true
+    unset -f _mock_identify 2>/dev/null || true
+    # Restore original identify wrapper
+    if [[ -n "${_ORIG_MAGICK_IDENTIFY:-}" ]]; then
+        export _MAGICK_IDENTIFY="$_ORIG_MAGICK_IDENTIFY"
+    fi
+    unset _ORIG_MAGICK_IDENTIFY 2>/dev/null || true
     unset _MOCK_IDENTIFY_WIDTH _MOCK_IDENTIFY_HEIGHT _MOCK_IDENTIFY_FORMAT 2>/dev/null || true
 }
 

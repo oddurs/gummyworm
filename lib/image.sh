@@ -14,26 +14,25 @@ readonly _GUMMYWORM_IMAGE_LOADED=1
 # Dependencies
 # ============================================================================
 
+# ImageMagick command wrappers - set by image_check_deps()
+# These allow transparent use of both ImageMagick 6 and 7
+_MAGICK_CONVERT=""
+_MAGICK_IDENTIFY=""
+
 # Check for required image processing tools
 # Supports both ImageMagick 6 (convert/identify) and ImageMagick 7 (magick)
 image_check_deps() {
     # Check for ImageMagick 7 first (magick command)
     if command_exists magick; then
-        # ImageMagick 7 uses 'magick' as the main command
-        # Create wrapper functions if not already available
-        if ! command_exists convert; then
-            convert() { magick "$@"; }
-            export -f convert
-        fi
-        if ! command_exists identify; then
-            identify() { magick identify "$@"; }
-            export -f identify
-        fi
+        _MAGICK_CONVERT="magick"
+        _MAGICK_IDENTIFY="magick identify"
         return 0
     fi
     
     # Check for ImageMagick 6 (convert/identify commands)
-    if ! command_exists convert; then
+    if command_exists convert; then
+        _MAGICK_CONVERT="convert"
+    else
         die "ImageMagick is required but not installed.
   Install with:
     - macOS:   brew install imagemagick
@@ -43,7 +42,9 @@ image_check_deps() {
     - FreeBSD: pkg install ImageMagick7"
     fi
     
-    if ! command_exists identify; then
+    if command_exists identify; then
+        _MAGICK_IDENTIFY="identify"
+    else
         die "ImageMagick 'identify' command not found.
   Your ImageMagick installation may be incomplete.
   Try reinstalling ImageMagick for your platform."
@@ -98,7 +99,7 @@ image_from_stdin() {
     cat > "$temp_file"
     
     # Verify it's a valid image
-    if ! identify "$temp_file" &>/dev/null; then
+    if ! $_MAGICK_IDENTIFY "$temp_file" &>/dev/null; then
         rm -f "$temp_file"
         die "Stdin does not contain valid image data"
     fi
@@ -118,7 +119,7 @@ image_is_valid() {
     
     [[ -f "$image" ]] || return 1
     [[ -r "$image" ]] || return 1
-    identify "$image" &>/dev/null || return 1
+    $_MAGICK_IDENTIFY "$image" &>/dev/null || return 1
     return 0
 }
 
@@ -135,7 +136,7 @@ image_validate() {
         die "Cannot read file: $image"
     fi
     
-    if ! identify "$image" &> /dev/null; then
+    if ! $_MAGICK_IDENTIFY "$image" &> /dev/null; then
         die "Not a valid image file: $image"
     fi
 }
@@ -149,28 +150,28 @@ image_validate() {
 # Output: "width height" (space-separated)
 image_dimensions() {
     local image="$1"
-    identify -format "%w %h" "$image" 2>/dev/null
+    $_MAGICK_IDENTIFY -format "%w %h" "$image" 2>/dev/null
 }
 
 # Get image width
 # Usage: image_width <filepath>
 image_width() {
     local image="$1"
-    identify -format "%w" "$image" 2>/dev/null
+    $_MAGICK_IDENTIFY -format "%w" "$image" 2>/dev/null
 }
 
 # Get image height  
 # Usage: image_height <filepath>
 image_height() {
     local image="$1"
-    identify -format "%h" "$image" 2>/dev/null
+    $_MAGICK_IDENTIFY -format "%h" "$image" 2>/dev/null
 }
 
 # Get image format
 # Usage: image_format <filepath>
 image_format() {
     local image="$1"
-    identify -format "%m" "$image" 2>/dev/null
+    $_MAGICK_IDENTIFY -format "%m" "$image" 2>/dev/null
 }
 
 # ============================================================================
@@ -216,7 +217,7 @@ image_extract_pixels() {
     local height="$3"
     local output="$4"
     
-    convert "$image" \
+    $_MAGICK_CONVERT "$image" \
         -resize "${width}x${height}!" \
         -depth 8 \
         -colorspace sRGB \

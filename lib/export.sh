@@ -384,9 +384,9 @@ export_png() {
     local bg_color="${3:-#1e1e1e}"
     local font="${4:-}"
     
-    # Check for ImageMagick
-    if ! command -v convert >/dev/null 2>&1; then
-        log_error "PNG export requires ImageMagick (convert command not found)"
+    # Check that ImageMagick was initialized (should be done by image_check_deps)
+    if [[ -z "$_MAGICK_CONVERT" ]]; then
+        log_error "PNG export requires ImageMagick (not initialized)"
         return 1
     fi
     
@@ -411,7 +411,7 @@ export_png() {
     
     convert_args+=("$tmpsvg" "$output_file")
     
-    if convert "${convert_args[@]}" 2>/dev/null; then
+    if $_MAGICK_CONVERT "${convert_args[@]}" 2>/dev/null; then
         return 0
     else
         log_error "Failed to convert SVG to PNG"
@@ -428,8 +428,8 @@ export_png_text() {
     local font="${4:-Courier}"
     local font_size="${5:-12}"
     
-    # Check for ImageMagick
-    if ! command -v convert >/dev/null 2>&1; then
+    # Check that ImageMagick was initialized
+    if [[ -z "$_MAGICK_CONVERT" ]]; then
         log_error "PNG export requires ImageMagick"
         return 1
     fi
@@ -445,7 +445,7 @@ export_png_text() {
     trap "rm -f '$tmptext'" RETURN
     
     # Convert text to PNG
-    convert -background "$bg_color" \
+    $_MAGICK_CONVERT -background "$bg_color" \
             -fill "#00ff00" \
             -font "$font" \
             -pointsize "$font_size" \
