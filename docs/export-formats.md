@@ -113,6 +113,7 @@ Complete HTML document with embedded CSS styling.
 ```bash
 gummyworm -c -f html -o gallery.html photo.jpg
 gummyworm -c -f html --background '#000000' -o dark.html photo.jpg
+gummyworm -c -f html --padding 20 -o padded.html photo.jpg
 ```
 
 **Characteristics:**
@@ -127,6 +128,7 @@ gummyworm -c -f html --background '#000000' -o dark.html photo.jpg
 - **Responsive design:** Scales with browser width
 - **Font stack:** Uses system monospace fonts
 - **Background control:** Customizable via `--background`
+- **Padding control:** Customizable via `--padding` (default: 0)
 - **Color accuracy:** Full RGB color from source image
 
 **Example generated HTML structure:**
@@ -164,6 +166,7 @@ Scalable Vector Graphics for high-quality, resolution-independent output.
 ```bash
 gummyworm -c -f svg -o artwork.svg photo.jpg
 gummyworm -c -f svg --background '#1a1a2e' -o styled.svg photo.jpg
+gummyworm -c -f svg --padding 30 -o padded.svg photo.jpg
 ```
 
 **Characteristics:**
@@ -198,6 +201,7 @@ Rasterized PNG image rendered from the ASCII art.
 ```bash
 gummyworm -c -f png -o poster.png photo.jpg
 gummyworm -c -w 100 -f png -o hires.png photo.jpg
+gummyworm -c -f png --padding 20 -o padded.png photo.jpg
 ```
 
 **Characteristics:**
