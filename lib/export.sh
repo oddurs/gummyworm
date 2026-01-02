@@ -79,6 +79,16 @@ function ansi256_to_rgb(n) {
         return sprintf("#%02x%02x%02x", gray, gray, gray)
     }
 }
+
+# Parse true color code (38;2;r;g;b) and return hex RGB
+function truecolor_to_rgb(code) {
+    # code is "38;2;r;g;b" - extract r, g, b values
+    split(code, parts, ";")
+    r = int(parts[3])
+    g = int(parts[4])
+    b = int(parts[5])
+    return sprintf("#%02x%02x%02x", r, g, b)
+}
 '
 
 # ============================================================================
@@ -159,17 +169,17 @@ _ansi_to_html() {
         in_span = 0
     }
     {
-        line = $0
-        output = ""
+        line = \$0
+        output = \"\"
         i = 1
         while (i <= length(line)) {
             c = substr(line, i, 1)
-            if (c == "\033" || c == "\x1b") {
+            if (c == \"\033\" || c == \"\x1b\") {
                 # Start of escape sequence
-                if (substr(line, i, 2) == "\033[" || substr(line, i, 2) == "\x1b[") {
+                if (substr(line, i, 2) == \"\033[\" || substr(line, i, 2) == \"\x1b[\") {
                     # Find the end of the escape sequence (letter)
                     j = i + 2
-                    code = ""
+                    code = \"\"
                     while (j <= length(line)) {
                         cc = substr(line, j, 1)
                         if (cc ~ /[a-zA-Z]/) {
@@ -179,19 +189,25 @@ _ansi_to_html() {
                         j++
                     }
                     
-                    if (substr(line, j, 1) == "m") {
+                    if (substr(line, j, 1) == \"m\") {
                         # Color code
                         if (in_span) {
-                            output = output "</span>"
+                            output = output \"</span>\"
                             in_span = 0
                         }
                         
-                        if (code != "0" && code != "") {
+                        if (code != \"0\" && code != \"\") {
+                            # Parse true color: 38;2;r;g;b (check first)
+                            if (code ~ /^38;2;/) {
+                                rgb = truecolor_to_rgb(code)
+                                output = output \"<span style=\\\"color: \" rgb \"\\\">\"
+                                in_span = 1
+                            }
                             # Parse 256-color: 38;5;N
-                            if (code ~ /^38;5;/) {
+                            else if (code ~ /^38;5;/) {
                                 color_num = substr(code, 6)
                                 rgb = ansi256_to_rgb(int(color_num))
-                                output = output "<span style=\"color: " rgb "\">"
+                                output = output \"<span style=\\\"color: \" rgb \"\\\">\"
                                 in_span = 1
                             }
                         }
@@ -202,17 +218,17 @@ _ansi_to_html() {
             }
             
             # HTML escape special characters
-            if (c == "<") output = output "&lt;"
-            else if (c == ">") output = output "&gt;"
-            else if (c == "&") output = output "&amp;"
-            else if (c == "\"") output = output "&quot;"
+            if (c == \"<\") output = output \"\\&lt;\"
+            else if (c == \">\") output = output \"\\&gt;\"
+            else if (c == \"\\&\") output = output \"\\&amp;\"
+            else if (c == \"\\\"\") output = output \"\\&quot;\"
             else output = output c
             
             i++
         }
         
         if (in_span) {
-            output = output "</span>"
+            output = output \"</span>\"
             in_span = 0
         }
         
@@ -341,6 +357,9 @@ _svg_render_line() {
                     if (substr(line, j, 1) == \"m\") {
                         if (code == \"0\" || code == \"\") {
                             current_color = \"#00ff00\"
+                        } else if (code ~ /^38;2;/) {
+                            # True color: 38;2;r;g;b
+                            current_color = truecolor_to_rgb(code)
                         } else if (code ~ /^38;5;/) {
                             color_num = substr(code, 6)
                             current_color = ansi256_to_rgb(int(color_num))
