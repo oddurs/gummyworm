@@ -67,8 +67,19 @@ cleanup() {
     if [[ -n "${ARG_STDIN_TEMP:-}" ]]; then
         rm -f "$ARG_STDIN_TEMP"
     fi
+    # Clean up animation temp directory if it exists
+    if [[ -n "${_ANIM_TMPDIR:-}" && -d "$_ANIM_TMPDIR" ]]; then
+        rm -rf "$_ANIM_TMPDIR"
+    fi
 }
 trap cleanup EXIT
+
+# Handle Ctrl+C gracefully during animation playback
+_stop_playback=false
+handle_interrupt() {
+    _stop_playback=true
+}
+trap handle_interrupt INT
 
 # ============================================================================
 # Helper Functions
@@ -99,6 +110,148 @@ get_export_content() {
 }
 
 # ============================================================================
+# Animation Functions
+# ============================================================================
+
+# Check if animation should be processed for an image
+# Usage: should_process_animation <image_file>
+# Returns: 0 if should animate, 1 if not
+should_process_animation() {
+    local image="$1"
+    
+    case "$ARG_ANIMATE" in
+        true)
+            # Forced on - check if image actually has frames
+            image_is_animated "$image"
+            return $?
+            ;;
+        false)
+            # Forced off
+            return 1
+            ;;
+        auto|*)
+            # Auto-detect: animate only for multi-frame images  
+            image_is_animated "$image"
+            return $?
+            ;;
+    esac
+}
+
+# Play animated ASCII art in terminal
+# Usage: play_animation <delay_ms> <loops> <frames_array>
+# Arguments:
+#   delay_ms - Delay between frames in milliseconds
+#   loops    - Number of loops (0 = infinite)
+#   frames   - Array of ASCII frame contents
+play_animation() {
+    local delay_ms="$1"
+    local loops="$2"
+    shift 2
+    local frames=("$@")
+    
+    local frame_count=${#frames[@]}
+    if [[ $frame_count -eq 0 ]]; then
+        return 1
+    fi
+    
+    # Convert delay from ms to seconds for sleep
+    local delay_sec
+    delay_sec=$(awk -v ms="$delay_ms" 'BEGIN { printf "%.3f", ms / 1000 }')
+    
+    # Get the height of first frame to know how many lines to clear
+    # Use awk to count lines reliably (wc -l has whitespace issues on some systems)
+    local frame_lines
+    frame_lines=$(echo -e "${frames[0]}" | awk 'END {print NR}')
+    
+    # Reset stop flag
+    _stop_playback=false
+    
+    local loop=0
+    local infinite=$([[ $loops -eq 0 ]] && echo true || echo false)
+    
+    # Hide cursor during playback
+    printf '\e[?25l'
+    
+    while [[ "$infinite" == "true" ]] || [[ $loop -lt $loops ]]; do
+        for frame in "${frames[@]}"; do
+            # Check for interrupt
+            if [[ "$_stop_playback" == "true" ]]; then
+                # Show cursor again
+                printf '\e[?25h'
+                echo ""
+                return 0
+            fi
+            
+            # Move cursor to start position (top of frame area)
+            printf '\e[%dA' "$frame_lines" 2>/dev/null || true
+            printf '\e[0J'  # Clear from cursor to end of screen
+            
+            # Print the frame (use printf to avoid extra newline from echo)
+            printf '%b\n' "$frame"
+            
+            # Sleep for delay
+            sleep "$delay_sec"
+        done
+        
+        loop=$((loop + 1))
+    done
+    
+    # Show cursor again
+    printf '\e[?25h'
+}
+
+# Process animated image and return array of ASCII frames
+# Usage: process_animation <image_file> <width> <height> <palette> <invert> <color> <preserve_aspect> <truecolor> <max_frames>
+# Outputs frame contents to stdout, one per line separated by null bytes
+process_animation_frames() {
+    local image="$1"
+    local width="$2"
+    local height="$3"
+    local palette="$4"
+    local invert="$5"
+    local color="$6"
+    local preserve_aspect="$7"
+    local truecolor="$8"
+    local max_frames="$9"
+    
+    # Create temp directory for frames
+    _ANIM_TMPDIR=$(mktemp -d -t gummyworm_anim.XXXXXX)
+    
+    # Extract frames (suppress the count output)
+    if ! image_extract_frames "$image" "$_ANIM_TMPDIR" "$max_frames" >/dev/null; then
+        log_error "Failed to extract animation frames"
+        return 1
+    fi
+    
+    # Process each frame
+    local frame_files=("$_ANIM_TMPDIR"/frame_*.png)
+    if [[ ! -f "${frame_files[0]}" ]]; then
+        log_error "No frames extracted"
+        return 1
+    fi
+    
+    local frames=()
+    for frame_file in "${frame_files[@]}"; do
+        local frame_result
+        frame_result=$(convert_to_ascii \
+            "$frame_file" \
+            "$width" \
+            "$height" \
+            "$palette" \
+            "$invert" \
+            "$color" \
+            "$preserve_aspect" \
+            "$truecolor"
+        ) || continue
+        
+        frames+=("$frame_result")
+    done
+    
+    # Output frames as array representation
+    printf '%s\0' "${frames[@]}"
+}
+
+# ============================================================================
 # Main Function
 # ============================================================================
 
@@ -114,7 +267,9 @@ main() {
     if [[ "$ARG_TRUECOLOR" != "true" && "$ARG_COLOR" == "true" ]]; then
         if detect_truecolor_support; then
             ARG_TRUECOLOR="true"
-            [[ "$ARG_QUIET" != "true" ]] && log_debug "Auto-detected true color support"
+            if [[ "$ARG_QUIET" != "true" ]]; then
+                log_debug "Auto-detected true color support" || true
+            fi
         fi
     fi
     
@@ -191,101 +346,224 @@ main() {
             fi
         fi
         
-        # Perform conversion
-        local result
-        result=$(convert_to_ascii \
-            "$resolved_image" \
-            "$ARG_WIDTH" \
-            "$ARG_HEIGHT" \
-            "$palette" \
-            "$ARG_INVERT" \
-            "$ARG_COLOR" \
-            "$ARG_PRESERVE_ASPECT" \
-            "$ARG_TRUECOLOR"
-        ) || {
-            log_error "Conversion failed: $image"
-            failed=$((failed + 1))
-            failed_files+=("$image")
-            [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
-            [[ "$ARG_CONTINUE_ON_ERROR" == "true" ]] && continue || exit 1
-        }
-        
-        # Clean up temp downloaded file
-        [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
-        
-        # Determine output format (auto-detect from extension if not explicitly set)
-        local output_format="$ARG_FORMAT"
-        
-        # Output results
-        if [[ -n "$ARG_OUTPUT_DIR" ]]; then
-            # Save to output directory with auto-generated name
-            local base_name
-            base_name=$(basename "$image")
-            
-            # Use format-appropriate extension
-            local ext
-            ext=$(export_get_extension "$output_format")
-            base_name="${base_name%.*}.ascii.${ext}"
-            local out_file="$ARG_OUTPUT_DIR/$base_name"
-            
-            # Get content for export (re-converts with color if needed)
-            local export_content_arg
-            export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
-                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
-            
-            export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND"
+        # Check for animation processing
+        if should_process_animation "$resolved_image"; then
+            # Process as animation
+            local frame_count
+            frame_count=$(image_frame_count "$resolved_image")
             
             if [[ "$ARG_QUIET" != "true" ]]; then
-                log_success "Saved to: $out_file"
+                log_info "Animation detected: $frame_count frames 🎬"
             fi
-        elif [[ -n "$ARG_OUTPUT" ]]; then
-            # Auto-detect format from output file extension if format is default
-            if [[ "$ARG_FORMAT" == "text" ]]; then
-                local detected_format
-                detected_format=$(export_detect_format "$ARG_OUTPUT")
-                if [[ "$detected_format" != "text" ]]; then
-                    output_format="$detected_format"
+            
+            # Read frames into array
+            local frames=()
+            while IFS= read -r -d '' frame_content; do
+                frames+=("$frame_content")
+            done < <(process_animation_frames \
+                "$resolved_image" \
+                "$ARG_WIDTH" \
+                "$ARG_HEIGHT" \
+                "$palette" \
+                "$ARG_INVERT" \
+                "$ARG_COLOR" \
+                "$ARG_PRESERVE_ASPECT" \
+                "$ARG_TRUECOLOR" \
+                "$ARG_MAX_FRAMES"
+            )
+            
+            if [[ ${#frames[@]} -eq 0 ]]; then
+                log_error "Failed to process animation frames: $image"
+                failed=$((failed + 1))
+                failed_files+=("$image")
+                [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+                [[ "$ARG_CONTINUE_ON_ERROR" == "true" ]] && continue || exit 1
+            fi
+            
+            # Clean up temp downloaded file
+            [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+            
+            # Determine output handling
+            if [[ "$ARG_FORMAT" == "gif" ]] || [[ -n "$ARG_OUTPUT" && "$(export_detect_format "$ARG_OUTPUT")" == "gif" ]]; then
+                # Export as animated GIF
+                local output_file="${ARG_OUTPUT:-output.gif}"
+                
+                # Get original delays or use specified delay
+                local delays
+                delays=$(image_get_delays "$resolved_image")
+                local delay_ms="$ARG_FRAME_DELAY"
+                
+                # If no explicit delay, use first frame's delay (convert centiseconds to ms)
+                if [[ "$ARG_FRAME_DELAY" == "$DEFAULT_FRAME_DELAY" && -n "$delays" ]]; then
+                    local first_delay
+                    first_delay=$(echo "$delays" | head -n1)
+                    if [[ -n "$first_delay" && "$first_delay" =~ ^[0-9]+$ ]]; then
+                        delay_ms=$((first_delay * 10))
+                    fi
                 fi
-            fi
-            
-            # Get content for export (re-converts with color if needed)
-            local export_content_arg
-            export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
-                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
-            
-            if [[ $total_images -gt 1 ]]; then
-                # Batch mode: append with separator (only for text/ansi)
-                if [[ "$output_format" =~ $RE_TEXT_FORMAT ]]; then
-                    {
-                        echo ""
-                        echo "# ============ $(basename "$image") ============"
-                        echo ""
-                        if [[ "$output_format" == "text" ]]; then
-                            echo -e "$export_content_arg" | sed 's/\x1b\[[0-9;]*m//g'
-                        else
-                            echo -e "$export_content_arg"
-                        fi
-                    } >> "$ARG_OUTPUT"
-                else
-                    log_warn "Batch mode with multiple images only supports text/ansi formats"
-                    export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_info "Exporting animated GIF: ${#frames[@]} frames, ${delay_ms}ms delay"
+                fi
+                
+                export_animated_gif "$output_file" "$delay_ms" "$ARG_LOOPS" "$ARG_BACKGROUND" "${frames[@]}"
+                
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_success "Saved animated GIF to: $output_file"
+                fi
+            elif [[ -n "$ARG_OUTPUT_DIR" ]]; then
+                # Export frames to directory
+                local base_name
+                base_name=$(basename "$image")
+                base_name="${base_name%.*}"
+                local frame_dir="$ARG_OUTPUT_DIR/${base_name}_frames"
+                
+                local ext
+                ext=$(export_get_extension "$ARG_FORMAT")
+                
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_info "Exporting ${#frames[@]} frames to: $frame_dir"
+                fi
+                
+                export_frames "$frame_dir" "$ARG_FORMAT" "$ARG_BACKGROUND" "${frames[@]}"
+                
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_success "Saved frames to: $frame_dir"
+                fi
+            elif [[ -n "$ARG_OUTPUT" ]]; then
+                # For non-GIF output with single file, just save first frame with warning
+                log_warn "Animation saved as single frame (use -f gif for animated output)"
+                
+                local output_format="$ARG_FORMAT"
+                if [[ "$ARG_FORMAT" == "text" ]]; then
+                    output_format=$(export_detect_format "$ARG_OUTPUT")
+                fi
+                
+                export_content "$output_format" "${frames[0]}" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_success "Saved to: $ARG_OUTPUT"
                 fi
             else
-                export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                # Play animation in terminal
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_info "Playing animation (Ctrl+C to stop)..."
+                fi
+                
+                # Print initial frame to establish position
+                echo ""
+                printf '%b\n' "${frames[0]}"
+                
+                # Get delays from source or use specified
+                local delay_ms="$ARG_FRAME_DELAY"
+                
+                # Play the animation
+                play_animation "$delay_ms" "$ARG_LOOPS" "${frames[@]}"
             fi
             
-            if [[ "$ARG_QUIET" != "true" && $total_images -eq 1 ]]; then
-                log_success "Saved to: $ARG_OUTPUT"
+            # Clean up animation temp directory
+            if [[ -n "${_ANIM_TMPDIR:-}" && -d "$_ANIM_TMPDIR" ]]; then
+                rm -rf "$_ANIM_TMPDIR"
+                _ANIM_TMPDIR=""
             fi
         else
-            # Print to stdout
-            if [[ $total_images -gt 1 ]]; then
+            # Standard single-frame processing (existing code)
+            # Perform conversion
+            local result
+            result=$(convert_to_ascii \
+                "$resolved_image" \
+                "$ARG_WIDTH" \
+                "$ARG_HEIGHT" \
+                "$palette" \
+                "$ARG_INVERT" \
+                "$ARG_COLOR" \
+                "$ARG_PRESERVE_ASPECT" \
+                "$ARG_TRUECOLOR"
+            ) || {
+                log_error "Conversion failed: $image"
+                failed=$((failed + 1))
+                failed_files+=("$image")
+                [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+                [[ "$ARG_CONTINUE_ON_ERROR" == "true" ]] && continue || exit 1
+            }
+            
+            # Clean up temp downloaded file
+            [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
+            
+            # Determine output format (auto-detect from extension if not explicitly set)
+            local output_format="$ARG_FORMAT"
+            
+            # Output results
+            if [[ -n "$ARG_OUTPUT_DIR" ]]; then
+                # Save to output directory with auto-generated name
+                local base_name
+                base_name=$(basename "$image")
+                
+                # Use format-appropriate extension
+                local ext
+                ext=$(export_get_extension "$output_format")
+                base_name="${base_name%.*}.ascii.${ext}"
+                local out_file="$ARG_OUTPUT_DIR/$base_name"
+                
+                # Get content for export (re-converts with color if needed)
+                local export_content_arg
+                export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
+                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
+                
+                export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND"
+                
+                if [[ "$ARG_QUIET" != "true" ]]; then
+                    log_success "Saved to: $out_file"
+                fi
+            elif [[ -n "$ARG_OUTPUT" ]]; then
+                # Auto-detect format from output file extension if format is default
+                if [[ "$ARG_FORMAT" == "text" ]]; then
+                    local detected_format
+                    detected_format=$(export_detect_format "$ARG_OUTPUT")
+                    if [[ "$detected_format" != "text" ]]; then
+                        output_format="$detected_format"
+                    fi
+                fi
+                
+                # Get content for export (re-converts with color if needed)
+                local export_content_arg
+                export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
+                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
+                
+                if [[ $total_images -gt 1 ]]; then
+                    # Batch mode: append with separator (only for text/ansi)
+                    if [[ "$output_format" =~ $RE_TEXT_FORMAT ]]; then
+                        {
+                            echo ""
+                            echo "# ============ $(basename "$image") ============"
+                            echo ""
+                            if [[ "$output_format" == "text" ]]; then
+                                echo -e "$export_content_arg" | sed 's/\x1b\[[0-9;]*m//g'
+                            else
+                                echo -e "$export_content_arg"
+                            fi
+                        } >> "$ARG_OUTPUT"
+                    else
+                        log_warn "Batch mode with multiple images only supports text/ansi formats"
+                        export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                    fi
+                else
+                    export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                fi
+                
+                if [[ "$ARG_QUIET" != "true" && $total_images -eq 1 ]]; then
+                    log_success "Saved to: $ARG_OUTPUT"
+                fi
+            else
+                # Print to stdout
+                if [[ $total_images -gt 1 ]]; then
+                    echo ""
+                    echo "# ============ $(basename "$image") ============"
+                fi
                 echo ""
-                echo "# ============ $(basename "$image") ============"
+                echo -e "$result"
+                echo ""
             fi
-            echo ""
-            echo -e "$result"
-            echo ""
         fi
     done
     
