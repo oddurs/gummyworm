@@ -42,7 +42,9 @@ show_help() {
     echo "    -w, --width <N>       Output width in characters (default: $DEFAULT_WIDTH)"
     echo "    -h, --height <N>      Output height in lines (default: auto)"
     echo "    -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)"
-    echo "    -c, --color           Enable ANSI color output"
+    echo "    -c, --color           Enable ANSI color output (256-color)"
+    echo "    --truecolor           Enable true color (24-bit RGB) output"
+    echo "    --no-truecolor        Disable true color (force 256-color)"
     echo "    -i, --invert          Invert brightness (dark ↔ light)"
     echo "    -f, --format <type>   Output format: text, ansi, html, svg, png (default: text)"
     echo "    -o, --output <FILE>   Save output to file (or append in batch mode)"
@@ -152,6 +154,7 @@ parse_args() {
     ARG_PALETTE="$DEFAULT_PALETTE"
     ARG_INVERT="$DEFAULT_INVERT"
     ARG_COLOR="$DEFAULT_COLOR"
+    ARG_TRUECOLOR="$DEFAULT_TRUECOLOR"
     ARG_OUTPUT="$DEFAULT_OUTPUT"
     ARG_FORMAT="$DEFAULT_FORMAT"
     ARG_BACKGROUND="$DEFAULT_BACKGROUND"
@@ -183,6 +186,15 @@ parse_args() {
                 ;;
             -c|--color)
                 ARG_COLOR="true"
+                shift
+                ;;
+            --truecolor)
+                ARG_TRUECOLOR="true"
+                ARG_COLOR="true"  # Implicitly enable color
+                shift
+                ;;
+            --no-truecolor)
+                ARG_TRUECOLOR="false"
                 shift
                 ;;
             -i|--invert)
