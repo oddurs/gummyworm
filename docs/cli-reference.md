@@ -263,6 +263,24 @@ gummyworm -f svg --background '#ffffff' -o light.svg photo.jpg
 gummyworm -f png --background '#1a1a2e' -o styled.png photo.jpg
 ```
 
+#### `--padding <N>`
+
+Set padding in pixels around the ASCII art for HTML, SVG, PNG, and GIF exports.
+
+| | |
+|---|---|
+| **Default** | 0 |
+| **Type** | Non-negative integer |
+
+```bash
+# Add 20px padding around the art
+gummyworm -f png --padding 20 -o padded.png photo.jpg
+gummyworm -f html --padding 40 -o spaced.html photo.jpg
+
+# Combine with background color
+gummyworm -f svg --background '#000000' --padding 30 -o art.svg photo.jpg
+```
+
 ### Animation Options
 
 #### `-a, --animate`
