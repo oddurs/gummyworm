@@ -46,6 +46,9 @@ show_help() {
     echo "    --truecolor           Enable true color (24-bit RGB) output"
     echo "    --no-truecolor        Disable true color (force 256-color)"
     echo "    -i, --invert          Invert brightness (dark ↔ light)"
+    echo "    --brightness <N>      Adjust brightness (-100 to 100, default: 0)"
+    echo "    --contrast <N>        Adjust contrast (-100 to 100, default: 0)"
+    echo "    --gamma <N>           Adjust gamma (0.1 to 10.0, default: 1.0)"
     echo "    -f, --format <type>   Output format: text, ansi, html, svg, png, gif (default: text)"
     echo "    -o, --output <FILE>   Save output to file (or append in batch mode)"
     echo "    -d, --output-dir <DIR>  Save each output to directory with auto-naming"
@@ -181,6 +184,9 @@ parse_args() {
     ARG_FRAME_DELAY="$DEFAULT_FRAME_DELAY"
     ARG_MAX_FRAMES="$DEFAULT_MAX_FRAMES"
     ARG_LOOPS="$DEFAULT_LOOPS"
+    ARG_BRIGHTNESS="$DEFAULT_BRIGHTNESS"
+    ARG_CONTRAST="$DEFAULT_CONTRAST"
+    ARG_GAMMA="$DEFAULT_GAMMA"
     ARG_IMAGES=()
     
     while [[ $# -gt 0 ]]; do
@@ -218,6 +224,37 @@ parse_args() {
             -i|--invert)
                 ARG_INVERT="true"
                 shift
+                ;;
+            --brightness)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                # Validate range: -100 to 100
+                if ! [[ "$2" =~ ^-?[0-9]+$ ]] || [[ "$2" -lt -100 ]] || [[ "$2" -gt 100 ]]; then
+                    die_usage "Brightness must be an integer between -100 and 100"
+                fi
+                ARG_BRIGHTNESS="$2"
+                shift 2
+                ;;
+            --contrast)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                # Validate range: -100 to 100
+                if ! [[ "$2" =~ ^-?[0-9]+$ ]] || [[ "$2" -lt -100 ]] || [[ "$2" -gt 100 ]]; then
+                    die_usage "Contrast must be an integer between -100 and 100"
+                fi
+                ARG_CONTRAST="$2"
+                shift 2
+                ;;
+            --gamma)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                # Validate: positive number (0.1 to 10.0)
+                if ! [[ "$2" =~ ^[0-9]*\.?[0-9]+$ ]]; then
+                    die_usage "Gamma must be a positive number (e.g., 0.5, 1.0, 2.2)"
+                fi
+                # Check range using awk (bash can't do float comparison easily)
+                if ! awk -v g="$2" 'BEGIN { exit !(g >= 0.1 && g <= 10.0) }'; then
+                    die_usage "Gamma must be between 0.1 and 10.0"
+                fi
+                ARG_GAMMA="$2"
+                shift 2
                 ;;
             -f|--format)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
