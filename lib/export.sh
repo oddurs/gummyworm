@@ -44,6 +44,44 @@ export_validate_format() {
 }
 
 # ============================================================================
+# Shared AWK Functions
+# ============================================================================
+
+# AWK function to convert ANSI 256 color code to hex RGB
+# Used by both HTML and SVG export functions
+# Note: Stored as a variable to avoid duplication in AWK scripts
+readonly AWK_ANSI256_TO_RGB='
+function ansi256_to_rgb(n) {
+    if (n < 16) {
+        # Standard 16 colors
+        colors[0]  = "#000000"; colors[1]  = "#800000"
+        colors[2]  = "#008000"; colors[3]  = "#808000"
+        colors[4]  = "#000080"; colors[5]  = "#800080"
+        colors[6]  = "#008080"; colors[7]  = "#c0c0c0"
+        colors[8]  = "#808080"; colors[9]  = "#ff0000"
+        colors[10] = "#00ff00"; colors[11] = "#ffff00"
+        colors[12] = "#0000ff"; colors[13] = "#ff00ff"
+        colors[14] = "#00ffff"; colors[15] = "#ffffff"
+        return colors[n]
+    } else if (n < 232) {
+        # 6x6x6 color cube (colors 16-231)
+        n = n - 16
+        r = int(n / 36)
+        g = int((n % 36) / 6)
+        b = n % 6
+        r = (r > 0) ? r * 40 + 55 : 0
+        g = (g > 0) ? g * 40 + 55 : 0
+        b = (b > 0) ? b * 40 + 55 : 0
+        return sprintf("#%02x%02x%02x", r, g, b)
+    } else {
+        # Grayscale (colors 232-255)
+        gray = (n - 232) * 10 + 8
+        return sprintf("#%02x%02x%02x", gray, gray, gray)
+    }
+}
+'
+
+# ============================================================================
 # HTML Export
 # ============================================================================
 
@@ -117,7 +155,8 @@ _ansi_to_html() {
     
     # Process the content character by character, handling escape sequences
     # Using awk for more reliable ANSI parsing
-    echo -e "$content" | awk '
+    echo -e "$content" | awk "
+    $AWK_ANSI256_TO_RGB
     BEGIN {
         in_span = 0
     }
@@ -181,37 +220,7 @@ _ansi_to_html() {
         
         print output
     }
-    
-    # Convert ANSI 256 color to RGB
-    function ansi256_to_rgb(n) {
-        if (n < 16) {
-            # Standard colors
-            colors[0]  = "#000000"; colors[1]  = "#800000"
-            colors[2]  = "#008000"; colors[3]  = "#808000"
-            colors[4]  = "#000080"; colors[5]  = "#800080"
-            colors[6]  = "#008080"; colors[7]  = "#c0c0c0"
-            colors[8]  = "#808080"; colors[9]  = "#ff0000"
-            colors[10] = "#00ff00"; colors[11] = "#ffff00"
-            colors[12] = "#0000ff"; colors[13] = "#ff00ff"
-            colors[14] = "#00ffff"; colors[15] = "#ffffff"
-            return colors[n]
-        } else if (n < 232) {
-            # 6x6x6 color cube
-            n = n - 16
-            r = int(n / 36)
-            g = int((n % 36) / 6)
-            b = n % 6
-            r = (r > 0) ? r * 40 + 55 : 0
-            g = (g > 0) ? g * 40 + 55 : 0
-            b = (b > 0) ? b * 40 + 55 : 0
-            return sprintf("rgb(%d,%d,%d)", r, g, b)
-        } else {
-            # Grayscale
-            gray = (n - 232) * 10 + 8
-            return sprintf("rgb(%d,%d,%d)", gray, gray, gray)
-        }
-    }
-    '
+    "
 }
 
 # ============================================================================
@@ -290,34 +299,35 @@ _svg_render_line() {
     local char_width="$4"
     
     # Parse ANSI codes and output SVG text elements
-    echo -e "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" '
+    echo -e "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" "
+    $AWK_ANSI256_TO_RGB
     BEGIN {
-        current_color = "#00ff00"  # Default green
+        current_color = \"#00ff00\"  # Default green
         x = x_start
-        buffer = ""
+        buffer = \"\"
         buffer_start_x = x
     }
     {
-        line = $0
+        line = \$0
         i = 1
         while (i <= length(line)) {
             c = substr(line, i, 1)
             
-            if (c == "\033" || c == "\x1b") {
-                if (substr(line, i, 2) == "\033[" || substr(line, i, 2) == "\x1b[") {
+            if (c == \"\033\" || c == \"\x1b\") {
+                if (substr(line, i, 2) == \"\033[\" || substr(line, i, 2) == \"\x1b[\") {
                     # Flush buffer before color change
-                    if (buffer != "") {
-                        gsub(/&/, "\\&amp;", buffer)
-                        gsub(/</, "\\&lt;", buffer)
-                        gsub(/>/, "\\&gt;", buffer)
-                        gsub(/"/, "\\&quot;", buffer)
-                        printf "    <text x=\"%s\" y=\"%s\" fill=\"%s\">%s</text>\n", buffer_start_x, y, current_color, buffer
-                        buffer = ""
+                    if (buffer != \"\") {
+                        gsub(/&/, \"\\\\&amp;\", buffer)
+                        gsub(/</, \"\\\\&lt;\", buffer)
+                        gsub(/>/, \"\\\\&gt;\", buffer)
+                        gsub(/\"/, \"\\\\&quot;\", buffer)
+                        printf \"    <text x=\\\"%s\\\" y=\\\"%s\\\" fill=\\\"%s\\\">%s</text>\\n\", buffer_start_x, y, current_color, buffer
+                        buffer = \"\"
                     }
                     
                     # Parse escape sequence
                     j = i + 2
-                    code = ""
+                    code = \"\"
                     while (j <= length(line)) {
                         cc = substr(line, j, 1)
                         if (cc ~ /[a-zA-Z]/) break
@@ -325,9 +335,9 @@ _svg_render_line() {
                         j++
                     }
                     
-                    if (substr(line, j, 1) == "m") {
-                        if (code == "0" || code == "") {
-                            current_color = "#00ff00"
+                    if (substr(line, j, 1) == \"m\") {
+                        if (code == \"0\" || code == \"\") {
+                            current_color = \"#00ff00\"
                         } else if (code ~ /^38;5;/) {
                             color_num = substr(code, 6)
                             current_color = ansi256_to_rgb(int(color_num))
@@ -345,41 +355,15 @@ _svg_render_line() {
         }
         
         # Flush remaining buffer
-        if (buffer != "") {
-            gsub(/&/, "\\&amp;", buffer)
-            gsub(/</, "\\&lt;", buffer)
-            gsub(/>/, "\\&gt;", buffer)
-            gsub(/"/, "\\&quot;", buffer)
-            printf "    <text x=\"%s\" y=\"%s\" fill=\"%s\">%s</text>\n", buffer_start_x, y, current_color, buffer
+        if (buffer != \"\") {
+            gsub(/&/, \"\\\\&amp;\", buffer)
+            gsub(/</, \"\\\\&lt;\", buffer)
+            gsub(/>/, \"\\\\&gt;\", buffer)
+            gsub(/\"/, \"\\\\&quot;\", buffer)
+            printf \"    <text x=\\\"%s\\\" y=\\\"%s\\\" fill=\\\"%s\\\">%s</text>\\n\", buffer_start_x, y, current_color, buffer
         }
     }
-    
-    function ansi256_to_rgb(n) {
-        if (n < 16) {
-            colors[0]  = "#000000"; colors[1]  = "#800000"
-            colors[2]  = "#008000"; colors[3]  = "#808000"
-            colors[4]  = "#000080"; colors[5]  = "#800080"
-            colors[6]  = "#008080"; colors[7]  = "#c0c0c0"
-            colors[8]  = "#808080"; colors[9]  = "#ff0000"
-            colors[10] = "#00ff00"; colors[11] = "#ffff00"
-            colors[12] = "#0000ff"; colors[13] = "#ff00ff"
-            colors[14] = "#00ffff"; colors[15] = "#ffffff"
-            return colors[n]
-        } else if (n < 232) {
-            n = n - 16
-            r = int(n / 36)
-            g = int((n % 36) / 6)
-            b = n % 6
-            r = (r > 0) ? r * 40 + 55 : 0
-            g = (g > 0) ? g * 40 + 55 : 0
-            b = (b > 0) ? b * 40 + 55 : 0
-            return sprintf("#%02x%02x%02x", r, g, b)
-        } else {
-            gray = (n - 232) * 10 + 8
-            return sprintf("#%02x%02x%02x", gray, gray, gray)
-        }
-    }
-    '
+    "
 }
 
 # ============================================================================
