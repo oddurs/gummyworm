@@ -33,9 +33,11 @@ A playful, feature-rich command-line tool for converting images to ASCII art wit
 ## Features
 
 - 🖼️ **Multiple formats** — JPEG, PNG, GIF, BMP, WebP, and more
-- �� **256-color output** — Full color mode for terminals
+- 🎬 **Animated GIFs** — Process and export animated ASCII art
+- 🎨 **256-color output** — Full color mode for terminals
+- 🌈 **True color (24-bit)** — Full RGB color support
 - 🎭 **12+ palettes** — Standard, blocks, emoji, braille, and more
-- 🌍 **Export anywhere** — HTML, SVG, PNG, ANSI, plain text
+- 🌍 **Export anywhere** — HTML, SVG, PNG, GIF, ANSI, plain text
 - 📁 **Batch processing** — Multiple files, recursive directories
 - 🌐 **URL & stdin** — Download from URLs or pipe data
 - 🔧 **Extensible** — Custom palettes via files or inline
@@ -91,6 +93,12 @@ gummyworm -c -o gallery.html photo.jpg
 # Export to PNG
 gummyworm -c -f png -o art.png photo.jpg
 
+# Animated GIF to terminal
+gummyworm -c animation.gif
+
+# Export animated ASCII GIF
+gummyworm -c -f gif -o ascii-anim.gif animation.gif
+
 # From URL
 gummyworm https://example.com/image.jpg
 
@@ -113,8 +121,10 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | `-w, --width <N>` | Output width (default: 80) |
 | `-p, --palette <name>` | Palette: standard, blocks, emoji, etc. |
 | `-c, --color` | Enable 256-color output |
+| `--truecolor` | Enable true color (24-bit RGB) |
 | `-i, --invert` | Invert brightness |
-| `-f, --format <type>` | Output: text, html, svg, png |
+| `-a, --animate` | Enable animation processing |
+| `-f, --format <type>` | Output: text, html, svg, png, gif |
 | `-o, --output <file>` | Save to file |
 
 See [CLI Reference](docs/cli-reference.md) for all options.
