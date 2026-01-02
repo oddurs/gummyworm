@@ -55,6 +55,9 @@ source "${GUMMYWORM_ROOT}/lib/converter.sh"
 # shellcheck source=lib/cli.sh
 source "${GUMMYWORM_ROOT}/lib/cli.sh"
 
+# shellcheck source=lib/export.sh
+source "${GUMMYWORM_ROOT}/lib/export.sh"
+
 # ============================================================================
 # Main Function
 # ============================================================================
@@ -154,41 +157,89 @@ main() {
         # Clean up temp downloaded file
         [[ -n "$temp_downloaded" ]] && rm -f "$temp_downloaded"
         
+        # Determine output format (auto-detect from extension if not explicitly set)
+        local output_format="$ARG_FORMAT"
+        
         # Output results
         if [[ -n "$ARG_OUTPUT_DIR" ]]; then
             # Save to output directory with auto-generated name
             local base_name
             base_name=$(basename "$image")
-            base_name="${base_name%.*}.ascii.txt"
+            
+            # Use format-appropriate extension
+            local ext
+            ext=$(export_get_extension "$output_format")
+            base_name="${base_name%.*}.ascii.${ext}"
             local out_file="$ARG_OUTPUT_DIR/$base_name"
             
-            local strip_ansi="true"
-            [[ "$ARG_COLOR" == "true" ]] && strip_ansi="false"
+            # Enable color for non-text formats
+            local export_content_arg="$result"
+            if [[ "$output_format" != "text" && "$ARG_COLOR" != "true" ]]; then
+                # Re-convert with color for html/svg/png if not already colored
+                if [[ "$output_format" =~ ^(html|svg|png)$ ]]; then
+                    export_content_arg=$(convert_to_ascii \
+                        "$resolved_image" \
+                        "$ARG_WIDTH" \
+                        "$ARG_HEIGHT" \
+                        "$palette" \
+                        "$ARG_INVERT" \
+                        "true" \
+                        "$ARG_PRESERVE_ASPECT"
+                    )
+                fi
+            fi
             
-            save_to_file "$result" "$out_file" "$strip_ansi"
+            export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND"
             
             if [[ "$ARG_QUIET" != "true" ]]; then
                 log_success "Saved to: $out_file"
             fi
         elif [[ -n "$ARG_OUTPUT" ]]; then
-            # Save to single file (append in batch mode)
-            local strip_ansi="true"
-            [[ "$ARG_COLOR" == "true" ]] && strip_ansi="false"
+            # Auto-detect format from output file extension if format is default
+            if [[ "$ARG_FORMAT" == "text" ]]; then
+                local detected_format
+                detected_format=$(export_detect_format "$ARG_OUTPUT")
+                if [[ "$detected_format" != "text" ]]; then
+                    output_format="$detected_format"
+                fi
+            fi
+            
+            # Enable color for non-text formats
+            local export_content_arg="$result"
+            if [[ "$output_format" != "text" && "$ARG_COLOR" != "true" ]]; then
+                # Re-convert with color for html/svg/png if not already colored
+                if [[ "$output_format" =~ ^(html|svg|png)$ ]]; then
+                    export_content_arg=$(convert_to_ascii \
+                        "$resolved_image" \
+                        "$ARG_WIDTH" \
+                        "$ARG_HEIGHT" \
+                        "$palette" \
+                        "$ARG_INVERT" \
+                        "true" \
+                        "$ARG_PRESERVE_ASPECT"
+                    )
+                fi
+            fi
             
             if [[ $total_images -gt 1 ]]; then
-                # Batch mode: append with separator
-                {
-                    echo ""
-                    echo "# ============ $(basename "$image") ============"
-                    echo ""
-                    if [[ "$strip_ansi" == "true" ]]; then
-                        echo -e "$result" | sed 's/\x1b\[[0-9;]*m//g'
-                    else
-                        echo -e "$result"
-                    fi
-                } >> "$ARG_OUTPUT"
+                # Batch mode: append with separator (only for text/ansi)
+                if [[ "$output_format" =~ ^(text|ansi)$ ]]; then
+                    {
+                        echo ""
+                        echo "# ============ $(basename "$image") ============"
+                        echo ""
+                        if [[ "$output_format" == "text" ]]; then
+                            echo -e "$export_content_arg" | sed 's/\x1b\[[0-9;]*m//g'
+                        else
+                            echo -e "$export_content_arg"
+                        fi
+                    } >> "$ARG_OUTPUT"
+                else
+                    log_warn "Batch mode with multiple images only supports text/ansi formats"
+                    export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                fi
             else
-                save_to_file "$result" "$ARG_OUTPUT" "$strip_ansi"
+                export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
             fi
             
             if [[ "$ARG_QUIET" != "true" && $total_images -eq 1 ]]; then

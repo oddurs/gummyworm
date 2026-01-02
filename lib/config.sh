@@ -33,6 +33,8 @@ readonly DEFAULT_COLOR=false
 readonly DEFAULT_OUTPUT=""
 readonly DEFAULT_QUIET=false
 readonly DEFAULT_PRESERVE_ASPECT=true
+readonly DEFAULT_FORMAT="text"
+readonly DEFAULT_BACKGROUND="#1e1e1e"
 
 # ANSI color codes - bash 3.x compatible (no associative arrays)
 COLOR_RESET="\033[0m"

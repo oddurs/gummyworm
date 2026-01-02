@@ -44,8 +44,10 @@ show_help() {
     echo "    -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)"
     echo "    -c, --color           Enable ANSI color output"
     echo "    -i, --invert          Invert brightness (dark ↔ light)"
+    echo "    -f, --format <type>   Output format: text, ansi, html, svg, png (default: text)"
     echo "    -o, --output <FILE>   Save output to file (or append in batch mode)"
     echo "    -d, --output-dir <DIR>  Save each output to directory with auto-naming"
+    echo "    --background <color>  Background color for html/svg/png (default: #1e1e1e)"
     echo "    -r, --recursive       Process directories recursively"
     echo "    -l, --list-palettes   Show available character palettes"
     echo "    -q, --quiet           Suppress info messages"
@@ -88,8 +90,24 @@ show_help() {
     echo -e "    ${COLOR_CYAN}# From stdin (pipe)${COLOR_RESET}"
     echo "    curl -s https://example.com/image.jpg | $GUMMYWORM_NAME"
     echo ""
-    echo -e "${COLOR_BOLD}SUPPORTED FORMATS:${COLOR_RESET}"
+    echo -e "    ${COLOR_CYAN}# Export as HTML (auto-detected from extension)${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -o gallery.html photo.jpg"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Export as SVG with custom background${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -f svg --background '#000000' -o art.svg image.png"
+    echo ""
+    echo -e "    ${COLOR_CYAN}# Export as PNG image${COLOR_RESET}"
+    echo "    $GUMMYWORM_NAME -f png -o artwork.png photo.jpg"
+    echo ""
+    echo -e "${COLOR_BOLD}INPUT FORMATS:${COLOR_RESET}"
     echo "    JPEG, PNG, GIF, BMP, TIFF, WebP, and any format supported by ImageMagick"
+    echo ""
+    echo -e "${COLOR_BOLD}OUTPUT FORMATS:${COLOR_RESET}"
+    echo "    text     Plain ASCII text (default)"
+    echo "    ansi     ANSI colored text for terminal"
+    echo "    html     HTML document with CSS styling"
+    echo "    svg      Scalable Vector Graphics"
+    echo "    png      PNG image (requires ImageMagick)"
     echo ""
     echo -e "${COLOR_BOLD}PRO TIPS:${COLOR_RESET}"
     echo "    🎨 Use --color for terminal display, omit for plain text files"
@@ -135,6 +153,8 @@ parse_args() {
     ARG_INVERT="$DEFAULT_INVERT"
     ARG_COLOR="$DEFAULT_COLOR"
     ARG_OUTPUT="$DEFAULT_OUTPUT"
+    ARG_FORMAT="$DEFAULT_FORMAT"
+    ARG_BACKGROUND="$DEFAULT_BACKGROUND"
     ARG_OUTPUT_DIR=""
     ARG_RECURSIVE="false"
     ARG_CONTINUE_ON_ERROR="false"
@@ -168,6 +188,24 @@ parse_args() {
             -i|--invert)
                 ARG_INVERT="true"
                 shift
+                ;;
+            -f|--format)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                # Validate format
+                case "$2" in
+                    text|ansi|html|svg|png)
+                        ARG_FORMAT="$2"
+                        ;;
+                    *)
+                        die_usage "Invalid format: $2 (valid: text, ansi, html, svg, png)"
+                        ;;
+                esac
+                shift 2
+                ;;
+            --background)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                ARG_BACKGROUND="$2"
+                shift 2
                 ;;
             -o|--output)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"

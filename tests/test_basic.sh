@@ -132,6 +132,62 @@ run_test "URL: reject invalid URL" "! $GUMMYWORM -q -w 20 '$TEST_URL_INVALID' 2>
 # Test URL in batch mode with local files
 run_test "URL: mixed with local files" "$GUMMYWORM -q -w 20 '$TEST_IMG' '$TEST_URL' --continue-on-error"
 
+# ================================
+# Export Format Tests
+# ================================
+echo ""
+echo "--- Export Format Tests ---"
+
+# Create output files for format tests
+HTML_OUTPUT=$(mktemp -t gummyworm_test).html
+SVG_OUTPUT=$(mktemp -t gummyworm_test).svg
+PNG_OUTPUT=$(mktemp -t gummyworm_test).png
+ANSI_OUTPUT=$(mktemp -t gummyworm_test).ans
+trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE' '$HTML_OUTPUT' '$SVG_OUTPUT' '$PNG_OUTPUT' '$ANSI_OUTPUT'; rm -rf '$BATCH_OUTPUT_DIR'" EXIT
+
+# Test --format flag
+run_test "Format: text explicit" "$GUMMYWORM -q -w 20 -f text -o '$OUTPUT_FILE' '$TEST_IMG' && [[ -s '$OUTPUT_FILE' ]]"
+run_test "Format: ansi explicit" "$GUMMYWORM -q -w 20 -f ansi -o '$ANSI_OUTPUT' '$TEST_IMG' && [[ -s '$ANSI_OUTPUT' ]]"
+run_test "Format: html explicit" "$GUMMYWORM -q -w 20 -f html -o '$HTML_OUTPUT' '$TEST_IMG' && [[ -s '$HTML_OUTPUT' ]]"
+run_test "Format: svg explicit" "$GUMMYWORM -q -w 20 -f svg -o '$SVG_OUTPUT' '$TEST_IMG' && [[ -s '$SVG_OUTPUT' ]]"
+run_test "Format: png explicit" "$GUMMYWORM -q -w 20 -f png -o '$PNG_OUTPUT' '$TEST_IMG' && [[ -s '$PNG_OUTPUT' ]]"
+
+# Test auto-detection from extension
+run_test "Format: auto-detect html" "$GUMMYWORM -q -w 20 -o '$HTML_OUTPUT' '$TEST_IMG' && grep -q '<!DOCTYPE html>' '$HTML_OUTPUT'"
+run_test "Format: auto-detect svg" "$GUMMYWORM -q -w 20 -o '$SVG_OUTPUT' '$TEST_IMG' && grep -q '<svg' '$SVG_OUTPUT'"
+run_test "Format: auto-detect png" "$GUMMYWORM -q -w 20 -o '$PNG_OUTPUT' '$TEST_IMG' && file '$PNG_OUTPUT' | grep -q 'PNG image'"
+
+# Test HTML content structure
+run_test "HTML: has doctype" "$GUMMYWORM -q -w 20 -f html -o '$HTML_OUTPUT' '$TEST_IMG' && grep -q '<!DOCTYPE html>' '$HTML_OUTPUT'"
+run_test "HTML: has style block" "$GUMMYWORM -q -w 20 -f html -o '$HTML_OUTPUT' '$TEST_IMG' && grep -q '<style>' '$HTML_OUTPUT'"
+run_test "HTML: has ascii-art class" "$GUMMYWORM -q -w 20 -f html -o '$HTML_OUTPUT' '$TEST_IMG' && grep -q 'ascii-art' '$HTML_OUTPUT'"
+run_test "HTML: has color spans" "$GUMMYWORM -q -w 20 -f html -o '$HTML_OUTPUT' '$TEST_IMG' && grep -q '<span style=\"color:' '$HTML_OUTPUT'"
+
+# Test SVG content structure
+run_test "SVG: has xml declaration" "$GUMMYWORM -q -w 20 -f svg -o '$SVG_OUTPUT' '$TEST_IMG' && grep -q '<?xml' '$SVG_OUTPUT'"
+run_test "SVG: has svg element" "$GUMMYWORM -q -w 20 -f svg -o '$SVG_OUTPUT' '$TEST_IMG' && grep -q '<svg xmlns' '$SVG_OUTPUT'"
+run_test "SVG: has text elements" "$GUMMYWORM -q -w 20 -f svg -o '$SVG_OUTPUT' '$TEST_IMG' && grep -q '<text' '$SVG_OUTPUT'"
+run_test "SVG: has background rect" "$GUMMYWORM -q -w 20 -f svg -o '$SVG_OUTPUT' '$TEST_IMG' && grep -q '<rect' '$SVG_OUTPUT'"
+
+# Test --background flag
+run_test "Background: html custom" "$GUMMYWORM -q -w 20 -f html --background '#000000' -o '$HTML_OUTPUT' '$TEST_IMG' && grep -q 'background-color: #000000' '$HTML_OUTPUT'"
+run_test "Background: svg custom" "$GUMMYWORM -q -w 20 -f svg --background '#ff0000' -o '$SVG_OUTPUT' '$TEST_IMG' && grep -q 'fill=\"#ff0000\"' '$SVG_OUTPUT'"
+
+# Test format validation
+run_test "Format: reject invalid" "! $GUMMYWORM -q -w 20 -f invalid '$TEST_IMG' 2>/dev/null"
+
+# Test ANSI output contains escape codes
+run_test "ANSI: contains escapes" "$GUMMYWORM -q -w 20 -c -f ansi -o '$ANSI_OUTPUT' '$TEST_IMG' && grep -q $'\\033' '$ANSI_OUTPUT'"
+
+# Test text output has no ANSI codes
+run_test "Text: no ANSI codes" "$GUMMYWORM -q -w 20 -c -f text -o '$OUTPUT_FILE' '$TEST_IMG' && ! grep -q $'\\033' '$OUTPUT_FILE'"
+
+# Test batch with format in output-dir
+FORMAT_BATCH_DIR=$(mktemp -d)
+trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE' '$HTML_OUTPUT' '$SVG_OUTPUT' '$PNG_OUTPUT' '$ANSI_OUTPUT'; rm -rf '$BATCH_OUTPUT_DIR' '$FORMAT_BATCH_DIR'" EXIT
+
+run_test "Format: batch html to dir" "$GUMMYWORM -q -w 20 -f html -d '$FORMAT_BATCH_DIR' '$TEST_IMG' '$TEST_IMG2' && ls '$FORMAT_BATCH_DIR'/*.html >/dev/null 2>&1"
+
 echo ""
 echo "================================"
 echo "Results: $TESTS_PASSED/$TESTS_RUN passed"
