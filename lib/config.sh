@@ -62,6 +62,7 @@ readonly DEFAULT_QUIET=false
 readonly DEFAULT_PRESERVE_ASPECT=true
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
+readonly DEFAULT_PADDING=0
 
 # Animation defaults
 readonly DEFAULT_ANIMATE="auto"  # auto, true, false
