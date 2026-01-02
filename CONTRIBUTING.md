@@ -105,39 +105,78 @@ function_name() {
 
 ## Testing
 
+gummyworm has a modular test suite with unit tests and integration tests.
+See [docs/testing.md](docs/testing.md) for the complete testing guide.
+
 ### Running Tests
 
 ```bash
-# Run the test suite
-./tests/test_basic.sh
+# Run all tests
+./tests/run_all.sh
+
+# Run only unit tests (fast, no ImageMagick required)
+./tests/run_all.sh --unit
+
+# Run only integration tests  
+./tests/run_all.sh --integration
+
+# Run a single test file
+./tests/test_utils.sh
 
 # Run with verbose output
-DEBUG=1 ./tests/test_basic.sh
+./tests/run_all.sh --verbose
+```
+
+### Test Structure
+
+```
+tests/
+├── test_runner.sh      # Shared test framework & assertions
+├── run_all.sh          # Master test runner
+├── test_utils.sh       # Unit tests for lib/utils.sh
+├── test_palettes.sh    # Unit tests for lib/palettes.sh
+├── test_image.sh       # Unit tests for lib/image.sh
+├── test_export.sh      # Unit tests for lib/export.sh
+├── test_integration.sh # End-to-end CLI tests
+└── fixtures/           # Test data and expected outputs
 ```
 
 ### Writing Tests
 
-Add tests to `tests/test_basic.sh`:
+Create a new test file or add to an existing one:
 
 ```bash
-test_my_feature() {
+#!/usr/bin/env bash
+set -euo pipefail
+
+source "$(dirname "$0")/test_runner.sh"
+load_gummyworm_libs
+
+# Test functions must start with test_
+test_my_feature_works() {
     local result
     result=$(my_function "input")
-    
-    if [[ "$result" == "expected" ]]; then
-        log_success "my_feature: PASS"
-        return 0
-    else
-        log_error "my_feature: FAIL - expected 'expected', got '$result'"
-        return 1
-    fi
+    assert_equals "expected" "$result" "my_function returns expected value"
 }
 
-# Add to test runner
-run_tests() {
-    # ... existing tests ...
-    test_my_feature
+test_my_feature_handles_edge_case() {
+    assert_false 'my_function ""' "empty input returns false"
 }
+
+# Run all test_* functions automatically
+run_discovered_tests "My Feature Tests"
+```
+
+### Available Assertions
+
+```bash
+assert_equals "expected" "actual" "message"
+assert_not_equals "unexpected" "actual" "message"
+assert_true 'command' "message"
+assert_false 'command' "message"
+assert_contains "$string" "substring" "message"
+assert_file_exists "/path/to/file" "message"
+assert_exit_code 0 "command" "message"
 ```
 
 ### Test Coverage
@@ -146,6 +185,7 @@ When adding features, include tests for:
 - Normal operation (happy path)
 - Edge cases (empty input, large input, etc.)
 - Error conditions (invalid input, missing files, etc.)
+- Both unit tests (isolated function testing) and integration tests (CLI behavior)
 
 ## Linting
 

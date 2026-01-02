@@ -389,18 +389,61 @@ fi
 
 ## Testing
 
-The test suite is in `tests/test_basic.sh`. Run with:
+gummyworm has a comprehensive, modular test suite. For full documentation, see [testing.md](testing.md).
+
+### Quick Start
 
 ```bash
-./tests/test_basic.sh
+# Run all tests
+./tests/run_all.sh
+
+# Run only unit tests (no ImageMagick required)
+./tests/run_all.sh --unit
+
+# Run a specific test file
+./tests/test_utils.sh
 ```
 
-Tests verify:
-- Module loading
-- Palette functions
-- Image validation
-- Conversion output
-- Export generation
+### Test Architecture
+
+```
+tests/
+├── test_runner.sh      # Shared framework: assertions, helpers, mocks
+├── run_all.sh          # Master runner with aggregated results
+├── test_utils.sh       # Unit tests: is_positive_int, trim, is_blank, etc.
+├── test_palettes.sh    # Unit tests: palette_get, palette_validate, etc.
+├── test_image.sh       # Unit tests: is_url, calc_brightness, calc_dimensions
+├── test_export.sh      # Unit tests: export_detect_format, rgb_to_ansi, etc.
+├── test_integration.sh # E2E tests: full CLI workflows
+└── fixtures/           # Test data, expected outputs
+```
+
+### Test Categories
+
+| Category | Purpose | ImageMagick |
+|----------|---------|-------------|
+| **Unit** | Test individual functions in isolation | Optional |
+| **Integration** | Test complete CLI workflows | Required |
+
+### Key Testing Features
+
+- **Assertions:** `assert_equals`, `assert_contains`, `assert_file_exists`, `assert_exit_code`
+- **Mocking:** `mock_identify`, `mock_convert` for testing without ImageMagick
+- **Auto-discovery:** Functions prefixed with `test_` run automatically
+- **Fixtures:** Reusable test data in `tests/fixtures/`
+- **Temp management:** `make_temp_file()` with automatic cleanup
+
+### Coverage by Module
+
+| Module | Unit Tests | Integration Tests |
+|--------|------------|-------------------|
+| `lib/utils.sh` | ✅ `test_utils.sh` | — |
+| `lib/palettes.sh` | ✅ `test_palettes.sh` | ✅ |
+| `lib/image.sh` | ✅ `test_image.sh` | ✅ |
+| `lib/converter.sh` | ✅ `test_export.sh` | ✅ |
+| `lib/export.sh` | ✅ `test_export.sh` | ✅ |
+| `lib/cli.sh` | — | ✅ `test_integration.sh` |
+| `bin/gummyworm` | — | ✅ `test_integration.sh` |
 
 ---
 

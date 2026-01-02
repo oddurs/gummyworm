@@ -13,6 +13,7 @@ Welcome to the gummyworm documentation! This index provides quick access to all 
 | [Examples](examples.md) | Practical usage examples and recipes |
 | [Troubleshooting](troubleshooting.md) | Common issues and solutions |
 | [Architecture](architecture.md) | Internal design and extending gummyworm |
+| [Testing](testing.md) | Test infrastructure, writing and running tests |
 | [Homebrew Distribution](homebrew.md) | Publishing via Homebrew tap |
 
 ## Getting Started
@@ -60,6 +61,7 @@ New to gummyworm? Start here:
 
 - [Architecture overview](architecture.md) — How gummyworm works
 - [Module reference](architecture.md#module-descriptions) — All library modules
+- [Testing guide](testing.md) — Writing and running tests
 - [Extending gummyworm](architecture.md#extending-gummyworm) — Add features
 - [Homebrew distribution](homebrew.md) — Publishing releases
 
