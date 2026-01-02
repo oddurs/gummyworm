@@ -36,6 +36,7 @@ A playful, feature-rich command-line tool for converting images to ASCII art wit
 - 🎬 **Animated GIFs** — Process and export animated ASCII art
 - 🎨 **256-color output** — Full color mode for terminals
 - 🌈 **True color (24-bit)** — Full RGB color support
+- 🔆 **Image preprocessing** — Brightness, contrast, gamma adjustment
 - 🎭 **12+ palettes** — Standard, blocks, emoji, braille, and more
 - 🌍 **Export anywhere** — HTML, SVG, PNG, GIF, ANSI, plain text
 - 📁 **Batch processing** — Multiple files, recursive directories
@@ -102,6 +103,12 @@ gummyworm -c -f gif -o ascii-anim.gif animation.gif
 # From URL
 gummyworm https://example.com/image.jpg
 
+# Adjust brightness/contrast
+gummyworm --brightness 20 --contrast 10 dark-photo.jpg
+
+# Gamma correction
+gummyworm --gamma 2.2 -c photo.jpg
+
 # Batch process
 gummyworm -d ./output/ photos/*.jpg
 ```
@@ -123,6 +130,9 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | `-c, --color` | Enable 256-color output |
 | `--truecolor` | Enable true color (24-bit RGB) |
 | `-i, --invert` | Invert brightness |
+| `--brightness <N>` | Adjust brightness (-100 to 100) |
+| `--contrast <N>` | Adjust contrast (-100 to 100) |
+| `--gamma <N>` | Adjust gamma (e.g., 0.5, 1.0, 2.2) |
 | `-a, --animate` | Enable animation processing |
 | `-f, --format <type>` | Output: text, html, svg, png, gif |
 | `-o, --output <file>` | Save to file |
