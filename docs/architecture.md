@@ -149,8 +149,10 @@ Based on ITU-R BT.601 standard for perceived brightness.
 **Key functions:**
 | Function | Description |
 |----------|-------------|
-| `convert_to_ascii <image> <w> <h> <palette> <invert> <color> <aspect>` | Main conversion function |
+| `convert_to_ascii <image> <w> <h> <palette> <invert> <color> <aspect> [truecolor]` | Main conversion function |
 | `rgb_to_ansi <r> <g> <b>` | Convert RGB to ANSI 256-color code |
+| `rgb_to_truecolor <r> <g> <b>` | Convert RGB to true color (24-bit) ANSI code |
+| `detect_truecolor_support` | Check if terminal supports true color via `$COLORTERM` |
 
 **Conversion algorithm:**
 1. Calculate output dimensions (preserving aspect ratio if enabled)
@@ -380,7 +382,8 @@ source "$GUMMYWORM_ROOT/lib/export.sh"
 image_check_deps
 
 if image_is_valid "photo.jpg"; then
-    result=$(convert_to_ascii "photo.jpg" 80 0 "standard" false true true)
+    # Args: image, width, height, palette, invert, color, preserve_aspect, truecolor
+    result=$(convert_to_ascii "photo.jpg" 80 0 "standard" false true true true)
     html=$(export_html "$result" "#000000")
     echo "$html" > output.html
 fi
