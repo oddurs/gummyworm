@@ -202,11 +202,13 @@ Specify the output format.
 | `html` | Styled HTML document |
 | `svg` | Scalable Vector Graphics |
 | `png` | PNG image |
+| `gif` | Animated GIF (for animated inputs) |
 
 ```bash
 gummyworm -f html photo.jpg > art.html
 gummyworm -f svg -o artwork.svg photo.jpg
 gummyworm -f png -o poster.png photo.jpg
+gummyworm -f gif -o animation.gif animated.gif
 ```
 
 See [Export Formats](export-formats.md) for detailed format documentation.
@@ -259,6 +261,82 @@ Set background color for HTML, SVG, and PNG exports.
 gummyworm -f html --background '#000000' -o dark.html photo.jpg
 gummyworm -f svg --background '#ffffff' -o light.svg photo.jpg
 gummyworm -f png --background '#1a1a2e' -o styled.png photo.jpg
+```
+
+### Animation Options
+
+#### `-a, --animate`
+
+Enable animation processing for animated GIF inputs. When this is set, animated GIFs will be processed frame-by-frame.
+
+```bash
+# Play animation in terminal
+gummyworm -a -c animation.gif
+
+# Export as animated ASCII GIF
+gummyworm -a -f gif -o ascii-animation.gif animation.gif
+```
+
+> **Auto-detection:** By default (`auto` mode), animation is automatically enabled for multi-frame images.
+
+#### `--no-animate`
+
+Disable animation processing. Only the first frame of animated images will be used.
+
+```bash
+# Use first frame only
+gummyworm --no-animate animation.gif
+```
+
+#### `--frame-delay <N>`
+
+Set the delay between frames in milliseconds for terminal playback and GIF export.
+
+| | |
+|---|---|
+| **Default** | 100ms (or original timing from source) |
+| **Type** | Positive integer |
+
+```bash
+# Slower playback (200ms between frames)
+gummyworm -a -c --frame-delay 200 animation.gif
+
+# Fast animation (50ms)
+gummyworm -a --frame-delay 50 -f gif -o fast.gif animation.gif
+```
+
+#### `--max-frames <N>`
+
+Limit the maximum number of frames to process.
+
+| | |
+|---|---|
+| **Default** | 0 (no limit) |
+| **Type** | Non-negative integer |
+
+```bash
+# Process only first 10 frames
+gummyworm -a --max-frames 10 animation.gif
+
+# Extract just 5 frames as PNGs
+gummyworm -a --max-frames 5 -f png -d ./frames/ animation.gif
+```
+
+#### `--loops <N>`
+
+Set the number of loops for terminal playback or GIF export.
+
+| | |
+|---|---|
+| **Default** | 0 (infinite) |
+| **Type** | Non-negative integer |
+
+```bash
+# Play animation 3 times
+gummyworm -a -c --loops 3 animation.gif
+
+# Export GIF that loops 5 times
+gummyworm -a --loops 5 -f gif -o limited.gif animation.gif
 ```
 
 ### Batch Processing Options
