@@ -87,9 +87,12 @@ convert_to_ascii() {
     local output=""
     local current_y=-1
     
+    # Store regex pattern in variable for Bash 3.2 compatibility
+    local pixel_re='^([0-9]+),([0-9]+):.*\(([0-9]+),([0-9]+),([0-9]+)'
+    
     while IFS= read -r line; do
         # Parse: "X,Y: (R,G,B...)  #RRGGBB  colorname"
-        if [[ "$line" =~ ^([0-9]+),([0-9]+):.*\(([0-9]+),([0-9]+),([0-9]+) ]]; then
+        if [[ "$line" =~ $pixel_re ]]; then
             local x="${BASH_REMATCH[1]}"
             local y="${BASH_REMATCH[2]}"
             local r="${BASH_REMATCH[3]}"

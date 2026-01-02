@@ -134,13 +134,17 @@ file_readable() {
 # Check if a value is a positive integer
 # Usage: is_positive_int <value>
 is_positive_int() {
-    [[ "$1" =~ ^[0-9]+$ && "$1" -gt 0 ]]
+    # Store regex in variable for Bash 3.2 compatibility
+    local re='^[0-9]+$'
+    [[ "$1" =~ $re && "$1" -gt 0 ]]
 }
 
 # Check if a value is a non-negative integer
 # Usage: is_non_negative_int <value>
 is_non_negative_int() {
-    [[ "$1" =~ ^[0-9]+$ ]]
+    # Store regex in variable for Bash 3.2 compatibility
+    local re='^[0-9]+$'
+    [[ "$1" =~ $re ]]
 }
 
 # ============================================================================
@@ -177,7 +181,9 @@ is_image_file() {
     # Use tr for case-insensitive matching (Bash 3.2 compatible)
     local ext_lower
     ext_lower=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
-    [[ "$ext_lower" =~ ^($IMAGE_EXTENSIONS)$ ]]
+    # Store regex in variable for Bash 3.2 compatibility
+    local re="^($IMAGE_EXTENSIONS)$"
+    [[ "$ext_lower" =~ $re ]]
 }
 
 # Find all image files in a directory
@@ -219,6 +225,49 @@ find_images_in_dir() {
             -iname "*.pgm" -o \
             -iname "*.pbm" \
         \) -print0 2>/dev/null | sort -z
+    fi
+}
+
+# ============================================================================
+# Cross-Platform Helpers
+# ============================================================================
+
+# Portable sed in-place editing (macOS vs GNU)
+# Usage: sed_inplace <sed_args> <file>
+# Note: macOS sed requires an extension for -i, GNU doesn't
+sed_inplace() {
+    if [[ "$GUMMYWORM_PLATFORM" == "macos" || "$GUMMYWORM_PLATFORM" == "freebsd" ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
+# Portable stat for file size (macOS vs GNU)
+# Usage: file_size <file>
+file_size() {
+    local file="$1"
+    if [[ "$GUMMYWORM_PLATFORM" == "macos" || "$GUMMYWORM_PLATFORM" == "freebsd" ]]; then
+        stat -f%z "$file" 2>/dev/null || echo "0"
+    else
+        stat -c%s "$file" 2>/dev/null || echo "0"
+    fi
+}
+
+# Portable date with milliseconds
+# Usage: timestamp_ms
+# Returns: Unix timestamp with milliseconds (or just seconds if not available)
+timestamp_ms() {
+    if [[ "$GUMMYWORM_PLATFORM" == "macos" ]]; then
+        # macOS date doesn't support %N, use python if available
+        if command -v python3 >/dev/null 2>&1; then
+            python3 -c "import time; print(int(time.time() * 1000))"
+        else
+            echo "$(($(date +%s) * 1000))"
+        fi
+    else
+        # GNU date supports %N
+        echo "$(($(date +%s%N) / 1000000))" 2>/dev/null || echo "$(($(date +%s) * 1000))"
     fi
 }
 

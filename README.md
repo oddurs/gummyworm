@@ -13,6 +13,23 @@
 
 A playful, feature-rich command-line tool for converting images to ASCII art with 256-color support, multiple export formats, and 12+ built-in palettes.
 
+## Platform Support
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| **macOS** | ✅ Full | Bash 3.2+ (default), BSD tools |
+| **Linux** | ✅ Full | Bash 4+, GNU tools |
+| **FreeBSD** | ✅ Full | Bash 3.2+, BSD tools |
+| **Windows (WSL)** | ✅ Full | Via Windows Subsystem for Linux |
+| **Windows (Git Bash)** | ⚠️ Limited | May need ImageMagick manually |
+
+### Requirements
+
+- **Bash 3.2+** (ships with macOS since 2007)
+- **ImageMagick** (`convert` and `identify` commands)
+- **Optional**: `curl` or `wget` for URL input
+- **Optional**: `python3` for better Unicode support
+
 ## Features
 
 - 🖼️ **Multiple formats** — JPEG, PNG, GIF, BMP, WebP, and more

@@ -2,6 +2,23 @@
 
 This guide covers all methods for installing gummyworm on your system.
 
+## Platform Compatibility
+
+gummyworm is designed for maximum compatibility across Unix-like systems:
+
+| Platform | Status | Shell Required |
+|----------|--------|----------------|
+| macOS 10.6+ | ✅ Tested | Bash 3.2+ (default) |
+| Ubuntu/Debian | ✅ Tested | Bash 4+ |
+| Fedora/RHEL | ✅ Tested | Bash 4+ |
+| Arch Linux | ✅ Tested | Bash 5+ |
+| FreeBSD | ✅ Compatible | Bash 3.2+ |
+| Alpine Linux | ✅ Compatible | Bash 5+ |
+| Windows (WSL) | ✅ Tested | Bash 4+ |
+| Windows (Git Bash) | ⚠️ Limited | Bash 4+ |
+
+**Note**: gummyworm specifically supports Bash 3.2 (the default macOS version) to ensure wide compatibility without requiring users to upgrade their shell.
+
 ## Quick Install (Homebrew)
 
 The easiest way to install gummyworm on macOS or Linux:
@@ -33,10 +50,10 @@ brew untap oddurs/gummyworm  # optional: remove the tap
 
 | Dependency | Required | Purpose |
 |------------|----------|---------|
-| **Bash 4.0+** | Yes | Shell interpreter |
+| **Bash 3.2+** | Yes | Shell interpreter (macOS default works!) |
 | **ImageMagick** | Yes | Image processing and pixel extraction |
-| **Python 3** | No | Unicode palette character width detection |
-| **curl** | No | URL image downloads |
+| **Python 3** | No | Better Unicode/emoji character width detection |
+| **curl or wget** | No | URL image downloads |
 
 ### Installing ImageMagick
 
@@ -75,19 +92,36 @@ sudo pacman -S imagemagick
 #### Alpine Linux
 
 ```bash
-apk add imagemagick
+apk add imagemagick bash  # bash is not installed by default on Alpine
+```
+
+#### FreeBSD
+
+```bash
+pkg install ImageMagick7 bash
+```
+
+#### Windows (WSL)
+
+```bash
+# In your WSL distribution (Ubuntu, Debian, etc.)
+sudo apt update
+sudo apt install imagemagick
 ```
 
 ### Verifying Prerequisites
 
 ```bash
-# Check Bash version (need 4.0+)
+# Check Bash version (need 3.2+ for macOS, 4+ for Linux)
 bash --version
+# Expected: GNU bash, version 3.2.57 or higher
 
 # Check ImageMagick is installed
 convert --version
+# or for ImageMagick 7:
+magick --version
 
-# Check optional Python 3
+# Check optional Python 3 (for better emoji support)
 python3 --version
 ```
 

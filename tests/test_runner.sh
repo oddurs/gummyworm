@@ -126,6 +126,24 @@ has_imagemagick() {
     command -v convert &>/dev/null && command -v identify &>/dev/null
 }
 
+# Wrapper for ImageMagick convert (supports both IM6 and IM7)
+im_convert() {
+    if command -v magick &>/dev/null; then
+        magick "$@"
+    else
+        convert "$@"
+    fi
+}
+
+# Wrapper for ImageMagick identify (supports both IM6 and IM7)
+im_identify() {
+    if command -v magick &>/dev/null; then
+        magick identify "$@"
+    else
+        identify "$@"
+    fi
+}
+
 # Create a test image (requires ImageMagick)
 # Usage: create_test_image <filepath> [width] [height] [color]
 create_test_image() {
@@ -139,12 +157,7 @@ create_test_image() {
         return 1
     fi
     
-    # Use magick for ImageMagick 7, fall back to convert for older versions
-    if command -v magick &>/dev/null; then
-        magick -size "${width}x${height}" "xc:${color}" "$filepath"
-    else
-        convert -size "${width}x${height}" "xc:${color}" "$filepath"
-    fi
+    im_convert -size "${width}x${height}" "xc:${color}" "$filepath"
 }
 
 # Get fixture image path (creates if doesn't exist)

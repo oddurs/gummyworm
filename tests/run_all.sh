@@ -143,8 +143,12 @@ run_suite() {
     local clean_output
     clean_output=$(echo "$suite_output" | sed 's/\x1b\[[0-9;]*m//g')
     
+    # Store regex patterns in variables for Bash 3.2 compatibility
+    local re_results='Results: ([0-9]+)/([0-9]+) passed'
+    local re_skipped='([0-9]+) skipped'
+    
     # Extract passed/total from "Results: X/Y passed"
-    if [[ "$clean_output" =~ Results:\ ([0-9]+)/([0-9]+)\ passed ]]; then
+    if [[ "$clean_output" =~ $re_results ]]; then
         local passed="${BASH_REMATCH[1]}"
         local total="${BASH_REMATCH[2]}"
         TOTAL_TESTS=$((TOTAL_TESTS + total))
@@ -153,7 +157,7 @@ run_suite() {
     fi
     
     # Extract skipped count
-    if [[ "$clean_output" =~ ([0-9]+)\ skipped ]]; then
+    if [[ "$clean_output" =~ $re_skipped ]]; then
         TOTAL_SKIPPED=$((TOTAL_SKIPPED + ${BASH_REMATCH[1]}))
     fi
     

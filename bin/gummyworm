@@ -206,9 +206,12 @@ main() {
             
             # Enable color for non-text formats
             local export_content_arg="$result"
+            # Store regex patterns in variables for Bash 3.2 compatibility
+            local re_graphical='^(html|svg|png)$'
+            local re_text='^(text|ansi)$'
             if [[ "$output_format" != "text" && "$ARG_COLOR" != "true" ]]; then
                 # Re-convert with color for html/svg/png if not already colored
-                if [[ "$output_format" =~ ^(html|svg|png)$ ]]; then
+                if [[ "$output_format" =~ $re_graphical ]]; then
                     export_content_arg=$(convert_to_ascii \
                         "$resolved_image" \
                         "$ARG_WIDTH" \
@@ -223,7 +226,7 @@ main() {
             
             if [[ $total_images -gt 1 ]]; then
                 # Batch mode: append with separator (only for text/ansi)
-                if [[ "$output_format" =~ ^(text|ansi)$ ]]; then
+                if [[ "$output_format" =~ $re_text ]]; then
                     {
                         echo ""
                         echo "# ============ $(basename "$image") ============"

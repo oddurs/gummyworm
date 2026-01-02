@@ -9,12 +9,23 @@
 # 1. Creates a release tarball
 # 2. Calculates the SHA256 hash
 # 3. Updates the Formula with the new version and hash
+#
+# Compatibility: macOS, Linux, FreeBSD
 # ============================================================================
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Detect platform for portable commands
+PLATFORM="unknown"
+case "$(uname -s)" in
+    Darwin*)  PLATFORM="macos" ;;
+    Linux*)   PLATFORM="linux" ;;
+    FreeBSD*) PLATFORM="freebsd" ;;
+    *)        PLATFORM="unknown" ;;
+esac
 
 # Colors
 RED='\033[0;31m'
@@ -25,6 +36,15 @@ NC='\033[0m' # No Color
 log_info() { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+
+# Portable sed in-place editing
+sed_inplace() {
+    if [[ "$PLATFORM" == "macos" || "$PLATFORM" == "freebsd" ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
 
 usage() {
     echo "Usage: $0 <version>"
@@ -40,7 +60,9 @@ fi
 VERSION="$1"
 
 # Validate version format (basic semver)
-if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+# Store regex in variable for Bash 3.2 compatibility
+re_version='^[0-9]+\.[0-9]+\.[0-9]+$'
+if [[ ! "$VERSION" =~ $re_version ]]; then
     log_error "Invalid version format. Use semver: X.Y.Z"
     exit 1
 fi
@@ -82,10 +104,10 @@ if [[ -f "$FORMULA_PATH" ]]; then
     log_info "Updating Formula/gummyworm.rb..."
     
     # Update version in URL
-    sed -i '' "s|/v[0-9]*\.[0-9]*\.[0-9]*\.tar\.gz|/v${VERSION}.tar.gz|g" "$FORMULA_PATH"
+    sed_inplace "s|/v[0-9]*\\.[0-9]*\\.[0-9]*\\.tar\\.gz|/v${VERSION}.tar.gz|g" "$FORMULA_PATH"
     
     # Update SHA256
-    sed -i '' "s|sha256 \".*\"|sha256 \"${SHA256}\"|g" "$FORMULA_PATH"
+    sed_inplace "s|sha256 \\\".*\\\"|sha256 \\\"${SHA256}\\\"|g" "$FORMULA_PATH"
     
     log_info "Formula updated with version ${VERSION}"
 else

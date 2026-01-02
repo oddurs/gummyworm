@@ -15,13 +15,38 @@ readonly _GUMMYWORM_IMAGE_LOADED=1
 # ============================================================================
 
 # Check for required image processing tools
+# Supports both ImageMagick 6 (convert/identify) and ImageMagick 7 (magick)
 image_check_deps() {
+    # Check for ImageMagick 7 first (magick command)
+    if command_exists magick; then
+        # ImageMagick 7 uses 'magick' as the main command
+        # Create wrapper functions if not already available
+        if ! command_exists convert; then
+            convert() { magick "$@"; }
+            export -f convert
+        fi
+        if ! command_exists identify; then
+            identify() { magick identify "$@"; }
+            export -f identify
+        fi
+        return 0
+    fi
+    
+    # Check for ImageMagick 6 (convert/identify commands)
     if ! command_exists convert; then
-        die "ImageMagick is required but not installed.\n  Install with: sudo apt install imagemagick"
+        die "ImageMagick is required but not installed.
+  Install with:
+    - macOS:   brew install imagemagick
+    - Ubuntu:  sudo apt install imagemagick
+    - Fedora:  sudo dnf install ImageMagick
+    - Arch:    sudo pacman -S imagemagick
+    - FreeBSD: pkg install ImageMagick7"
     fi
     
     if ! command_exists identify; then
-        die "ImageMagick 'identify' command not found.\n  Install with: sudo apt install imagemagick"
+        die "ImageMagick 'identify' command not found.
+  Your ImageMagick installation may be incomplete.
+  Try reinstalling ImageMagick for your platform."
     fi
 }
 
@@ -32,7 +57,9 @@ image_check_deps() {
 # Check if a string is a URL
 # Usage: is_url <string>
 is_url() {
-    [[ "$1" =~ ^https?:// ]]
+    # Store regex in variable for Bash 3.2 compatibility
+    local re='^https?://'
+    [[ "$1" =~ $re ]]
 }
 
 # Download image from URL to temp file

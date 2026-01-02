@@ -4,10 +4,36 @@
 # ============================================================================
 # This module defines all default settings, constants, and global configuration
 # for gummyworm. Source this first before other modules.
+#
+# Compatibility: Bash 3.2+ (macOS default), GNU/Linux, BSD
 # ============================================================================
 
 # Strict mode
 set -euo pipefail
+
+# ============================================================================
+# Platform & Bash Version Detection
+# ============================================================================
+
+# Check for minimum Bash version (3.2)
+# Note: BASH_VERSINFO is read-only and set by bash
+if [[ -z "${BASH_VERSINFO:-}" ]] || [[ "${BASH_VERSINFO[0]}" -lt 3 ]] || \
+   { [[ "${BASH_VERSINFO[0]}" -eq 3 ]] && [[ "${BASH_VERSINFO[1]}" -lt 2 ]]; }; then
+    echo "Error: gummyworm requires Bash 3.2 or later" >&2
+    echo "Current Bash version: ${BASH_VERSION:-unknown}" >&2
+    exit 1
+fi
+
+# Detect platform for OS-specific workarounds
+GUMMYWORM_PLATFORM="unknown"
+case "$(uname -s)" in
+    Darwin*)  GUMMYWORM_PLATFORM="macos" ;;
+    Linux*)   GUMMYWORM_PLATFORM="linux" ;;
+    FreeBSD*) GUMMYWORM_PLATFORM="freebsd" ;;
+    CYGWIN*|MINGW*|MSYS*) GUMMYWORM_PLATFORM="windows" ;;
+    *)        GUMMYWORM_PLATFORM="unknown" ;;
+esac
+export GUMMYWORM_PLATFORM
 
 # Version info
 readonly GUMMYWORM_VERSION="2.0.0"
