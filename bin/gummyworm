@@ -59,6 +59,18 @@ source "${GUMMYWORM_ROOT}/lib/cli.sh"
 source "${GUMMYWORM_ROOT}/lib/export.sh"
 
 # ============================================================================
+# Cleanup
+# ============================================================================
+
+# Ensure temp files are cleaned up on exit (especially stdin temp)
+cleanup() {
+    if [[ -n "${ARG_STDIN_TEMP:-}" ]]; then
+        rm -f "$ARG_STDIN_TEMP"
+    fi
+}
+trap cleanup EXIT
+
+# ============================================================================
 # Helper Functions
 # ============================================================================
 
@@ -258,9 +270,6 @@ main() {
             echo ""
         fi
     done
-    
-    # Clean up stdin temp file if used
-    [[ -n "${ARG_STDIN_TEMP:-}" ]] && rm -f "$ARG_STDIN_TEMP"
     
     # Batch summary
     if [[ "$ARG_QUIET" != "true" && $total_images -gt 1 ]]; then
