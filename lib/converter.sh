@@ -30,12 +30,34 @@ rgb_to_ansi() {
     echo -n "\033[38;5;${color_code}m"
 }
 
+# Convert RGB to true color (24-bit) ANSI sequence
+# Usage: rgb_to_truecolor <r> <g> <b>
+# Output: ANSI escape sequence
+rgb_to_truecolor() {
+    local r="$1" g="$2" b="$3"
+    echo -n "\033[38;2;${r};${g};${b}m"
+}
+
+# Detect if terminal supports true color
+# Returns: 0 if supported, 1 if not
+# Check $COLORTERM for 'truecolor' or '24bit'
+detect_truecolor_support() {
+    case "${COLORTERM:-}" in
+        truecolor|24bit) return 0 ;;
+    esac
+    # Also check for common terminals known to support true color
+    case "${TERM:-}" in
+        *-truecolor|*-24bit) return 0 ;;
+    esac
+    return 1
+}
+
 # ============================================================================
 # Main Conversion Function
 # ============================================================================
 
 # Convert an image to ASCII art
-# Usage: convert_to_ascii <image> <width> <height> <palette> <invert> <color> <preserve_aspect>
+# Usage: convert_to_ascii <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor]
 # Output: ASCII art string (with newlines)
 convert_to_ascii() {
     local image="$1"
@@ -45,6 +67,7 @@ convert_to_ascii() {
     local invert="$5"
     local use_color="$6"
     local preserve_aspect="$7"
+    local use_truecolor="${8:-false}"
     
     # Get original dimensions
     local orig_dims orig_w orig_h
@@ -101,6 +124,7 @@ convert_to_ascii() {
         -v palette_len="$palette_len" \
         -v invert="$invert" \
         -v use_color="$use_color" \
+        -v use_truecolor="$use_truecolor" \
         '
     BEGIN {
         # Split palette into array
@@ -158,12 +182,17 @@ convert_to_ascii() {
         
         # Output with or without color
         if (use_color == "true") {
-            # ANSI 256-color: map RGB to 6x6x6 cube
-            r_idx = int((r * 5) / 255)
-            g_idx = int((g * 5) / 255)
-            b_idx = int((b * 5) / 255)
-            color_code = 16 + (r_idx * 36) + (g_idx * 6) + b_idx
-            printf "\033[38;5;%dm%s", color_code, char
+            if (use_truecolor == "true") {
+                # True color (24-bit RGB)
+                printf "\033[38;2;%d;%d;%dm%s", r, g, b, char
+            } else {
+                # ANSI 256-color: map RGB to 6x6x6 cube
+                r_idx = int((r * 5) / 255)
+                g_idx = int((g * 5) / 255)
+                b_idx = int((b * 5) / 255)
+                color_code = 16 + (r_idx * 36) + (g_idx * 6) + b_idx
+                printf "\033[38;5;%dm%s", color_code, char
+            }
         } else {
             printf "%s", char
         }
