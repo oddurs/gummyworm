@@ -1,0 +1,10 @@
+# Name: Blocks
+# Description: Unicode block characters, high contrast
+# Author: gummyworm
+# Tags: unicode, high-contrast, smooth
+#
+# Uses Unicode block shading characters for smooth gradients.
+# Characters: light shade (░), medium shade (▒), dark shade (▓), full block (█)
+# Works best in terminals with good Unicode support.
+
+ ░▒▓█

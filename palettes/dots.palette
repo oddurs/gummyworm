@@ -1,0 +1,10 @@
+# Name: Dots
+# Description: Braille-style dot patterns
+# Author: gummyworm
+# Tags: unicode, braille, artistic
+#
+# Uses Unicode Braille patterns for a unique dotted look.
+# Characters increase in dot density from sparse to full.
+# Creates a distinctive stippled effect.
+
+ ⠁⠃⠇⠿⣿

@@ -1,0 +1,11 @@
+# Name: Emoji
+# Description: Moon phase emojis for fun social sharing
+# Author: gummyworm
+# Tags: emoji, wide-char, social, fun
+#
+# Uses moon phase emojis from new moon to full moon.
+# Perfect for sharing on social media or messaging apps.
+# Note: Uses full-width space (U+3000) for proper alignment
+# since emojis are double-width characters.
+
+　🌑🌒🌓🌔🌕

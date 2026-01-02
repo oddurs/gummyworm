@@ -1,0 +1,10 @@
+# Name: Shades
+# Description: Symmetric shading for artistic effect
+# Author: gummyworm
+# Tags: unicode, artistic, symmetric
+#
+# A symmetric palette that fades in and out.
+# Creates an interesting visual effect where mid-tones
+# appear at both brightness extremes.
+
+ ░▒▓█▓▒░

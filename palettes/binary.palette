@@ -1,0 +1,10 @@
+# Name: Binary
+# Description: Two-tone silhouettes, high contrast
+# Author: gummyworm
+# Tags: unicode, minimal, silhouette, high-contrast
+#
+# Just 2 characters: space and solid block.
+# Creates stark silhouette effects - great for logos and icons.
+# Uses Unicode block character (█ U+2588).
+
+ █

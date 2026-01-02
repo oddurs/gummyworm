@@ -1,0 +1,9 @@
+# Name: Standard
+# Description: General purpose, good balance of detail and readability
+# Author: gummyworm
+# Tags: ascii, default, general
+#
+# The default palette - works well for most images.
+# 10 characters providing a good range of density.
+
+ .:-=+*#%@
