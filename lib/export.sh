@@ -15,11 +15,11 @@ readonly _GUMMYWORM_EXPORT_LOADED=1
 # ============================================================================
 
 # Valid output formats
-readonly EXPORT_FORMATS="text ansi html svg png"
+readonly EXPORT_FORMATS="text ansi html svg png gif"
 
 # Detect output format from file extension
 # Usage: export_detect_format <filepath>
-# Output: format name (text, ansi, html, svg, png)
+# Output: format name (text, ansi, html, svg, png, gif)
 export_detect_format() {
     local filepath="$1"
     local ext="${filepath##*.}"
@@ -30,6 +30,7 @@ export_detect_format() {
         html|htm) echo "html" ;;
         svg)      echo "svg" ;;
         png)      echo "png" ;;
+        gif)      echo "gif" ;;
         ans|ansi) echo "ansi" ;;
         *)        echo "text" ;;
     esac
@@ -137,7 +138,7 @@ export_html() {
         }
         /* For plain text (no color) */
         .ascii-art.plain {
-            color: #00ff00;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -321,7 +322,7 @@ _svg_render_line() {
     echo -e "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" "
     $AWK_ANSI256_TO_RGB
     BEGIN {
-        current_color = \"#00ff00\"  # Default green
+        current_color = \"#ffffff\"  # Default white
         x = x_start
         buffer = \"\"
         buffer_start_x = x
@@ -356,7 +357,7 @@ _svg_render_line() {
                     
                     if (substr(line, j, 1) == \"m\") {
                         if (code == \"0\" || code == \"\") {
-                            current_color = \"#00ff00\"
+                            current_color = \"#ffffff\"
                         } else if (code ~ /^38;2;/) {
                             # True color: 38;2;r;g;b
                             current_color = truecolor_to_rgb(code)
@@ -437,11 +438,121 @@ export_png() {
 }
 
 # ============================================================================
+# Animated GIF Export
+# ============================================================================
+
+# Convert multiple ASCII frames to an animated GIF
+# Usage: export_animated_gif <output_file> <delay_ms> <loops> <bg_color> <frame1_content> [frame2_content ...]
+# Arguments:
+#   output_file - Path to output GIF file
+#   delay_ms    - Delay between frames in milliseconds
+#   loops       - Number of loops (0 = infinite)
+#   bg_color    - Background color for frames
+#   frameN      - ASCII content for each frame
+# Returns: 0 on success, 1 on failure
+export_animated_gif() {
+    local output_file="$1"
+    local delay_ms="$2"
+    local loops="$3"
+    local bg_color="$4"
+    shift 4
+    local frames=("$@")
+    
+    # Check that ImageMagick was initialized
+    if [[ -z "$_MAGICK_CONVERT" ]]; then
+        log_error "Animated GIF export requires ImageMagick (not initialized)"
+        return 1
+    fi
+    
+    # Validate we have frames
+    if [[ ${#frames[@]} -eq 0 ]]; then
+        log_error "No frames provided for animated GIF"
+        return 1
+    fi
+    
+    # Create temp directory for frame PNGs
+    local tmpdir
+    tmpdir=$(mktemp -d -t gummyworm_gif.XXXXXX)
+    trap "rm -rf '$tmpdir'" RETURN
+    
+    # Convert delay from milliseconds to centiseconds (ImageMagick uses centiseconds)
+    local delay_cs=$(( delay_ms / 10 ))
+    [[ $delay_cs -lt 1 ]] && delay_cs=1
+    
+    # Generate PNG for each frame
+    local frame_num=0
+    local frame_files=()
+    
+    for frame_content in "${frames[@]}"; do
+        local frame_file="${tmpdir}/frame_$(printf '%04d' $frame_num).png"
+        
+        # Generate PNG for this frame
+        if ! export_png "$frame_content" "$frame_file" "$bg_color"; then
+            log_error "Failed to generate frame $frame_num"
+            return 1
+        fi
+        
+        frame_files+=("$frame_file")
+        frame_num=$((frame_num + 1))
+    done
+    
+    # Combine frames into animated GIF using ImageMagick
+    local convert_args=()
+    convert_args+=(-delay "$delay_cs")
+    convert_args+=(-loop "$loops")
+    convert_args+=(-dispose background)
+    convert_args+=("${frame_files[@]}")
+    convert_args+=("$output_file")
+    
+    if $_MAGICK_CONVERT "${convert_args[@]}" 2>/dev/null; then
+        return 0
+    else
+        log_error "Failed to create animated GIF"
+        return 1
+    fi
+}
+
+# Export frames as individual files (for debugging or frame extraction)
+# Usage: export_frames <output_dir> <format> <bg_color> <frame1_content> [frame2_content ...]
+# Returns: 0 on success, 1 on failure
+export_frames() {
+    local output_dir="$1"
+    local format="$2"
+    local bg_color="$3"
+    shift 3
+    local frames=("$@")
+    
+    # Create output directory if needed
+    mkdir -p "$output_dir" 2>/dev/null || {
+        log_error "Cannot create output directory: $output_dir"
+        return 1
+    }
+    
+    local frame_num=0
+    local ext
+    ext=$(export_get_extension "$format")
+    
+    for frame_content in "${frames[@]}"; do
+        local frame_file="${output_dir}/frame_$(printf '%04d' $frame_num).${ext}"
+        
+        if ! export_content "$format" "$frame_content" "$frame_file" "$bg_color"; then
+            log_error "Failed to export frame $frame_num"
+            return 1
+        fi
+        
+        frame_num=$((frame_num + 1))
+    done
+    
+    return 0
+}
+
+# ============================================================================
 # Export Dispatcher
 # ============================================================================
 
 # Export ASCII art to the specified format
 # Usage: export_content <format> <content> <output_file> [options...]
+# Note: For animated GIF, use export_animated_gif() directly with multiple frames
 # Returns: 0 on success, 1 on failure
 export_content() {
     local format="$1"
@@ -468,6 +579,12 @@ export_content() {
             export_png "$content" "$output_file" "$bg_color"
             return $?
             ;;
+        gif)
+            # For single-frame GIF, create a static GIF
+            # Use export_animated_gif with single frame for consistency
+            export_animated_gif "$output_file" 100 0 "$bg_color" "$content"
+            return $?
+            ;;
         *)
             log_error "Unknown export format: $format"
             return 1
@@ -487,6 +604,7 @@ export_get_extension() {
         html) echo "html" ;;
         svg)  echo "svg" ;;
         png)  echo "png" ;;
+        gif)  echo "gif" ;;
         *)    echo "txt" ;;
     esac
 }
