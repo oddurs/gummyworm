@@ -28,6 +28,7 @@ A playful, feature-rich, and extensible command-line tool for converting images 
 - 🔍 **Recursive directories** - Process entire folders of images
 - 🌐 **URL support** - Download and convert images from URLs
 - 📥 **Stdin piping** - Pipe image data directly
+- 🌍 **Multiple output formats** - Export to HTML, SVG, PNG, ANSI, or plain text
 
 ## Project Structure
 
@@ -42,7 +43,8 @@ gummyworm/
 │   ├── palettes.sh     # Palette management
 │   ├── image.sh        # Image processing functions
 │   ├── converter.sh    # Core ASCII conversion engine
-│   └── cli.sh          # Command-line interface
+│   ├── cli.sh          # Command-line interface
+│   └── export.sh       # Multi-format export (HTML, SVG, PNG)
 ├── palettes/
 │   └── *.palette       # Custom palette files
 ├── tests/
@@ -126,6 +128,15 @@ sudo ln -s "$(pwd)/bin/gummyworm" /usr/local/bin/gummyworm
 
 # Pipe from stdin
 curl -s https://example.com/image.png | ./gummyworm
+
+# Export as HTML (auto-detected from extension)
+./gummyworm -o gallery.html photo.jpg
+
+# Export as SVG with custom background
+./gummyworm -f svg --background '#000000' -o art.svg image.png
+
+# Export as PNG image
+./gummyworm -f png -o artwork.png photo.jpg
 ```
 
 ## Usage
@@ -145,6 +156,8 @@ cat image.png | gummyworm [OPTIONS]
 | `-p, --palette <n>` | Character palette to use | standard |
 | `-c, --color` | Enable ANSI color output | off |
 | `-i, --invert` | Invert brightness (dark ↔ light) | off |
+| `-f, --format <type>` | Output format: text, ansi, html, svg, png | text |
+| `--background <color>` | Background color for html/svg/png exports | #1e1e1e |
 | `-o, --output <FILE>` | Save output to file (appends in batch mode) | stdout |
 | `-d, --output-dir <DIR>` | Save each output to directory with auto-naming | - |
 | `-r, --recursive` | Process directories recursively | off |
@@ -188,6 +201,71 @@ View available palettes with `gummyworm --list-palettes`:
 ```
 
 Then use: `./gummyworm -p mypalette image.jpg`
+
+## Output Formats
+
+Gummyworm can export ASCII art in multiple formats using the `-f, --format` flag:
+
+| Format | Extension | Description |
+|--------|-----------|-------------|
+| `text` | .txt | Plain ASCII text (default) |
+| `ansi` | .ans | ANSI colored text with escape codes |
+| `html` | .html | Styled HTML document with inline CSS |
+| `svg` | .svg | Scalable Vector Graphics |
+| `png` | .png | PNG image (requires ImageMagick) |
+
+### Auto-Detection
+
+When using `-o`, the format is automatically detected from the file extension:
+
+```bash
+./gummyworm -o art.html image.jpg   # Exports as HTML
+./gummyworm -o art.svg image.jpg    # Exports as SVG
+./gummyworm -o art.png image.jpg    # Exports as PNG
+```
+
+### HTML Export
+
+Generates a complete HTML document with CSS styling:
+
+```bash
+./gummyworm -f html -o gallery.html photo.jpg
+./gummyworm -f html --background '#000000' -o dark.html photo.jpg
+```
+
+Features:
+- Responsive centered layout
+- Monospace font stack
+- Full color preservation from ANSI codes
+- Customizable background color
+
+### SVG Export
+
+Creates scalable vector graphics perfect for web or print:
+
+```bash
+./gummyworm -f svg -o artwork.svg landscape.png
+./gummyworm -f svg --background '#1a1a2e' -o styled.svg image.jpg
+```
+
+Features:
+- Infinite scalability without pixelation
+- Proper text positioning
+- Color-accurate rendering
+- Embedded font styles
+
+### PNG Export
+
+Renders ASCII art to a PNG image via SVG conversion:
+
+```bash
+./gummyworm -f png -o poster.png -w 100 photo.jpg
+```
+
+Features:
+- High-quality rasterization
+- Preserves colors from original
+- Great for sharing on social media
 
 ## Module Reference
 
@@ -234,6 +312,15 @@ Core conversion:
 User interface:
 - `show_banner`, `show_help`, `show_version`, `show_palettes`
 - `parse_args "$@"` - Parse CLI arguments (sets `ARG_*` globals including `ARG_IMAGES` array)
+
+### lib/export.sh
+Multi-format export:
+- `export_html <content> [bg_color]` - Generate HTML document
+- `export_svg <content> [bg_color]` - Generate SVG document
+- `export_png <content> <output_file> [bg_color]` - Generate PNG image
+- `export_content <format> <content> <file> [bg_color]` - Export dispatcher
+- `export_detect_format <filepath>` - Auto-detect format from extension
+- `export_get_extension <format>` - Get file extension for format
 
 ## Testing
 
