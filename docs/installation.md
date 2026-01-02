@@ -8,16 +8,16 @@ gummyworm is designed for maximum compatibility across Unix-like systems:
 
 | Platform | Status | Shell Required |
 |----------|--------|----------------|
-| macOS 10.6+ | ✅ Tested | Bash 3.2+ (default) |
-| Ubuntu/Debian | ✅ Tested | Bash 4+ |
-| Fedora/RHEL | ✅ Tested | Bash 4+ |
-| Arch Linux | ✅ Tested | Bash 5+ |
-| FreeBSD | ✅ Compatible | Bash 3.2+ |
-| Alpine Linux | ✅ Compatible | Bash 5+ |
-| Windows (WSL) | ✅ Tested | Bash 4+ |
+| macOS 10.6+ | ✅ Tested | Bash 3.2+ or zsh 5.0+ |
+| Ubuntu/Debian | ✅ Tested | Bash 4+ or zsh 5.0+ |
+| Fedora/RHEL | ✅ Tested | Bash 4+ or zsh 5.0+ |
+| Arch Linux | ✅ Tested | Bash 5+ or zsh 5.0+ |
+| FreeBSD | ✅ Compatible | Bash 3.2+ or zsh 5.0+ |
+| Alpine Linux | ✅ Compatible | Bash 5+ or zsh 5.0+ |
+| Windows (WSL) | ✅ Tested | Bash 4+ or zsh 5.0+ |
 | Windows (Git Bash) | ⚠️ Limited | Bash 4+ |
 
-**Note**: gummyworm specifically supports Bash 3.2 (the default macOS version) to ensure wide compatibility without requiring users to upgrade their shell.
+**Note**: gummyworm supports both Bash 3.2+ and zsh 5.0+ for maximum compatibility. macOS ships with both shells by default.
 
 ## Quick Install (Homebrew)
 
@@ -50,7 +50,7 @@ brew untap oddurs/gummyworm  # optional: remove the tap
 
 | Dependency | Required | Purpose |
 |------------|----------|---------|
-| **Bash 3.2+** | Yes | Shell interpreter (macOS default works!) |
+| **Bash 3.2+ or zsh 5.0+** | Yes | Shell interpreter (macOS has both!) |
 | **ImageMagick** | Yes | Image processing and pixel extraction |
 | **Python 3** | No | Better Unicode/emoji character width detection |
 | **curl or wget** | No | URL image downloads |
@@ -174,15 +174,11 @@ python3 --version
 
 - **Apple Silicon (M1/M2/M3):** Fully supported. Homebrew installs native ARM binaries.
 - **Intel Macs:** Fully supported.
-- **Bash version:** macOS ships with Bash 3.2 by default. gummyworm requires Bash 4.0+. If using manual installation, install a newer Bash:
-  ```bash
-  brew install bash
-  # Then use /opt/homebrew/bin/bash (Apple Silicon) or /usr/local/bin/bash (Intel)
-  ```
+- **Shell:** Works with the default shells. macOS includes Bash 3.2 and zsh 5.x (default since Catalina). Both are fully supported.
 
 ### Linux
 
-- Works on any distribution with Bash 4.0+ and ImageMagick.
+- Works on any distribution with Bash 3.2+/zsh 5.0+ and ImageMagick.
 - For headless servers, ensure ImageMagick is built with PNG/JPEG support.
 
 ### Windows (WSL)
