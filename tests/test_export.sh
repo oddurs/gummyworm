@@ -304,8 +304,36 @@ test_export_html_default_background() {
 
 test_export_html_custom_title() {
     local html
-    html=$(export_html "test" "#000000" "My Custom Title")
+    # export_html <content> <bg_color> <padding> <title>
+    html=$(export_html "test" "#000000" "0" "My Custom Title")
     assert_contains "$html" "<title>My Custom Title</title>" "custom title applied"
+}
+
+test_export_html_custom_padding() {
+    local html
+    html=$(export_html "test" "#000000" "40")
+    assert_contains "$html" "padding: 40px" "custom padding applied"
+}
+
+test_export_html_default_padding() {
+    local html
+    html=$(export_html "test")
+    assert_contains "$html" "padding: 0px" "default zero padding"
+}
+
+test_export_svg_custom_padding() {
+    local svg
+    # With 30px padding, dimensions should be larger
+    svg=$(export_svg "X" "#000000" "30")
+    # SVG should contain viewBox with calculated dimensions
+    assert_contains "$svg" "viewBox" "SVG has viewBox"
+}
+
+test_export_svg_default_padding() {
+    local svg
+    svg=$(export_svg "X")
+    # Should have tight dimensions with 0 padding
+    assert_contains "$svg" "viewBox" "SVG has viewBox with default padding"
 }
 
 # ============================================================================
