@@ -3,6 +3,7 @@
 # gummyworm/tests/run_all.sh - Master test runner
 # ============================================================================
 # Runs all test suites and provides aggregated results.
+# Shell compatibility: Bash 3.2+, zsh 5.0+
 #
 # Usage:
 #   ./tests/run_all.sh           # Run all tests
@@ -11,9 +12,20 @@
 #   ./tests/run_all.sh --verbose # Show detailed output
 # ============================================================================
 
-set -euo pipefail
+# Shell detection and compatibility
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+    setopt KSH_ARRAYS SH_WORD_SPLIT NO_NOMATCH 2>/dev/null || true
+fi
+set -e; set -u; set -o pipefail 2>/dev/null || true
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Portable script directory
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+fi
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Colors
@@ -143,22 +155,26 @@ run_suite() {
     local clean_output
     clean_output=$(echo "$suite_output" | sed 's/\x1b\[[0-9;]*m//g')
     
-    # Store regex patterns in variables for Bash 3.2 compatibility
-    local re_results='Results: ([0-9]+)/([0-9]+) passed'
-    local re_skipped='([0-9]+) skipped'
-    
     # Extract passed/total from "Results: X/Y passed"
-    if [[ "$clean_output" =~ $re_results ]]; then
-        local passed="${BASH_REMATCH[1]}"
-        local total="${BASH_REMATCH[2]}"
+    # Use grep/sed for portability instead of BASH_REMATCH (not available in zsh)
+    local results_line
+    results_line=$(echo "$clean_output" | grep -o 'Results: [0-9]*/[0-9]* passed' | head -1) || true
+    if [[ -n "$results_line" ]]; then
+        local passed total
+        passed=$(echo "$results_line" | sed 's/Results: \([0-9]*\)\/[0-9]* passed/\1/')
+        total=$(echo "$results_line" | sed 's/Results: [0-9]*\/\([0-9]*\) passed/\1/')
         TOTAL_TESTS=$((TOTAL_TESTS + total))
         TOTAL_PASSED=$((TOTAL_PASSED + passed))
         TOTAL_FAILED=$((TOTAL_FAILED + (total - passed)))
     fi
     
     # Extract skipped count
-    if [[ "$clean_output" =~ $re_skipped ]]; then
-        TOTAL_SKIPPED=$((TOTAL_SKIPPED + ${BASH_REMATCH[1]}))
+    local skipped_line
+    skipped_line=$(echo "$clean_output" | grep -o '[0-9]* skipped' | head -1) || true
+    if [[ -n "$skipped_line" ]]; then
+        local skipped
+        skipped=$(echo "$skipped_line" | sed 's/ skipped//')
+        TOTAL_SKIPPED=$((TOTAL_SKIPPED + skipped))
     fi
     
     if [[ $result -eq 0 ]]; then
