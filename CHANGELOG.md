@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Image preprocessing options:** Adjust brightness, contrast, and gamma before conversion
+- **`--brightness <N>` option:** Adjust image brightness from -100 (darker) to 100 (brighter)
+- **`--contrast <N>` option:** Adjust image contrast from -100 (lower) to 100 (higher)
+- **`--gamma <N>` option:** Apply gamma correction (e.g., 0.5, 1.0, 2.2) for non-linear brightness adjustment
+- 9 new preprocessing-related unit tests
 - **Animated GIF support:** Process animated GIFs frame-by-frame with new animation options
 - **Terminal animation playback:** Play animated GIFs as ASCII art directly in the terminal with `-a` flag
 - **GIF export format:** Export animated ASCII art as GIF files with `-f gif`
