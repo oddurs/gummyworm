@@ -201,16 +201,31 @@ calc_dimensions() {
 # Pixel Extraction
 # ============================================================================
 
-# Extract pixel data from image
-# Usage: image_extract_pixels <filepath> <width> <height> <output_file>
+# Extract pixel data from image with optional preprocessing
+# Usage: image_extract_pixels <filepath> <width> <height> <output_file> [brightness] [contrast] [gamma]
 # Writes ImageMagick txt format to output_file
 image_extract_pixels() {
     local image="$1"
     local width="$2"
     local height="$3"
     local output="$4"
+    local brightness="${5:-0}"
+    local contrast="${6:-0}"
+    local gamma="${7:-1.0}"
     
+    # Build preprocessing options string (only add if non-default)
+    local preprocess_opts=""
+    if [[ "$brightness" != "0" || "$contrast" != "0" ]]; then
+        preprocess_opts="-brightness-contrast ${brightness}x${contrast} "
+    fi
+    if [[ "$gamma" != "1.0" && "$gamma" != "1" ]]; then
+        preprocess_opts+="-gamma $gamma "
+    fi
+    
+    # Note: preprocess_opts is intentionally unquoted to allow word splitting
+    # shellcheck disable=SC2086
     $_MAGICK_CONVERT "$image" \
+        $preprocess_opts \
         -resize "${width}x${height}!" \
         -depth 8 \
         -colorspace sRGB \
