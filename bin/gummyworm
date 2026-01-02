@@ -7,17 +7,43 @@
 # Usage: gummyworm [OPTIONS] <image_file>
 #
 # For help: gummyworm --help
+#
+# Shell compatibility: Bash 3.2+, zsh 5.0+
 # ============================================================================
 
-# Strict mode
-set -euo pipefail
+# ============================================================================
+# Early Shell Detection (before strict mode)
+# ============================================================================
+# We need to detect the shell and set up compatibility BEFORE any other code
+# runs, including strict mode settings.
+
+_GUMMYWORM_SHELL="unknown"
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    _GUMMYWORM_SHELL="bash"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    _GUMMYWORM_SHELL="zsh"
+    # zsh compatibility: 0-indexed arrays, word splitting, glob behavior
+    setopt KSH_ARRAYS SH_WORD_SPLIT NO_NOMATCH POSIX_BUILTINS 2>/dev/null || true
+fi
+
+# Strict mode (portable)
+set -e
+set -u
+set -o pipefail 2>/dev/null || { [[ "$_GUMMYWORM_SHELL" == "zsh" ]] && setopt PIPE_FAIL 2>/dev/null; } || true
 
 # ============================================================================
 # Initialization
 # ============================================================================
 
-# Determine script location and project root
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Determine script location and project root (portable across bash/zsh)
+if [[ "$_GUMMYWORM_SHELL" == "bash" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+elif [[ "$_GUMMYWORM_SHELL" == "zsh" ]]; then
+    # shellcheck disable=SC2154
+    SCRIPT_DIR="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+fi
 
 # Support both installed (bin/) and development layouts
 if [[ -d "$SCRIPT_DIR/../lib" ]]; then
@@ -615,6 +641,20 @@ main() {
 # Entry Point
 # ============================================================================
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+# Portable check for direct execution vs sourcing (works in bash and zsh)
+_is_main_script() {
+    if [[ "$_GUMMYWORM_SHELL" == "bash" ]]; then
+        [[ "${BASH_SOURCE[0]}" == "${0}" ]]
+    elif [[ "$_GUMMYWORM_SHELL" == "zsh" ]]; then
+        # In zsh, check if current script is the executed script
+        # shellcheck disable=SC2154
+        [[ "${(%):-%x}" == "$0" ]] || [[ "${(%):-%N}" == "$0" ]]
+    else
+        # Fallback: assume main script
+        true
+    fi
+}
+
+if _is_main_script; then
     main "$@"
 fi
