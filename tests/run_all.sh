@@ -127,8 +127,8 @@ run_suite() {
         local output
         output=$("$suite_path" 2>&1) || result=$?
         
-        # Extract and display results
-        echo "$output" | grep -E "^(  |Results:|All tests|[0-9]+ tests)" || true
+        # Extract and display test results (lines starting with spaces that have PASS/FAIL/SKIP)
+        echo "$output" | grep -E "^  .*(PASS|FAIL|SKIP)" || true
     fi
     
     local end_time
@@ -139,8 +139,12 @@ run_suite() {
     local suite_output
     suite_output=$("$suite_path" 2>&1) || true
     
+    # Strip ANSI codes for parsing
+    local clean_output
+    clean_output=$(echo "$suite_output" | sed 's/\x1b\[[0-9;]*m//g')
+    
     # Extract passed/total from "Results: X/Y passed"
-    if [[ "$suite_output" =~ Results:\ ([0-9]+)/([0-9]+)\ passed ]]; then
+    if [[ "$clean_output" =~ Results:\ ([0-9]+)/([0-9]+)\ passed ]]; then
         local passed="${BASH_REMATCH[1]}"
         local total="${BASH_REMATCH[2]}"
         TOTAL_TESTS=$((TOTAL_TESTS + total))
@@ -149,7 +153,7 @@ run_suite() {
     fi
     
     # Extract skipped count
-    if [[ "$suite_output" =~ Skipped:\ ([0-9]+) ]]; then
+    if [[ "$clean_output" =~ ([0-9]+)\ skipped ]]; then
         TOTAL_SKIPPED=$((TOTAL_SKIPPED + ${BASH_REMATCH[1]}))
     fi
     

@@ -37,6 +37,9 @@ export DIM='\033[2m'
 export BOLD='\033[1m'
 export NC='\033[0m'
 
+# Formatting constants
+export TEST_NAME_WIDTH=50
+
 # Test counters
 TESTS_RUN=0
 TESTS_PASSED=0
@@ -473,7 +476,7 @@ run_test() {
         name="$2"
         
         TESTS_RUN=$((TESTS_RUN + 1))
-        echo -n "  Testing: $name... "
+        printf "  %-${TEST_NAME_WIDTH}s" "$name"
         
         if eval "$cmd" >/dev/null 2>&1; then
             echo -e "${GREEN}PASS${NC}"
@@ -489,7 +492,15 @@ run_test() {
     TESTS_RUN=$((TESTS_RUN + 1))
     CURRENT_TEST_NAME="$name"
     
-    echo -n "  $name... "
+    # Print test name with padding dots for alignment
+    local display_name="$name "
+    local name_len=${#display_name}
+    local dots_needed=$((TEST_NAME_WIDTH - name_len))
+    if [[ $dots_needed -lt 3 ]]; then
+        dots_needed=3
+    fi
+    local dots=$(printf '%*s' "$dots_needed" '' | tr ' ' '.')
+    printf "  %s%s " "$display_name" "$dots"
     
     # Run the test function, capturing any failures
     local result=0
@@ -517,7 +528,7 @@ run_test() {
 # Usage: skip_test <reason>
 skip_test() {
     local reason="$1"
-    echo -e "${YELLOW}SKIP${NC} ($reason)"
+    echo -e "${YELLOW}SKIP${NC} ${DIM}($reason)${NC}"
     TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
     return 0
 }
@@ -528,9 +539,9 @@ run_test_suite() {
     local suite_name="${1:-Test Suite}"
     
     echo ""
-    echo -e "${BOLD}================================${NC}"
-    echo -e "${BOLD}$suite_name${NC}"
-    echo -e "${BOLD}================================${NC}"
+    echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
+    echo -e "${BOLD}  $suite_name${NC}"
+    echo -e "${BOLD}════════════════════════════════════════════════════════════${NC}"
     echo ""
     
     # Run setup if defined
@@ -562,18 +573,20 @@ run_test_suite() {
 # Print test summary
 print_summary() {
     echo ""
-    echo -e "${BOLD}================================${NC}"
-    echo -e "Results: ${GREEN}$TESTS_PASSED${NC}/$TESTS_RUN passed"
+    echo -e "${BLUE}────────────────────────────────────────────────────────────${NC}"
+    echo -e "${BOLD}Results:${NC} ${GREEN}$TESTS_PASSED${NC}/${TESTS_RUN} passed"
     
     if [[ $TESTS_SKIPPED -gt 0 ]]; then
-        echo -e "Skipped: ${YELLOW}$TESTS_SKIPPED${NC}"
+        echo -e "         ${YELLOW}$TESTS_SKIPPED${NC} skipped"
     fi
     
     if [[ $TESTS_FAILED -gt 0 ]]; then
-        echo -e "${RED}$TESTS_FAILED tests failed${NC}"
+        echo -e "         ${RED}$TESTS_FAILED${NC} failed"
+        echo -e "${BLUE}────────────────────────────────────────────────────────────${NC}"
         return 1
     else
         echo -e "${GREEN}All tests passed!${NC}"
+        echo -e "${BLUE}────────────────────────────────────────────────────────────${NC}"
         return 0
     fi
 }
