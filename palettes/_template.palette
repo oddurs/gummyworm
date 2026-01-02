@@ -1,0 +1,43 @@
+# Name: My Custom Palette
+# Description: A brief description of your palette
+# Author: Your Name
+# Tags: ascii, custom
+#
+# ============================================================================
+# GUMMYWORM PALETTE TEMPLATE
+# ============================================================================
+#
+# HOW TO CREATE A CUSTOM PALETTE:
+#
+# 1. Copy this file to a new file: mypalette.palette
+# 2. Edit the metadata headers above (Name, Description, Author, Tags)
+# 3. Replace the character line below with your characters
+# 4. Use your palette: gummyworm -p mypalette image.jpg
+#
+# PALETTE RULES:
+#
+# - Characters go from LIGHTEST to DARKEST (left to right)
+# - Start with a space character for "empty" areas
+# - Minimum 2 characters required
+# - More characters = more detail/gradation
+# - Comment lines start with #
+# - Only the first non-comment, non-empty line is used
+#
+# TIPS:
+#
+# - For emoji/wide characters, start with full-width space (　U+3000)
+# - ASCII-only palettes work everywhere
+# - Unicode palettes need terminal support
+# - Test with: gummyworm -p mypalette --list-palettes
+#
+# EXAMPLE CHARACTER SETS:
+#
+# ASCII:          .:-=+*#%@
+# Blocks:        ░▒▓█
+# Braille:       ⠁⠃⠇⠿⣿
+# Geometric:     ·∘○◎●
+# Arrows:        ←↖↑↗→↘↓↙
+#
+# ============================================================================
+
+ .:-=+*#%@
