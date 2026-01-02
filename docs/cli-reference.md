@@ -157,6 +157,26 @@ gummyworm --color photo.jpg
 
 > **Note:** Color output only works in terminals that support 256 colors. When saving to file, use `--format ansi` to preserve colors.
 
+#### `--truecolor`
+
+Enable true color (24-bit RGB) output. Preserves exact colors from the original image without mapping to a 256-color palette.
+
+```bash
+gummyworm --truecolor photo.jpg
+gummyworm -c --truecolor landscape.png
+```
+
+> **Auto-detection:** When `-c` is used, gummyworm automatically enables true color if your terminal supports it (detected via `$COLORTERM=truecolor` or `$COLORTERM=24bit`).
+
+#### `--no-truecolor`
+
+Disable true color auto-detection and force 256-color mode.
+
+```bash
+# Force 256-color even if terminal supports true color
+gummyworm -c --no-truecolor photo.jpg
+```
+
 #### `-i, --invert`
 
 Invert the brightness mapping. Useful for images with dark backgrounds or when your terminal has a light theme.
