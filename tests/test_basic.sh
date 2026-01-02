@@ -112,6 +112,26 @@ run_test "Stdin: pipe to file output" "cat '$TEST_IMG' | $GUMMYWORM -q -w 20 -o 
 # Test that invalid stdin data is handled properly
 run_test "Stdin: reject invalid data" "! echo 'not an image' | $GUMMYWORM -q -w 20 2>/dev/null"
 
+# ================================
+# URL Input Tests
+# ================================
+echo ""
+echo "--- URL Input Tests ---"
+
+# Use a reliable public test image (1x1 pixel PNG)
+TEST_URL="https://www.google.com/images/branding/googlelogo/1x/googlelogo_color_272x92dp.png"
+TEST_URL_INVALID="https://example.com/nonexistent_image_12345.png"
+
+run_test "URL: basic URL input" "$GUMMYWORM -q -w 20 '$TEST_URL'"
+run_test "URL: with color option" "$GUMMYWORM -q -w 20 -c '$TEST_URL'"
+run_test "URL: with invert option" "$GUMMYWORM -q -w 20 -i '$TEST_URL'"
+run_test "URL: with palette option" "$GUMMYWORM -q -w 20 -p blocks '$TEST_URL'"
+run_test "URL: output to file" "$GUMMYWORM -q -w 20 -o '$OUTPUT_FILE' '$TEST_URL' && [[ -s '$OUTPUT_FILE' ]]"
+run_test "URL: reject invalid URL" "! $GUMMYWORM -q -w 20 '$TEST_URL_INVALID' 2>/dev/null"
+
+# Test URL in batch mode with local files
+run_test "URL: mixed with local files" "$GUMMYWORM -q -w 20 '$TEST_IMG' '$TEST_URL' --continue-on-error"
+
 echo ""
 echo "================================"
 echo "Results: $TESTS_PASSED/$TESTS_RUN passed"
