@@ -64,6 +64,16 @@ run_test "Blocks palette" "$GUMMYWORM -q -w 20 -p blocks '$TEST_IMG'"
 run_test "Simple palette" "$GUMMYWORM -q -w 20 -p simple '$TEST_IMG'"
 run_test "Custom palette" "$GUMMYWORM -q -w 20 -p ' .oO@' '$TEST_IMG'"
 
+# Preprocessing tests
+run_test "With brightness" "$GUMMYWORM -q -w 20 --brightness 20 '$TEST_IMG'"
+run_test "With contrast" "$GUMMYWORM -q -w 20 --contrast 30 '$TEST_IMG'"
+run_test "With gamma" "$GUMMYWORM -q -w 20 --gamma 1.5 '$TEST_IMG'"
+run_test "With negative brightness" "$GUMMYWORM -q -w 20 --brightness -20 '$TEST_IMG'"
+run_test "Combined preprocessing" "$GUMMYWORM -q -w 20 --brightness 10 --contrast 20 --gamma 0.8 '$TEST_IMG'"
+run_test "Invalid brightness rejected" "! $GUMMYWORM -q -w 20 --brightness 150 '$TEST_IMG' 2>/dev/null"
+run_test "Invalid contrast rejected" "! $GUMMYWORM -q -w 20 --contrast -200 '$TEST_IMG' 2>/dev/null"
+run_test "Invalid gamma rejected" "! $GUMMYWORM -q -w 20 --gamma 0 '$TEST_IMG' 2>/dev/null"
+
 # File output test
 OUTPUT_FILE=$(mktemp)
 trap "rm -f '$TEST_IMG' '$OUTPUT_FILE'" EXIT
