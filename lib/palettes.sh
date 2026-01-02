@@ -219,40 +219,34 @@ palette_to_array() {
     # Clear the array
     eval "$arr_name=()"
     
-    # Check if pure ASCII for fast path
-    if echo "$palette" | grep -qE '^[[:print:]]*$' 2>/dev/null && \
-       ! echo "$palette" | grep -q '[^[:ascii:]]' 2>/dev/null; then
-        # Pure ASCII - simple indexing
+    # Check if pure ASCII for fast path (no external tools needed)
+    if [[ "$palette" =~ ^[[:print:]]*$ ]] && ! [[ "$palette" =~ [^[:ascii:]] ]]; then
+        # Pure ASCII - simple indexing (fastest)
         local i=0
         while [[ $i -lt ${#palette} ]]; do
             eval "$arr_name+=(\"\${palette:\$i:1}\")"
             i=$((i + 1))
         done
     else
-        # Unicode - use python for reliable character splitting
-        if command -v python3 >/dev/null 2>&1; then
-            while IFS= read -r char; do
-                eval "$arr_name+=(\"\$char\")"
-            done < <(python3 -c "
-import sys
-for c in sys.argv[1]:
-    print(c)
-" "$palette")
-        elif command -v python >/dev/null 2>&1; then
-            while IFS= read -r char; do
-                eval "$arr_name+=(\"\$char\")"
-            done < <(python -c "
-import sys
-for c in sys.argv[1]:
-    print(c)
-" "$palette")
-        else
-            # Fallback: byte-by-byte (may not work for all unicode)
-            local i=0
-            while [[ $i -lt ${#palette} ]]; do
-                eval "$arr_name+=(\"\${palette:\$i:1}\")"
-                i=$((i + 1))
-            done
+        # Unicode - use awk for reliable character splitting (faster than Python)
+        # LC_ALL=C.UTF-8 ensures proper Unicode handling
+        while IFS= read -r char; do
+            [[ -n "$char" ]] && eval "$arr_name+=(\"\$char\")"
+        done < <(printf '%s' "$palette" | LC_ALL=C.UTF-8 awk '{
+            # Split string into individual characters
+            n = split($0, chars, "")
+            for (i = 1; i <= n; i++) {
+                print chars[i]
+            }
+        }')
+        
+        # Fallback to Python if awk failed (some systems may have issues)
+        if [[ $(eval "echo \${#$arr_name[@]}") -eq 0 ]]; then
+            if command -v python3 >/dev/null 2>&1; then
+                while IFS= read -r char; do
+                    eval "$arr_name+=(\"\$char\")"
+                done < <(python3 -c "import sys; [print(c) for c in sys.argv[1]]" "$palette")
+            fi
         fi
     fi
 }
