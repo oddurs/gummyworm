@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Modular palette system:** All 12 built-in palettes now stored as individual `.palette` files in `palettes/` folder
+- **Palette metadata support:** `.palette` files support optional headers (`# Name:`, `# Description:`, `# Author:`, `# Tags:`)
+- **Palette template:** New `palettes/_template.palette` as starting point for custom palettes
+- **Palette documentation:** New `palettes/README.md` with format specification and examples
+- `palette_get_metadata()` function for reading palette file headers
+- `palette_description()` function for unified description access
+- 10 new palette metadata tests
 - **Image preprocessing options:** Adjust brightness, contrast, and gamma before conversion
 - **`--brightness <N>` option:** Adjust image brightness from -100 (darker) to 100 (brighter)
 - **`--contrast <N>` option:** Adjust image contrast from -100 (lower) to 100 (higher)
