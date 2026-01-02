@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 class Gummyworm < Formula
-  desc "Transform images into glorious ASCII art"
+  desc "gummyworm - Transform images into glorious ASCII art"
   homepage "https://github.com/oddurs/gummyworm"
   url "https://github.com/oddurs/gummyworm/archive/refs/tags/v1.0.0.tar.gz"
   sha256 "PLACEHOLDER_SHA256"

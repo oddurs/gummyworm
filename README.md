@@ -1,4 +1,4 @@
-# 🐛 GUMMYWORM
+# 🐛 gummyworm
 
 ```
  ██████╗ ██╗   ██╗███╗   ███╗███╗   ███╗██╗   ██╗██╗    ██╗ ██████╗ ██████╗ ███╗   ███╗
@@ -204,7 +204,7 @@ Then use: `./gummyworm -p mypalette image.jpg`
 
 ## Output Formats
 
-Gummyworm can export ASCII art in multiple formats using the `-f, --format` flag:
+gummyworm can export ASCII art in multiple formats using the `-f, --format` flag:
 
 | Format | Extension | Description |
 |--------|-----------|-------------|
@@ -330,7 +330,7 @@ chmod +x tests/test_basic.sh
 ./tests/test_basic.sh
 ```
 
-## Extending Gummyworm
+## Extending gummyworm
 
 ### Adding a New Palette
 

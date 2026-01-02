@@ -53,7 +53,7 @@ export_validate_format() {
 export_html() {
     local content="$1"
     local bg_color="${2:-#1e1e1e}"
-    local title="${3:-ASCII Art - Gummyworm}"
+    local title="${3:-ASCII Art - gummyworm}"
     
     # Start HTML document
     cat << EOF

@@ -43,7 +43,7 @@ trap "rm -f '$TEST_IMG'" EXIT
 convert -size 50x50 gradient:black-white "$TEST_IMG"
 
 echo "================================"
-echo "Gummyworm Test Suite"
+echo "gummyworm Test Suite"
 echo "================================"
 echo ""
 
