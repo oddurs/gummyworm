@@ -71,24 +71,26 @@ sed -i 's/\r$//' gummyworm bin/gummyworm lib/*.sh
 dos2unix gummyworm bin/gummyworm lib/*.sh
 ```
 
-### Bash version too old
+### Shell version too old
 
-**Cause:** gummyworm requires Bash 4.0+, but macOS ships with Bash 3.2.
+**Cause:** gummyworm requires Bash 3.2+ or zsh 5.0+.
 
-**Solution:**
+**Check your version:**
 ```bash
-# Install newer Bash
+# Check Bash version
+bash --version
+
+# Check zsh version
+zsh --version
+```
+
+**Solution for very old systems:**
+```bash
+# Install newer Bash (macOS)
 brew install bash
 
-# Check version
-/opt/homebrew/bin/bash --version  # Apple Silicon
-/usr/local/bin/bash --version     # Intel Mac
-
-# Either run gummyworm with newer bash explicitly
-/opt/homebrew/bin/bash /path/to/gummyworm photo.jpg
-
-# Or add newer bash to PATH first
-export PATH="/opt/homebrew/bin:$PATH"
+# Or use zsh (macOS default shell since Catalina)
+zsh /path/to/gummyworm photo.jpg
 ```
 
 ## Image Processing Issues

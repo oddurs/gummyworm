@@ -5,24 +5,91 @@
 # This module defines all default settings, constants, and global configuration
 # for gummyworm. Source this first before other modules.
 #
-# Compatibility: Bash 3.2+ (macOS default), GNU/Linux, BSD
+# Compatibility: Bash 3.2+, zsh 5.0+ (macOS default), GNU/Linux, BSD
 # ============================================================================
 
-# Strict mode
-set -euo pipefail
+# ============================================================================
+# Shell Detection & Compatibility Layer
+# ============================================================================
+# Detect shell type and set up compatibility options BEFORE strict mode.
+# This must be done first to ensure arrays and other features work correctly.
+
+# Detect current shell
+_GUMMYWORM_SHELL="unknown"
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    _GUMMYWORM_SHELL="bash"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    _GUMMYWORM_SHELL="zsh"
+fi
+readonly _GUMMYWORM_SHELL
+
+# Shell detection helpers
+_is_bash() { [[ "$_GUMMYWORM_SHELL" == "bash" ]]; }
+_is_zsh() { [[ "$_GUMMYWORM_SHELL" == "zsh" ]]; }
+
+# zsh compatibility setup - must happen before any array operations
+if _is_zsh; then
+    # KSH_ARRAYS: Use 0-indexed arrays like bash (zsh default is 1-indexed)
+    setopt KSH_ARRAYS 2>/dev/null || true
+    # SH_WORD_SPLIT: Split unquoted variable expansions like bash
+    setopt SH_WORD_SPLIT 2>/dev/null || true
+    # NO_NOMATCH: Don't error on failed glob patterns (like bash default)
+    setopt NO_NOMATCH 2>/dev/null || true
+    # POSIX_BUILTINS: More bash-like builtin behavior
+    setopt POSIX_BUILTINS 2>/dev/null || true
+fi
+
+# Strict mode (portable across bash/zsh)
+set -e  # Exit on error
+set -u  # Error on undefined variables
+# pipefail: bash uses set -o, zsh can use setopt
+set -o pipefail 2>/dev/null || { _is_zsh && setopt PIPE_FAIL 2>/dev/null; } || true
 
 # ============================================================================
-# Platform & Bash Version Detection
+# Shell Version Validation
 # ============================================================================
 
-# Check for minimum Bash version (3.2)
-# Note: BASH_VERSINFO is read-only and set by bash
-if [[ -z "${BASH_VERSINFO:-}" ]] || [[ "${BASH_VERSINFO[0]}" -lt 3 ]] || \
-   { [[ "${BASH_VERSINFO[0]}" -eq 3 ]] && [[ "${BASH_VERSINFO[1]}" -lt 2 ]]; }; then
-    echo "Error: gummyworm requires Bash 3.2 or later" >&2
-    echo "Current Bash version: ${BASH_VERSION:-unknown}" >&2
+if _is_bash; then
+    # Check for minimum Bash version (3.2)
+    if [[ -z "${BASH_VERSINFO:-}" ]] || [[ "${BASH_VERSINFO[0]}" -lt 3 ]] || \
+       { [[ "${BASH_VERSINFO[0]}" -eq 3 ]] && [[ "${BASH_VERSINFO[1]}" -lt 2 ]]; }; then
+        echo "Error: gummyworm requires Bash 3.2 or later" >&2
+        echo "Current Bash version: ${BASH_VERSION:-unknown}" >&2
+        exit 1
+    fi
+elif _is_zsh; then
+    # Check for minimum zsh version (5.0)
+    # ZSH_VERSION format: "5.8.1" - extract major version
+    _zsh_major="${ZSH_VERSION%%.*}"
+    if [[ "$_zsh_major" -lt 5 ]]; then
+        echo "Error: gummyworm requires zsh 5.0 or later" >&2
+        echo "Current zsh version: ${ZSH_VERSION:-unknown}" >&2
+        exit 1
+    fi
+    unset _zsh_major
+else
+    echo "Error: gummyworm requires Bash 3.2+ or zsh 5.0+" >&2
+    echo "Current shell: unknown" >&2
     exit 1
 fi
+
+# ============================================================================
+# Portable Script Path Detection
+# ============================================================================
+# Get the directory of the current script, portable across bash and zsh.
+# Usage: _script_dir  (call from within the script needing its location)
+
+_script_source() {
+    if _is_bash; then
+        echo "${BASH_SOURCE[1]:-${BASH_SOURCE[0]:-$0}}"
+    elif _is_zsh; then
+        # In zsh, use %x parameter expansion for script path
+        # shellcheck disable=SC2154
+        echo "${(%):-%x}"
+    else
+        echo "$0"
+    fi
+}
 
 # Detect platform for OS-specific workarounds
 GUMMYWORM_PLATFORM="unknown"
@@ -36,12 +103,15 @@ esac
 export GUMMYWORM_PLATFORM
 
 # Version info
-readonly GUMMYWORM_VERSION="2.0.0"
+readonly GUMMYWORM_VERSION="2.1.0"
 readonly GUMMYWORM_NAME="gummyworm"
 
-# Determine the root directory of the project
+# Determine the root directory of the project (portable across bash/zsh)
 if [[ -z "${GUMMYWORM_ROOT:-}" ]]; then
-    GUMMYWORM_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    # Use portable script source detection
+    _config_script="$(_script_source)"
+    GUMMYWORM_ROOT="$(cd "$(dirname "$_config_script")/.." && pwd)"
+    unset _config_script
 fi
 readonly GUMMYWORM_ROOT
 

@@ -4,6 +4,18 @@
 # ============================================================================
 # This script allows running gummyworm from the project root directory.
 # For installed usage, use bin/gummyworm directly.
+#
+# Shell compatibility: Bash 3.2+, zsh 5.0+
 # ============================================================================
 
-exec "$(dirname "${BASH_SOURCE[0]}")/bin/gummyworm" "$@"
+# Portable script directory detection
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    _wrapper_dir="$(dirname "${BASH_SOURCE[0]}")"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    # shellcheck disable=SC2154
+    _wrapper_dir="$(dirname "${(%):-%x}")"
+else
+    _wrapper_dir="$(dirname "$0")"
+fi
+
+exec "$_wrapper_dir/bin/gummyworm" "$@"

@@ -6,6 +6,8 @@
 # Source this file in your test scripts to get access to assertions,
 # setup/teardown helpers, and test execution utilities.
 #
+# Shell compatibility: Bash 3.2+, zsh 5.0+
+#
 # Usage:
 #   source "$(dirname "$0")/test_runner.sh"
 #   
@@ -16,13 +18,38 @@
 #   run_test_suite
 # ============================================================================
 
-set -euo pipefail
+# ============================================================================
+# Shell Detection & Compatibility (before strict mode)
+# ============================================================================
+
+_TEST_SHELL="unknown"
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    _TEST_SHELL="bash"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    _TEST_SHELL="zsh"
+    # zsh compatibility settings
+    setopt KSH_ARRAYS SH_WORD_SPLIT NO_NOMATCH POSIX_BUILTINS 2>/dev/null || true
+fi
+
+# Strict mode (portable)
+set -e
+set -u
+set -o pipefail 2>/dev/null || { [[ "$_TEST_SHELL" == "zsh" ]] && setopt PIPE_FAIL 2>/dev/null; } || true
 
 # ============================================================================
 # Test Runner Configuration
 # ============================================================================
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Portable script directory detection
+if [[ "$_TEST_SHELL" == "bash" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+elif [[ "$_TEST_SHELL" == "zsh" ]]; then
+    # shellcheck disable=SC2154
+    SCRIPT_DIR="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+fi
+
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 GUMMYWORM="$PROJECT_ROOT/gummyworm"
 FIXTURES_DIR="$SCRIPT_DIR/fixtures"
@@ -50,12 +77,12 @@ TESTS_SKIPPED=0
 CURRENT_TEST_NAME=""
 CURRENT_TEST_FILE=""
 
-# Temp files for cleanup
-declare -a TEMP_FILES=()
-declare -a TEMP_DIRS=()
+# Temp files for cleanup (portable array initialization)
+TEMP_FILES=()
+TEMP_DIRS=()
 
 # Track registered tests
-declare -a REGISTERED_TESTS=()
+REGISTERED_TESTS=()
 
 # ============================================================================
 # Source Library Functions (for unit tests)
@@ -627,9 +654,16 @@ print_summary() {
 run_discovered_tests() {
     local suite_name="${1:-Discovered Tests}"
     
-    # Find all functions starting with test_
+    # Find all functions starting with test_ (portable across bash/zsh)
     local test_funcs
-    test_funcs=$(declare -F | awk '{print $3}' | grep '^test_' || true)
+    if [[ "$_TEST_SHELL" == "bash" ]]; then
+        test_funcs=$(declare -F | awk '{print $3}' | grep '^test_' || true)
+    elif [[ "$_TEST_SHELL" == "zsh" ]]; then
+        # In zsh, use typeset -f + to list function names
+        test_funcs=$(typeset +f | grep '^test_' || true)
+    else
+        test_funcs=$(declare -F 2>/dev/null | awk '{print $3}' | grep '^test_' || true)
+    fi
     
     # Register discovered tests
     for func in $test_funcs; do
