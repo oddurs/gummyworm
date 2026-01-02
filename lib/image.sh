@@ -57,9 +57,7 @@ image_check_deps() {
 # Check if a string is a URL
 # Usage: is_url <string>
 is_url() {
-    # Store regex in variable for Bash 3.2 compatibility
-    local re='^https?://'
-    [[ "$1" =~ $re ]]
+    [[ "$1" =~ $RE_URL ]]
 }
 
 # Download image from URL to temp file

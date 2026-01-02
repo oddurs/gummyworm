@@ -62,6 +62,20 @@ readonly DEFAULT_PRESERVE_ASPECT=true
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 
+# ============================================================================
+# Shared Regex Patterns (Bash 3.2 compatible - stored in variables)
+# ============================================================================
+
+# URL pattern for detecting remote resources
+readonly RE_URL='^https?://'
+
+# Numeric patterns for argument validation
+readonly RE_INTEGER='^[0-9]+$'
+
+# Export format patterns
+readonly RE_GRAPHICAL_FORMAT='^(html|svg|png)$'
+readonly RE_TEXT_FORMAT='^(text|ansi)$'
+
 # ANSI color codes - bash 3.x compatible (no associative arrays)
 COLOR_RESET="\033[0m"
 COLOR_BOLD="\033[1m"

@@ -134,17 +134,13 @@ file_readable() {
 # Check if a value is a positive integer
 # Usage: is_positive_int <value>
 is_positive_int() {
-    # Store regex in variable for Bash 3.2 compatibility
-    local re='^[0-9]+$'
-    [[ "$1" =~ $re && "$1" -gt 0 ]]
+    [[ "$1" =~ $RE_INTEGER && "$1" -gt 0 ]]
 }
 
 # Check if a value is a non-negative integer
 # Usage: is_non_negative_int <value>
 is_non_negative_int() {
-    # Store regex in variable for Bash 3.2 compatibility
-    local re='^[0-9]+$'
-    [[ "$1" =~ $re ]]
+    [[ "$1" =~ $RE_INTEGER ]]
 }
 
 # ============================================================================
@@ -193,39 +189,28 @@ find_images_in_dir() {
     local dir="$1"
     local recursive="${2:-false}"
     
+    # Set depth option based on recursive flag
+    local depth_opt=""
+    [[ "$recursive" != "true" ]] && depth_opt="-maxdepth 1"
+    
     # Build find command with multiple -iname patterns
     # Using -iname for case-insensitive matching (portable across BSD/GNU find)
-    if [[ "$recursive" == "true" ]]; then
-        find "$dir" -type f \( \
-            -iname "*.jpg" -o \
-            -iname "*.jpeg" -o \
-            -iname "*.png" -o \
-            -iname "*.gif" -o \
-            -iname "*.bmp" -o \
-            -iname "*.tiff" -o \
-            -iname "*.tif" -o \
-            -iname "*.webp" -o \
-            -iname "*.ico" -o \
-            -iname "*.ppm" -o \
-            -iname "*.pgm" -o \
-            -iname "*.pbm" \
-        \) -print0 2>/dev/null | sort -z
-    else
-        find "$dir" -maxdepth 1 -type f \( \
-            -iname "*.jpg" -o \
-            -iname "*.jpeg" -o \
-            -iname "*.png" -o \
-            -iname "*.gif" -o \
-            -iname "*.bmp" -o \
-            -iname "*.tiff" -o \
-            -iname "*.tif" -o \
-            -iname "*.webp" -o \
-            -iname "*.ico" -o \
-            -iname "*.ppm" -o \
-            -iname "*.pgm" -o \
-            -iname "*.pbm" \
-        \) -print0 2>/dev/null | sort -z
-    fi
+    # Note: depth_opt must be unquoted to work when empty
+    # shellcheck disable=SC2086
+    find "$dir" $depth_opt -type f \( \
+        -iname "*.jpg" -o \
+        -iname "*.jpeg" -o \
+        -iname "*.png" -o \
+        -iname "*.gif" -o \
+        -iname "*.bmp" -o \
+        -iname "*.tiff" -o \
+        -iname "*.tif" -o \
+        -iname "*.webp" -o \
+        -iname "*.ico" -o \
+        -iname "*.ppm" -o \
+        -iname "*.pgm" -o \
+        -iname "*.pbm" \
+    \) -print0 2>/dev/null | sort -z
 }
 
 # ============================================================================
