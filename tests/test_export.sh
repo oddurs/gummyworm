@@ -3,11 +3,23 @@
 # gummyworm/tests/test_export.sh - Unit tests for lib/export.sh & lib/converter.sh
 # ============================================================================
 # Tests export format detection, validation, and color conversion.
+# Shell compatibility: Bash 3.2+, zsh 5.0+
 # ============================================================================
 
-set -euo pipefail
+# Shell detection and compatibility
+if [[ -n "${ZSH_VERSION:-}" ]]; then
+    setopt KSH_ARRAYS SH_WORD_SPLIT NO_NOMATCH 2>/dev/null || true
+fi
+set -e; set -u; set -o pipefail 2>/dev/null || true
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Portable script directory
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+else
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+fi
 source "$SCRIPT_DIR/test_runner.sh"
 
 # Load gummyworm libraries for unit testing
