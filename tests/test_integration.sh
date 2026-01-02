@@ -68,8 +68,8 @@ test_help_flag() {
 }
 
 test_help_output_content() {
-    assert_output_contains "Usage" "$GUMMYWORM --help"
-    assert_output_contains "Options" "$GUMMYWORM --help"
+    assert_output_contains "USAGE" "$GUMMYWORM --help"
+    assert_output_contains "OPTIONS" "$GUMMYWORM --help"
 }
 
 test_version_flag() {

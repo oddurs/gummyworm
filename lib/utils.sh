@@ -174,7 +174,10 @@ readonly IMAGE_EXTENSIONS="jpg|jpeg|png|gif|bmp|tiff|tif|webp|ico|ppm|pgm|pbm"
 is_image_file() {
     local file="$1"
     local ext="${file##*.}"
-    [[ "${ext,,}" =~ ^($IMAGE_EXTENSIONS)$ ]]
+    # Use tr for case-insensitive matching (Bash 3.2 compatible)
+    local ext_lower
+    ext_lower=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
+    [[ "$ext_lower" =~ ^($IMAGE_EXTENSIONS)$ ]]
 }
 
 # Find all image files in a directory

@@ -79,7 +79,12 @@ load_gummyworm_libs() {
 make_temp_file() {
     local suffix="${1:-.tmp}"
     local tmpfile
-    tmpfile=$(mktemp "${TMPDIR:-/tmp}/gummyworm_test_XXXXXX${suffix}")
+    # macOS mktemp doesn't support suffix in template, so create without suffix and rename
+    tmpfile=$(mktemp "${TMPDIR:-/tmp}/gummyworm_test_XXXXXX")
+    if [[ -n "$suffix" && "$suffix" != ".tmp" ]]; then
+        mv "$tmpfile" "${tmpfile}${suffix}"
+        tmpfile="${tmpfile}${suffix}"
+    fi
     TEMP_FILES+=("$tmpfile")
     echo "$tmpfile"
 }
@@ -111,23 +116,32 @@ cleanup_temp() {
 
 # Check if ImageMagick is available
 has_imagemagick() {
+    # Check for ImageMagick 7 (magick command) or ImageMagick 6 (convert/identify)
+    if command -v magick &>/dev/null; then
+        return 0
+    fi
     command -v convert &>/dev/null && command -v identify &>/dev/null
 }
 
 # Create a test image (requires ImageMagick)
-# Usage: create_test_image <filepath> [width] [height] [gradient]
+# Usage: create_test_image <filepath> [width] [height] [color]
 create_test_image() {
     local filepath="$1"
     local width="${2:-50}"
     local height="${3:-50}"
-    local gradient="${4:-gradient:black-white}"
+    local color="${4:-gray}"
     
     if ! has_imagemagick; then
         echo "ImageMagick required to create test images" >&2
         return 1
     fi
     
-    convert -size "${width}x${height}" "$gradient" "$filepath"
+    # Use magick for ImageMagick 7, fall back to convert for older versions
+    if command -v magick &>/dev/null; then
+        magick -size "${width}x${height}" "xc:${color}" "$filepath"
+    else
+        convert -size "${width}x${height}" "xc:${color}" "$filepath"
+    fi
 }
 
 # Get fixture image path (creates if doesn't exist)
@@ -138,7 +152,7 @@ get_fixture_image() {
     
     if [[ ! -f "$path" ]]; then
         mkdir -p "$FIXTURES_DIR"
-        create_test_image "$path" 50 50 "gradient:black-white"
+        create_test_image "$path" 50 50 "gray"
     fi
     
     echo "$path"
@@ -166,6 +180,11 @@ mock_identify() {
     local mock_height="${2:-100}"
     local mock_format="${3:-PNG}"
     
+    # Export values as environment variables so they're available in subshells
+    export _MOCK_IDENTIFY_WIDTH="$mock_width"
+    export _MOCK_IDENTIFY_HEIGHT="$mock_height"
+    export _MOCK_IDENTIFY_FORMAT="$mock_format"
+    
     identify() {
         local format_arg=""
         for arg in "$@"; do
@@ -173,11 +192,11 @@ mock_identify() {
                 format_arg="next"
             elif [[ "$format_arg" == "next" ]]; then
                 case "$arg" in
-                    "%w %h") echo "$mock_width $mock_height" ;;
-                    "%w")    echo "$mock_width" ;;
-                    "%h")    echo "$mock_height" ;;
-                    "%m")    echo "$mock_format" ;;
-                    *)       echo "$mock_width $mock_height" ;;
+                    "%w %h") echo "$_MOCK_IDENTIFY_WIDTH $_MOCK_IDENTIFY_HEIGHT" ;;
+                    "%w")    echo "$_MOCK_IDENTIFY_WIDTH" ;;
+                    "%h")    echo "$_MOCK_IDENTIFY_HEIGHT" ;;
+                    "%m")    echo "$_MOCK_IDENTIFY_FORMAT" ;;
+                    *)       echo "$_MOCK_IDENTIFY_WIDTH $_MOCK_IDENTIFY_HEIGHT" ;;
                 esac
                 return 0
             fi
@@ -191,6 +210,7 @@ mock_identify() {
 restore_mocks() {
     unset -f convert 2>/dev/null || true
     unset -f identify 2>/dev/null || true
+    unset _MOCK_IDENTIFY_WIDTH _MOCK_IDENTIFY_HEIGHT _MOCK_IDENTIFY_FORMAT 2>/dev/null || true
 }
 
 # ============================================================================
