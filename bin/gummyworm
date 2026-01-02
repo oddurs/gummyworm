@@ -75,7 +75,7 @@ trap cleanup EXIT
 # ============================================================================
 
 # Get content for export, re-converting with color if needed for graphical formats
-# Usage: get_export_content <format> <plain_result> <image> <width> <height> <palette> <invert> <color> <preserve_aspect>
+# Usage: get_export_content <format> <plain_result> <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor]
 # Output: Content suitable for the export format
 get_export_content() {
     local format="$1"
@@ -87,10 +87,12 @@ get_export_content() {
     local invert="$7"
     local color="$8"
     local preserve_aspect="$9"
+    local truecolor="${10:-false}"
     
     # For graphical formats without color, re-convert with color enabled
+    # Always use truecolor for graphical exports (full RGB support)
     if [[ "$format" =~ $RE_GRAPHICAL_FORMAT && "$color" != "true" ]]; then
-        convert_to_ascii "$image" "$width" "$height" "$palette" "$invert" "true" "$preserve_aspect"
+        convert_to_ascii "$image" "$width" "$height" "$palette" "$invert" "true" "$preserve_aspect" "true"
     else
         echo -e "$plain_result"
     fi
@@ -106,6 +108,15 @@ main() {
     
     # Parse command line arguments
     parse_args "$@"
+    
+    # Auto-detect truecolor support if not explicitly set
+    # Check $COLORTERM environment variable for 'truecolor' or '24bit'
+    if [[ "$ARG_TRUECOLOR" != "true" && "$ARG_COLOR" == "true" ]]; then
+        if detect_truecolor_support; then
+            ARG_TRUECOLOR="true"
+            [[ "$ARG_QUIET" != "true" ]] && log_debug "Auto-detected true color support"
+        fi
+    fi
     
     # Resolve palette once (shared across all images)
     local palette
@@ -169,7 +180,13 @@ main() {
             else
                 log_info "Converting: $(basename "$image") (${dims// /x})"
                 log_info "Output size: ${ARG_WIDTH} chars wide"
-                [[ "$ARG_COLOR" == "true" ]] && log_info "Color mode: enabled 🎨"
+                if [[ "$ARG_COLOR" == "true" ]]; then
+                    if [[ "$ARG_TRUECOLOR" == "true" ]]; then
+                        log_info "Color mode: true color (24-bit) 🎨"
+                    else
+                        log_info "Color mode: 256-color 🎨"
+                    fi
+                fi
                 [[ "$ARG_INVERT" == "true" ]] && log_info "Inverted: yes"
             fi
         fi
@@ -183,7 +200,8 @@ main() {
             "$palette" \
             "$ARG_INVERT" \
             "$ARG_COLOR" \
-            "$ARG_PRESERVE_ASPECT"
+            "$ARG_PRESERVE_ASPECT" \
+            "$ARG_TRUECOLOR"
         ) || {
             log_error "Conversion failed: $image"
             failed=$((failed + 1))
@@ -213,7 +231,7 @@ main() {
             # Get content for export (re-converts with color if needed)
             local export_content_arg
             export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
-                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT")
+                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
             
             export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND"
             
@@ -233,7 +251,7 @@ main() {
             # Get content for export (re-converts with color if needed)
             local export_content_arg
             export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
-                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT")
+                "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
             
             if [[ $total_images -gt 1 ]]; then
                 # Batch mode: append with separator (only for text/ansi)
