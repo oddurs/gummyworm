@@ -64,6 +64,11 @@ readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 readonly DEFAULT_PADDING=0
 
+# Image preprocessing defaults (neutral values = no change)
+readonly DEFAULT_BRIGHTNESS=0    # Range: -100 to +100
+readonly DEFAULT_CONTRAST=0      # Range: -100 to +100
+readonly DEFAULT_GAMMA="1.0"     # Range: 0.1 to 10.0 (1.0 = no change)
+
 # Animation defaults
 readonly DEFAULT_ANIMATE="auto"  # auto, true, false
 readonly DEFAULT_FRAME_DELAY=100  # milliseconds between frames (for playback)
