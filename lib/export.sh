@@ -419,41 +419,6 @@ export_png() {
     fi
 }
 
-# Alternative PNG export using direct text rendering (fallback)
-# Usage: export_png_text <ascii_content> <output_file> [background_color] [font]
-export_png_text() {
-    local content="$1"
-    local output_file="$2"
-    local bg_color="${3:-#1e1e1e}"
-    local font="${4:-Courier}"
-    local font_size="${5:-12}"
-    
-    # Check that ImageMagick was initialized
-    if [[ -z "$_MAGICK_CONVERT" ]]; then
-        log_error "PNG export requires ImageMagick"
-        return 1
-    fi
-    
-    # Strip ANSI codes for plain text rendering
-    local plain_content
-    plain_content=$(echo -e "$content" | sed 's/\x1b\[[0-9;]*m//g')
-    
-    # Create temporary file for text
-    local tmptext
-    tmptext=$(mktemp)
-    echo -e "$plain_content" > "$tmptext"
-    trap "rm -f '$tmptext'" RETURN
-    
-    # Convert text to PNG
-    $_MAGICK_CONVERT -background "$bg_color" \
-            -fill "#00ff00" \
-            -font "$font" \
-            -pointsize "$font_size" \
-            -interline-spacing 2 \
-            label:@"$tmptext" \
-            "$output_file"
-}
-
 # ============================================================================
 # Export Dispatcher
 # ============================================================================

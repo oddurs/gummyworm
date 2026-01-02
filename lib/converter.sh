@@ -178,20 +178,4 @@ convert_to_ascii() {
     ' "$tmpfile"
 }
 
-# ============================================================================
-# Output Functions
-# ============================================================================
 
-# Save ASCII art to file
-# Usage: save_to_file <content> <filepath> <strip_ansi>
-save_to_file() {
-    local content="$1"
-    local filepath="$2"
-    local strip_ansi="${3:-true}"
-    
-    if [[ "$strip_ansi" == "true" ]]; then
-        echo -e "$content" | sed 's/\x1b\[[0-9;]*m//g' > "$filepath"
-    else
-        echo -e "$content" > "$filepath"
-    fi
-}

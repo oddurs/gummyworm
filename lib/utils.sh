@@ -77,27 +77,6 @@ sys.exit(1)
 # Logging Functions
 # ============================================================================
 
-# Print colored output
-# Usage: print_color <color> <message>
-print_color() {
-    local color="$1"
-    shift
-    local color_code=""
-    case "$color" in
-        reset)   color_code="$COLOR_RESET" ;;
-        bold)    color_code="$COLOR_BOLD" ;;
-        dim)     color_code="$COLOR_DIM" ;;
-        red)     color_code="$COLOR_RED" ;;
-        green)   color_code="$COLOR_GREEN" ;;
-        yellow)  color_code="$COLOR_YELLOW" ;;
-        blue)    color_code="$COLOR_BLUE" ;;
-        magenta) color_code="$COLOR_MAGENTA" ;;
-        cyan)    color_code="$COLOR_CYAN" ;;
-        white)   color_code="$COLOR_WHITE" ;;
-    esac
-    echo -e "${color_code}$*${COLOR_RESET}"
-}
-
 # Print error message to stderr
 # Usage: log_error <message>
 log_error() {
@@ -227,49 +206,6 @@ find_images_in_dir() {
 }
 
 # ============================================================================
-# Cross-Platform Helpers
-# ============================================================================
-
-# Portable sed in-place editing (macOS vs GNU)
-# Usage: sed_inplace <sed_args> <file>
-# Note: macOS sed requires an extension for -i, GNU doesn't
-sed_inplace() {
-    if [[ "$GUMMYWORM_PLATFORM" == "macos" || "$GUMMYWORM_PLATFORM" == "freebsd" ]]; then
-        sed -i '' "$@"
-    else
-        sed -i "$@"
-    fi
-}
-
-# Portable stat for file size (macOS vs GNU)
-# Usage: file_size <file>
-file_size() {
-    local file="$1"
-    if [[ "$GUMMYWORM_PLATFORM" == "macos" || "$GUMMYWORM_PLATFORM" == "freebsd" ]]; then
-        stat -f%z "$file" 2>/dev/null || echo "0"
-    else
-        stat -c%s "$file" 2>/dev/null || echo "0"
-    fi
-}
-
-# Portable date with milliseconds
-# Usage: timestamp_ms
-# Returns: Unix timestamp with milliseconds (or just seconds if not available)
-timestamp_ms() {
-    if [[ "$GUMMYWORM_PLATFORM" == "macos" ]]; then
-        # macOS date doesn't support %N, use python if available
-        if command -v python3 >/dev/null 2>&1; then
-            python3 -c "import time; print(int(time.time() * 1000))"
-        else
-            echo "$(($(date +%s) * 1000))"
-        fi
-    else
-        # GNU date supports %N
-        echo "$(($(date +%s%N) / 1000000))" 2>/dev/null || echo "$(($(date +%s) * 1000))"
-    fi
-}
-
-# ============================================================================
 # Exit Handlers
 # ============================================================================
 
@@ -287,3 +223,4 @@ die_usage() {
     echo "Use --help for usage information" >&2
     exit 1
 }
+

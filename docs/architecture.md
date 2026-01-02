@@ -151,7 +151,6 @@ Based on ITU-R BT.601 standard for perceived brightness.
 |----------|-------------|
 | `convert_to_ascii <image> <w> <h> <palette> <invert> <color> <aspect>` | Main conversion function |
 | `rgb_to_ansi <r> <g> <b>` | Convert RGB to ANSI 256-color code |
-| `save_to_file <content> <file> <strip_ansi>` | Save output to file |
 
 **Conversion algorithm:**
 1. Calculate output dimensions (preserving aspect ratio if enabled)

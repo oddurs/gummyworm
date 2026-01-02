@@ -167,13 +167,6 @@ image_height() {
     $_MAGICK_IDENTIFY -format "%h" "$image" 2>/dev/null
 }
 
-# Get image format
-# Usage: image_format <filepath>
-image_format() {
-    local image="$1"
-    $_MAGICK_IDENTIFY -format "%m" "$image" 2>/dev/null
-}
-
 # ============================================================================
 # Dimension Calculation
 # ============================================================================
