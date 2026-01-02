@@ -305,18 +305,13 @@ main() {
         output_format=$(export_detect_format "$ARG_OUTPUT")
     fi
     
-    if [[ "$ARG_TRUECOLOR" != "true" && "$ARG_COLOR" == "true" ]]; then
-        # Only auto-detect for terminal output formats (text, ansi)
-        if [[ "$output_format" != "gif" && "$output_format" != "png" && \
-              "$output_format" != "svg" && "$output_format" != "html" ]]; then
-            if detect_truecolor_support; then
-                ARG_TRUECOLOR="true"
-                if [[ "$ARG_QUIET" != "true" ]]; then
-                    log_debug "Auto-detected true color support" || true
-                fi
-            fi
-        fi
-    fi
+    # Only auto-detect truecolor if user explicitly requested it with --truecolor
+    # -c alone means 256-color mode (no auto-detection)
+    # This ensures predictable behavior: -c = 256-color, --truecolor = true color
+    # Note: ARG_TRUECOLOR is already set correctly by parse_args:
+    #   - Default: false
+    #   - --truecolor: true
+    #   - --no-truecolor: false (explicit)
     
     # Resolve palette once (shared across all images)
     local palette
