@@ -406,7 +406,7 @@ main() {
                     log_info "Exporting animated GIF: ${#frames[@]} frames, ${delay_ms}ms delay"
                 fi
                 
-                export_animated_gif "$output_file" "$delay_ms" "$ARG_LOOPS" "$ARG_BACKGROUND" "${frames[@]}"
+                export_animated_gif "$output_file" "$delay_ms" "$ARG_LOOPS" "$ARG_BACKGROUND" "$ARG_PADDING" "${frames[@]}"
                 
                 if [[ "$ARG_QUIET" != "true" ]]; then
                     log_success "Saved animated GIF to: $output_file"
@@ -425,7 +425,7 @@ main() {
                     log_info "Exporting ${#frames[@]} frames to: $frame_dir"
                 fi
                 
-                export_frames "$frame_dir" "$ARG_FORMAT" "$ARG_BACKGROUND" "${frames[@]}"
+                export_frames "$frame_dir" "$ARG_FORMAT" "$ARG_BACKGROUND" "$ARG_PADDING" "${frames[@]}"
                 
                 if [[ "$ARG_QUIET" != "true" ]]; then
                     log_success "Saved frames to: $frame_dir"
@@ -439,7 +439,7 @@ main() {
                     output_format=$(export_detect_format "$ARG_OUTPUT")
                 fi
                 
-                export_content "$output_format" "${frames[0]}" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                export_content "$output_format" "${frames[0]}" "$ARG_OUTPUT" "$ARG_BACKGROUND" "$ARG_PADDING"
                 
                 if [[ "$ARG_QUIET" != "true" ]]; then
                     log_success "Saved to: $ARG_OUTPUT"
@@ -510,7 +510,7 @@ main() {
                 export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
                     "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
                 
-                export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND"
+                export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND" "$ARG_PADDING"
                 
                 if [[ "$ARG_QUIET" != "true" ]]; then
                     log_success "Saved to: $out_file"
@@ -545,10 +545,10 @@ main() {
                         } >> "$ARG_OUTPUT"
                     else
                         log_warn "Batch mode with multiple images only supports text/ansi formats"
-                        export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                        export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND" "$ARG_PADDING"
                     fi
                 else
-                    export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND"
+                    export_content "$output_format" "$export_content_arg" "$ARG_OUTPUT" "$ARG_BACKGROUND" "$ARG_PADDING"
                 fi
                 
                 if [[ "$ARG_QUIET" != "true" && $total_images -eq 1 ]]; then
