@@ -57,7 +57,7 @@ detect_truecolor_support() {
 # ============================================================================
 
 # Convert an image to ASCII art
-# Usage: convert_to_ascii <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor]
+# Usage: convert_to_ascii <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor] [brightness] [contrast] [gamma]
 # Output: ASCII art string (with newlines)
 convert_to_ascii() {
     local image="$1"
@@ -68,6 +68,9 @@ convert_to_ascii() {
     local use_color="$6"
     local preserve_aspect="$7"
     local use_truecolor="${8:-false}"
+    local brightness="${9:-0}"
+    local contrast="${10:-0}"
+    local gamma="${11:-1.0}"
     
     # Get original dimensions
     local orig_dims orig_w orig_h
@@ -97,8 +100,8 @@ convert_to_ascii() {
     tmpfile=$(mktemp)
     trap "rm -f '$tmpfile'" RETURN
     
-    # Extract pixels
-    image_extract_pixels "$image" "$out_w" "$out_h" "$tmpfile"
+    # Extract pixels with preprocessing
+    image_extract_pixels "$image" "$out_w" "$out_h" "$tmpfile" "$brightness" "$contrast" "$gamma"
     
     # Parse palette into array for awk
     # Build a comma-separated list of palette characters
