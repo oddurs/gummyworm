@@ -86,7 +86,7 @@ trap handle_interrupt INT
 # ============================================================================
 
 # Get content for export, re-converting with color if needed for graphical formats
-# Usage: get_export_content <format> <plain_result> <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor]
+# Usage: get_export_content <format> <plain_result> <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor] [brightness] [contrast] [gamma]
 # Output: Content suitable for the export format
 get_export_content() {
     local format="$1"
@@ -99,11 +99,14 @@ get_export_content() {
     local color="$8"
     local preserve_aspect="$9"
     local truecolor="${10:-false}"
+    local brightness="${11:-0}"
+    local contrast="${12:-0}"
+    local gamma="${13:-1.0}"
     
     # For graphical formats without color, re-convert with color enabled
     # Always use truecolor for graphical exports (full RGB support)
     if [[ "$format" =~ $RE_GRAPHICAL_FORMAT && "$color" != "true" ]]; then
-        convert_to_ascii "$image" "$width" "$height" "$palette" "$invert" "true" "$preserve_aspect" "true"
+        convert_to_ascii "$image" "$width" "$height" "$palette" "$invert" "true" "$preserve_aspect" "true" "$brightness" "$contrast" "$gamma"
     else
         echo -e "$plain_result"
     fi
@@ -201,7 +204,7 @@ play_animation() {
 }
 
 # Process animated image and return array of ASCII frames
-# Usage: process_animation <image_file> <width> <height> <palette> <invert> <color> <preserve_aspect> <truecolor> <max_frames>
+# Usage: process_animation <image_file> <width> <height> <palette> <invert> <color> <preserve_aspect> <truecolor> <max_frames> [brightness] [contrast] [gamma]
 # Outputs frame contents to stdout, one per line separated by null bytes
 process_animation_frames() {
     local image="$1"
@@ -213,6 +216,9 @@ process_animation_frames() {
     local preserve_aspect="$7"
     local truecolor="$8"
     local max_frames="$9"
+    local brightness="${10:-0}"
+    local contrast="${11:-0}"
+    local gamma="${12:-1.0}"
     
     # Create temp directory for frames
     _ANIM_TMPDIR=$(mktemp -d -t gummyworm_anim.XXXXXX)
@@ -241,7 +247,10 @@ process_animation_frames() {
             "$invert" \
             "$color" \
             "$preserve_aspect" \
-            "$truecolor"
+            "$truecolor" \
+            "$brightness" \
+            "$contrast" \
+            "$gamma"
         ) || continue
         
         frames+=("$frame_result")
@@ -379,7 +388,10 @@ main() {
                 "$ARG_COLOR" \
                 "$ARG_PRESERVE_ASPECT" \
                 "$ARG_TRUECOLOR" \
-                "$ARG_MAX_FRAMES"
+                "$ARG_MAX_FRAMES" \
+                "$ARG_BRIGHTNESS" \
+                "$ARG_CONTRAST" \
+                "$ARG_GAMMA"
             )
             
             if [[ ${#frames[@]} -eq 0 ]]; then
@@ -488,7 +500,10 @@ main() {
                 "$ARG_INVERT" \
                 "$ARG_COLOR" \
                 "$ARG_PRESERVE_ASPECT" \
-                "$ARG_TRUECOLOR"
+                "$ARG_TRUECOLOR" \
+                "$ARG_BRIGHTNESS" \
+                "$ARG_CONTRAST" \
+                "$ARG_GAMMA"
             ) || {
                 log_error "Conversion failed: $image"
                 failed=$((failed + 1))
@@ -518,7 +533,8 @@ main() {
                 # Get content for export (re-converts with color if needed)
                 local export_content_arg
                 export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
-                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
+                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR" \
+                    "$ARG_BRIGHTNESS" "$ARG_CONTRAST" "$ARG_GAMMA")
                 
                 export_content "$output_format" "$export_content_arg" "$out_file" "$ARG_BACKGROUND" "$ARG_PADDING"
                 
@@ -538,7 +554,8 @@ main() {
                 # Get content for export (re-converts with color if needed)
                 local export_content_arg
                 export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
-                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR")
+                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR" \
+                    "$ARG_BRIGHTNESS" "$ARG_CONTRAST" "$ARG_GAMMA")
                 
                 if [[ $total_images -gt 1 ]]; then
                     # Batch mode: append with separator (only for text/ansi)
