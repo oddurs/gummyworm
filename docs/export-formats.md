@@ -7,10 +7,10 @@ gummyworm can export ASCII art in multiple formats for different use cases. This
 | Format | Extension | Color Support | Use Case |
 |--------|-----------|---------------|----------|
 | `text` | .txt | No | Plain ASCII, maximum compatibility |
-| `ansi` | .ans | Yes (256) | Terminal display, sharing via paste |
-| `html` | .html | Yes (full) | Web pages, email, documents |
-| `svg` | .svg | Yes (full) | Scalable graphics, print, web |
-| `png` | .png | Yes (full) | Images, social media, sharing |
+| `ansi` | .ans | Yes (256 or 24-bit) | Terminal display, sharing via paste |
+| `html` | .html | Yes (full RGB) | Web pages, email, documents |
+| `svg` | .svg | Yes (full RGB) | Scalable graphics, print, web |
+| `png` | .png | Yes (full RGB) | Images, social media, sharing |
 
 ## Specifying Format
 
@@ -71,10 +71,23 @@ gummyworm -f ansi -o art.ans photo.jpg   # To file
 ```
 
 **Characteristics:**
-- 256-color palette (6×6×6 color cube)
+- 256-color palette (6×6×6 color cube) by default
+- True color (24-bit RGB) when `--truecolor` is used or auto-detected
 - Works in most modern terminals
 - Escape codes visible if opened in plain text editor
 - Great for terminal display and sharing via paste services
+
+**Color modes:**
+```bash
+# 256-color (default)
+gummyworm -c -f ansi -o colored.ans photo.jpg
+
+# True color (24-bit RGB) - preserves exact colors
+gummyworm -c --truecolor -f ansi -o truecolor.ans photo.jpg
+
+# Force 256-color even if terminal supports true color
+gummyworm -c --no-truecolor -f ansi -o 256color.ans photo.jpg
+```
 
 **Viewing ANSI files:**
 ```bash
