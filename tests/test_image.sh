@@ -270,6 +270,110 @@ test_image_from_stdin_function_exists() {
 }
 
 # ============================================================================
+# Tests: Animation Functions
+# ============================================================================
+
+test_image_is_animated_function_exists() {
+    assert_true 'declare -f image_is_animated >/dev/null' "image_is_animated function exists"
+}
+
+test_image_frame_count_function_exists() {
+    assert_true 'declare -f image_frame_count >/dev/null' "image_frame_count function exists"
+}
+
+test_image_get_delays_function_exists() {
+    assert_true 'declare -f image_get_delays >/dev/null' "image_get_delays function exists"
+}
+
+test_image_extract_frames_function_exists() {
+    assert_true 'declare -f image_extract_frames >/dev/null' "image_extract_frames function exists"
+}
+
+test_image_is_animated_with_animated_gif() {
+    local animated_gif="$SCRIPT_DIR/fixtures/animated_test.gif"
+    if [[ -f "$animated_gif" ]]; then
+        assert_true "image_is_animated '$animated_gif'" "animated GIF is detected as animated"
+    else
+        skip_test "animated_test.gif fixture not found"
+    fi
+}
+
+test_image_is_animated_with_static_image() {
+    local static_png="$SCRIPT_DIR/fixtures/test.png"
+    # Create a simple static test image if it doesn't exist
+    if [[ ! -f "$static_png" ]]; then
+        $_MAGICK_CONVERT -size 10x10 xc:red "$static_png" 2>/dev/null || true
+    fi
+    if [[ -f "$static_png" ]]; then
+        assert_false "image_is_animated '$static_png'" "static PNG is not animated"
+        rm -f "$static_png"
+    else
+        skip_test "Could not create static test image"
+    fi
+}
+
+test_image_frame_count_with_animated_gif() {
+    local animated_gif="$SCRIPT_DIR/fixtures/animated_test.gif"
+    if [[ -f "$animated_gif" ]]; then
+        local count
+        count=$(image_frame_count "$animated_gif")
+        assert_equals "3" "$count" "animated GIF has 3 frames"
+    else
+        skip_test "animated_test.gif fixture not found"
+    fi
+}
+
+test_image_get_delays_with_animated_gif() {
+    local animated_gif="$SCRIPT_DIR/fixtures/animated_test.gif"
+    if [[ -f "$animated_gif" ]]; then
+        local delays
+        delays=$(image_get_delays "$animated_gif")
+        # Should have 3 lines of delays (one per frame)
+        local delay_count
+        delay_count=$(echo "$delays" | wc -l | tr -d ' ')
+        assert_equals "3" "$delay_count" "animated GIF has 3 frame delays"
+    else
+        skip_test "animated_test.gif fixture not found"
+    fi
+}
+
+test_image_extract_frames_with_animated_gif() {
+    local animated_gif="$SCRIPT_DIR/fixtures/animated_test.gif"
+    if [[ -f "$animated_gif" ]]; then
+        local tmpdir
+        tmpdir=$(mktemp -d)
+        if image_extract_frames "$animated_gif" "$tmpdir" 0; then
+            local frame_count
+            frame_count=$(ls "$tmpdir"/frame_*.png 2>/dev/null | wc -l | tr -d ' ')
+            assert_equals "3" "$frame_count" "extracted 3 frames from animated GIF"
+        else
+            fail "image_extract_frames failed"
+        fi
+        rm -rf "$tmpdir"
+    else
+        skip_test "animated_test.gif fixture not found"
+    fi
+}
+
+test_image_extract_frames_with_max_frames() {
+    local animated_gif="$SCRIPT_DIR/fixtures/animated_test.gif"
+    if [[ -f "$animated_gif" ]]; then
+        local tmpdir
+        tmpdir=$(mktemp -d)
+        if image_extract_frames "$animated_gif" "$tmpdir" 2; then
+            local frame_count
+            frame_count=$(ls "$tmpdir"/frame_*.png 2>/dev/null | wc -l | tr -d ' ')
+            assert_equals "2" "$frame_count" "extracted max 2 frames from animated GIF"
+        else
+            fail "image_extract_frames with max_frames failed"
+        fi
+        rm -rf "$tmpdir"
+    else
+        skip_test "animated_test.gif fixture not found"
+    fi
+}
+
+# ============================================================================
 # Run Tests
 # ============================================================================
 
