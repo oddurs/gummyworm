@@ -1,134 +1,106 @@
 # Homebrew Distribution
 
-This document explains how to distribute gummyworm via Homebrew.
+gummyworm is distributed via a Homebrew tap at [oddurs/homebrew-gummyworm](https://github.com/oddurs/homebrew-gummyworm).
 
-## Option 1: Homebrew Tap (Recommended)
+## For Users
 
-A Homebrew tap is a separate GitHub repository that contains your formula.
+### Install
 
-### Setup Your Tap
+```bash
+brew install oddurs/gummyworm/gummyworm
+```
 
-1. **Create a new GitHub repository** named `homebrew-gummyworm`
-   - The repo must be named `homebrew-<something>` for Homebrew to recognize it
+This installs:
+- The `gummyworm` executable
+- ImageMagick dependency
+- Shell completions for bash and zsh
 
-2. **Add the formula to your tap:**
+### Upgrade
+
+```bash
+brew update && brew upgrade gummyworm
+```
+
+### Uninstall
+
+```bash
+brew uninstall gummyworm
+brew untap oddurs/gummyworm  # optional
+```
+
+## For Maintainers
+
+### Release Workflow
+
+When releasing a new version:
+
+1. **Tag the release in the main repo:**
    ```bash
-   # Clone your tap repo
-   git clone https://github.com/oddurs/homebrew-gummyworm.git
-   cd homebrew-gummyworm
-   
-   # Create Formula directory
-   mkdir -p Formula
-   
-   # Copy the formula
-   cp /path/to/gummyworm/Formula/gummyworm.rb Formula/
-   
+   git tag -a v2.1.1 -m "Release v2.1.1"
+   git push origin v2.1.1
+   ```
+
+2. **Get the SHA256 of the tarball:**
+   ```bash
+   curl -sL https://github.com/oddurs/gummyworm/archive/refs/tags/v2.1.1.tar.gz | shasum -a 256
+   ```
+
+3. **Update the formula:**
+
+   Edit `Formula/gummyworm.rb`:
+   ```ruby
+   url "https://github.com/oddurs/gummyworm/archive/refs/tags/v2.1.1.tar.gz"
+   sha256 "<new-sha256>"
+   version "2.1.1"
+   ```
+
+4. **Update the tap repository:**
+   ```bash
+   # Copy formula to tap
+   cp Formula/gummyworm.rb /opt/homebrew/Library/Taps/oddurs/homebrew-gummyworm/Formula/
+
    # Commit and push
+   cd /opt/homebrew/Library/Taps/oddurs/homebrew-gummyworm
    git add Formula/gummyworm.rb
-   git commit -m "Add gummyworm formula"
+   git commit -m "Update gummyworm to v2.1.1"
    git push
    ```
 
-3. **Users can then install with:**
-   ```bash
-   brew tap oddurs/gummyworm
-   brew install gummyworm
-   ```
+5. **Don't forget to update version in lib/config.sh**
 
-### Creating a Release
-
-1. **Tag a release in the main gummyworm repo:**
-   ```bash
-   cd gummyworm
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-2. **Create a GitHub Release:**
-   - Go to your GitHub repo → Releases → Create new release
-   - Choose the tag you just pushed
-   - GitHub automatically creates a source tarball
-
-3. **Get the SHA256:**
-   ```bash
-   # Download the tarball from GitHub
-   curl -L -o gummyworm-1.0.0.tar.gz \
-     https://github.com/oddurs/gummyworm/archive/refs/tags/v1.0.0.tar.gz
-   
-   # Calculate SHA256
-   shasum -a 256 gummyworm-1.0.0.tar.gz
-   ```
-
-4. **Update the formula in your tap:**
-   ```ruby
-   class Gummyworm < Formula
-     url "https://github.com/oddurs/gummyworm/archive/refs/tags/v1.0.0.tar.gz"
-     sha256 "YOUR_ACTUAL_SHA256_HERE"
-     # ...
-   end
-   ```
-
-5. **Push the updated formula**
-
-## Option 2: Local Development Testing
-
-Test the formula locally before publishing:
+### Testing
 
 ```bash
-# Install from local formula
-brew install --formula ./Formula/gummyworm.rb
+# Test from HEAD (latest git)
+brew install oddurs/gummyworm/gummyworm --HEAD
 
-# Or install from HEAD (latest git)
-brew install --HEAD ./Formula/gummyworm.rb
-
-# Uninstall
-brew uninstall gummyworm
-```
-
-## Option 3: Homebrew Core (Advanced)
-
-For popular projects, you can submit to homebrew-core:
-
-1. Fork https://github.com/Homebrew/homebrew-core
-2. Add your formula to Formula/g/gummyworm.rb
-3. Submit a pull request
-4. Meet Homebrew's requirements (popularity, maintenance, etc.)
-
-## Release Workflow
-
-Use the included release script:
-
-```bash
-# Create a release
-./scripts/release.sh 1.0.0
-
-# This will:
-# - Create a tarball
-# - Calculate SHA256  
-# - Update Formula/gummyworm.rb
-```
-
-Then follow the printed instructions to push tags and update your tap.
-
-## Testing Your Formula
-
-```bash
-# Audit the formula for issues
-brew audit --strict Formula/gummyworm.rb
-
-# Test the formula
+# Run formula tests
 brew test gummyworm
 
-# Check for style issues
-brew style Formula/gummyworm.rb
+# Reinstall from release tarball
+brew uninstall gummyworm
+brew install oddurs/gummyworm/gummyworm
 ```
 
-## Formula Reference
+### Formula Details
 
-The formula does the following:
-- Downloads the release tarball
-- Installs the `gummyworm` executable to `bin/`
+The formula (`Formula/gummyworm.rb`):
+- Downloads the release tarball from GitHub
+- Installs `bin/gummyworm` to Homebrew's bin directory
 - Installs library files to `libexec/lib/`
-- Installs palettes to `libexec/palettes/`
-- Rewrites paths so everything works from the installed location
+- Installs palette files to `libexec/palettes/`
+- Installs shell completions for bash and zsh
+- Injects `GUMMYWORM_ROOT` path for Homebrew's directory structure
 - Declares ImageMagick as a dependency
+
+### Tap Repository
+
+The tap lives at: https://github.com/oddurs/homebrew-gummyworm
+
+Structure:
+```
+homebrew-gummyworm/
+├── Formula/
+│   └── gummyworm.rb
+└── README.md
+```

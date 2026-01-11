@@ -24,14 +24,17 @@ gummyworm is designed for maximum compatibility across Unix-like systems:
 The easiest way to install gummyworm on macOS or Linux:
 
 ```bash
-# Add the tap (first time only)
-brew tap oddurs/gummyworm
+# Add the tap and install (one command)
+brew install oddurs/gummyworm/gummyworm
 
-# Install gummyworm
+# Or separately:
+brew tap oddurs/gummyworm
 brew install gummyworm
 ```
 
-This automatically installs ImageMagick as a dependency.
+This automatically installs:
+- ImageMagick (required dependency)
+- Shell completions for bash and zsh
 
 **Upgrade to latest version:**
 ```bash
@@ -222,7 +225,7 @@ After installation, verify everything works:
 ```bash
 # Check version
 gummyworm --version
-# Expected: gummyworm 2.1.0
+# Expected: gummyworm 2.1.1
 
 # List available palettes
 gummyworm --list-palettes

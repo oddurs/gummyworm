@@ -460,7 +460,7 @@ Display version information.
 
 ```bash
 gummyworm --version
-# Output: gummyworm 2.1.0
+# Output: gummyworm 2.1.1
 ```
 
 ## Common Command Combinations
