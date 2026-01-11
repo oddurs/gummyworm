@@ -7,6 +7,7 @@
 
 - **Reference**
   - [CLI Reference](cli-reference.md)
+  - [Configuration](configuration.md)
   - [Palettes](palettes.md)
   - [Export Formats](export-formats.md)
 

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Configuration file support:** Set default options in `~/.gummywormrc`
+- Load config from `~/.config/gummyworm/config`, `~/.gummywormrc`, or `./.gummywormrc`
+- Project-specific configs override user defaults; CLI args override all
+- Example config template at `.gummywormrc.example`
+- 9 new configuration tests
 - **Shell completions:** Tab completion for bash and zsh
 - Completions for all CLI options, palettes, formats, and image files
 - Automatic installation via Homebrew

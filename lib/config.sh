@@ -146,6 +146,98 @@ readonly DEFAULT_MAX_FRAMES=0     # 0 = no limit
 readonly DEFAULT_LOOPS=0          # 0 = infinite loop for playback
 
 # ============================================================================
+# User Configuration File Support
+# ============================================================================
+# Config files are loaded in order (later files override earlier):
+#   1. ~/.config/gummyworm/config  (XDG style)
+#   2. ~/.gummywormrc              (home directory)
+#   3. ./.gummywormrc              (current directory - project specific)
+#
+# Format: Simple shell variable assignments (one per line)
+#   width=120
+#   palette=blocks
+#   color=true
+
+# User-configurable settings (can be overridden by config file, then CLI)
+CONFIG_WIDTH="$DEFAULT_WIDTH"
+CONFIG_HEIGHT="$DEFAULT_HEIGHT"
+CONFIG_PALETTE="$DEFAULT_PALETTE"
+CONFIG_INVERT="$DEFAULT_INVERT"
+CONFIG_COLOR="$DEFAULT_COLOR"
+CONFIG_TRUECOLOR="$DEFAULT_TRUECOLOR"
+CONFIG_FORMAT="$DEFAULT_FORMAT"
+CONFIG_BACKGROUND="$DEFAULT_BACKGROUND"
+CONFIG_PADDING="$DEFAULT_PADDING"
+CONFIG_BRIGHTNESS="$DEFAULT_BRIGHTNESS"
+CONFIG_CONTRAST="$DEFAULT_CONTRAST"
+CONFIG_GAMMA="$DEFAULT_GAMMA"
+CONFIG_ANIMATE="$DEFAULT_ANIMATE"
+CONFIG_FRAME_DELAY="$DEFAULT_FRAME_DELAY"
+CONFIG_MAX_FRAMES="$DEFAULT_MAX_FRAMES"
+CONFIG_LOOPS="$DEFAULT_LOOPS"
+CONFIG_QUIET="$DEFAULT_QUIET"
+CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
+
+# Load a config file if it exists
+# Usage: _load_config_file "/path/to/config"
+_load_config_file() {
+    local config_file="$1"
+    [[ -f "$config_file" ]] || return 0
+
+    local line key value
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+        # Parse key=value (trim whitespace)
+        if [[ "$line" =~ ^[[:space:]]*([a-z_]+)[[:space:]]*=[[:space:]]*(.*)$ ]]; then
+            key="${BASH_REMATCH[1]}"
+            value="${BASH_REMATCH[2]}"
+
+            # Remove surrounding quotes if present
+            value="${value#\"}"
+            value="${value%\"}"
+            value="${value#\'}"
+            value="${value%\'}"
+
+            # Map config keys to CONFIG_* variables
+            case "$key" in
+                width)           CONFIG_WIDTH="$value" ;;
+                height)          CONFIG_HEIGHT="$value" ;;
+                palette)         CONFIG_PALETTE="$value" ;;
+                invert)          CONFIG_INVERT="$value" ;;
+                color)           CONFIG_COLOR="$value" ;;
+                truecolor)       CONFIG_TRUECOLOR="$value" ;;
+                format)          CONFIG_FORMAT="$value" ;;
+                background)      CONFIG_BACKGROUND="$value" ;;
+                padding)         CONFIG_PADDING="$value" ;;
+                brightness)      CONFIG_BRIGHTNESS="$value" ;;
+                contrast)        CONFIG_CONTRAST="$value" ;;
+                gamma)           CONFIG_GAMMA="$value" ;;
+                animate)         CONFIG_ANIMATE="$value" ;;
+                frame_delay)     CONFIG_FRAME_DELAY="$value" ;;
+                max_frames)      CONFIG_MAX_FRAMES="$value" ;;
+                loops)           CONFIG_LOOPS="$value" ;;
+                quiet)           CONFIG_QUIET="$value" ;;
+                preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
+            esac
+        fi
+    done < "$config_file"
+}
+
+# Load config files in order (later overrides earlier)
+_load_config_file "${XDG_CONFIG_HOME:-$HOME/.config}/gummyworm/config"
+_load_config_file "$HOME/.gummywormrc"
+_load_config_file ".gummywormrc"
+
+# Export config values for use by other modules
+export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
+export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
+export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
+export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
+export CONFIG_QUIET CONFIG_PRESERVE_ASPECT
+
+# ============================================================================
 # Shared Regex Patterns (Bash 3.2 compatible - stored in variables)
 # ============================================================================
 

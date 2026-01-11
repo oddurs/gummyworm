@@ -1,0 +1,46 @@
+# gummyworm configuration file
+# ============================================================================
+# Copy this file to one of:
+#   ~/.gummywormrc              (user defaults)
+#   ~/.config/gummyworm/config  (XDG style)
+#   ./.gummywormrc              (project specific)
+#
+# Files are loaded in order; later files override earlier ones.
+# CLI arguments always override config file settings.
+# ============================================================================
+
+# Output dimensions
+# width=80
+# height=0                    # 0 = auto-calculate from aspect ratio
+
+# Character palette (built-in name or custom string)
+# palette=standard            # Options: standard, detailed, simple, blocks,
+#                             #          binary, shades, retro, matrix,
+#                             #          emoji, dots, stars, hearts, waves
+
+# Color options
+# color=false                 # Enable 256-color output
+# truecolor=false             # Enable 24-bit true color output
+
+# Image preprocessing
+# brightness=0                # Range: -100 to 100
+# contrast=0                  # Range: -100 to 100
+# gamma=1.0                   # Range: 0.1 to 10.0
+
+# Display options
+# invert=false                # Invert brightness (for dark backgrounds)
+# preserve_aspect=true        # Maintain image aspect ratio
+
+# Export defaults
+# format=text                 # Options: text, ansi, html, svg, png, gif
+# background=#1e1e1e          # Background color for html/svg/png exports
+# padding=0                   # Padding in pixels for exports
+
+# Animation defaults
+# animate=auto                # Options: auto, true, false
+# frame_delay=100             # Milliseconds between frames
+# max_frames=0                # 0 = no limit
+# loops=0                     # 0 = infinite
+
+# Other options
+# quiet=false                 # Suppress info messages

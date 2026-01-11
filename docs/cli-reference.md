@@ -509,6 +509,28 @@ curl -s https://example.com/photo.jpg | gummyworm -c -w 60 | less -R
 | 1 | General error (invalid arguments, missing files, etc.) |
 | 2 | Missing dependencies (ImageMagick not installed) |
 
+## Configuration Files
+
+Set default options in a config file instead of typing them every time.
+
+**Locations (loaded in order, later overrides earlier):**
+
+1. `~/.config/gummyworm/config`
+2. `~/.gummywormrc`
+3. `./.gummywormrc` (project-specific)
+
+**Example `~/.gummywormrc`:**
+
+```bash
+width=120
+color=true
+palette=blocks
+```
+
+CLI arguments always override config file settings.
+
+See [Configuration](configuration.md) for full documentation.
+
 ## Environment Variables
 
 | Variable | Description |
@@ -518,4 +540,4 @@ curl -s https://example.com/photo.jpg | gummyworm -c -w 60 | less -R
 
 ---
 
-← [Installation](installation.md) | [Palettes Guide](palettes.md) →
+← [Installation](installation.md) | [Configuration](configuration.md) →
