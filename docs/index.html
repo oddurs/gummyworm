@@ -5,58 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="gummyworm - Transform images into glorious ASCII art">
   <title>gummyworm</title>
-  <!-- Docsify theme -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.min.css">
+  <!-- Clean light theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.min.css">
   <style>
     :root {
-      /* Brand colors */
-      --theme-color: #42b983;
-      --base-background-color: #1a1a2e;
-      --cover-background-color: #1a1a2e;
+      --theme-color: #0366d6;
+      --base-font-size: 15px;
+      --heading-color: #24292e;
 
       /* Sidebar */
-      --sidebar-background: #16213e;
-      --sidebar-nav-link-color: #a8b2d1;
-      --sidebar-nav-link-color--active: #42b983;
-      --sidebar-nav-link-color--hover: #42b983;
+      --sidebar-width: 260px;
+      --sidebar-background: #fafbfc;
+      --sidebar-border-color: #eaecef;
+      --sidebar-nav-link-color: #24292e;
+      --sidebar-nav-link-color--active: #0366d6;
+      --sidebar-nav-link-font-weight--active: 600;
 
-      /* Code blocks */
-      --code-theme-background: #0f0f23;
-      --code-inline-background: #2d2d4a;
+      /* Code */
+      --code-font-size: 0.875em;
+      --code-inline-background: #f6f8fa;
+      --code-inline-color: #24292e;
+      --code-theme-background: #f6f8fa;
 
-      /* Cover page */
-      --cover-color: #ccd6f6;
-      --cover-heading-color: #42b983;
-      --cover-button-background: #42b983;
-      --cover-button-color: #1a1a2e;
+      /* Content */
+      --content-max-width: 900px;
     }
 
-    /* ASCII banner styling */
-    .cover-main pre {
-      text-align: center;
-      font-size: 0.4em;
-      line-height: 1.1;
-      color: #42b983;
-    }
-
-    /* Cover page emoji */
-    .cover-main h1 {
-      font-size: 3em;
-    }
-
-    /* Better code blocks */
-    .markdown-section code {
-      border-radius: 4px;
-    }
-
-    /* Table styling */
+    /* Better table styling */
     .markdown-section table {
       display: table;
       width: 100%;
+      border-collapse: collapse;
     }
 
     .markdown-section th {
-      background: #16213e;
+      background: #f6f8fa;
+      font-weight: 600;
+    }
+
+    .markdown-section td, .markdown-section th {
+      border: 1px solid #dfe2e5;
+      padding: 8px 13px;
+    }
+
+    /* Code block styling */
+    .markdown-section pre {
+      background: #f6f8fa;
+      border-radius: 6px;
+    }
+
+    /* Sidebar title */
+    .sidebar > h1 {
+      font-size: 1.5em;
+      padding: 0 15px;
+      margin: 0 0 15px;
     }
   </style>
 </head>
@@ -67,11 +69,10 @@
     window.$docsify = {
       name: 'gummyworm',
       repo: 'oddurs/gummyworm',
-
-      // Load sidebar and cover
       loadSidebar: true,
-      coverpage: true,
-      onlyCover: false,
+
+      // No cover page - go straight to docs
+      coverpage: false,
 
       // Navigation
       auto2top: true,
@@ -80,36 +81,15 @@
 
       // Search
       search: {
-        placeholder: 'Search docs...',
-        noData: 'No results found',
+        placeholder: 'Search...',
+        noData: 'No results',
         depth: 3
       },
 
-      // Copy code button
+      // Copy code
       copyCode: {
         buttonText: 'Copy',
         successText: 'Copied!'
-      },
-
-      // Pagination
-      pagination: {
-        previousText: 'Previous',
-        nextText: 'Next',
-        crossChapter: true
-      },
-
-      // Tabs plugin
-      tabs: {
-        persist: true,
-        sync: true
-      },
-
-      // Footer
-      footer: {
-        copy: '<span>gummyworm &copy; 2024-2026</span>',
-        auth: 'MIT License',
-        pre: '<hr/>',
-        style: 'text-align: center; color: #666;'
       }
     }
   </script>
@@ -120,13 +100,10 @@
   <!-- Plugins -->
   <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
 
   <!-- Syntax highlighting -->
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-ruby.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
 </body>
 </html>
