@@ -4,8 +4,9 @@
 class Gummyworm < Formula
   desc "gummyworm - Transform images into glorious ASCII art"
   homepage "https://github.com/oddurs/gummyworm"
-  url "https://github.com/oddurs/gummyworm/archive/refs/tags/v1.0.0.tar.gz"
-  sha256 "PLACEHOLDER_SHA256"
+  url "https://github.com/oddurs/gummyworm/archive/refs/tags/v2.1.0.tar.gz"
+  sha256 "7571534179db2df2786ddf76f0efb820a6a2ae4fba33b5bea63e854d4085079c"
+  version "2.1.0"
   license "MIT"
   head "https://github.com/oddurs/gummyworm.git", branch: "main"
 
@@ -25,13 +26,10 @@ class Gummyworm < Formula
     bash_completion.install "completions/gummyworm.bash" => "gummyworm"
     zsh_completion.install "completions/_gummyworm"
 
-    # Rewrite the main script to find lib files in the correct location
-    inreplace bin/"gummyworm" do |s|
-      s.gsub! 'GUMMYWORM_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"',
-              "GUMMYWORM_ROOT=\"#{libexec}\""
-      s.gsub! 'GUMMYWORM_ROOT="$SCRIPT_DIR"',
-              "GUMMYWORM_ROOT=\"#{libexec}\""
-    end
+    # Set GUMMYWORM_ROOT to libexec for Homebrew installation
+    inreplace bin/"gummyworm",
+              "#!/usr/bin/env bash",
+              "#!/usr/bin/env bash\nGUMMYWORM_ROOT=\"#{libexec}\""
   end
 
   test do

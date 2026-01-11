@@ -45,16 +45,19 @@ else
     SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 fi
 
-# Support both installed (bin/) and development layouts
-if [[ -d "$SCRIPT_DIR/../lib" ]]; then
-    # Running from bin/ directory
-    GUMMYWORM_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-elif [[ -d "$SCRIPT_DIR/lib" ]]; then
-    # Running from project root
-    GUMMYWORM_ROOT="$SCRIPT_DIR"
-else
-    echo "Error: Cannot find gummyworm lib directory" >&2
-    exit 1
+# Support Homebrew, installed (bin/), and development layouts
+# GUMMYWORM_ROOT can be pre-set by package managers (e.g., Homebrew)
+if [[ -z "${GUMMYWORM_ROOT:-}" ]]; then
+    if [[ -d "$SCRIPT_DIR/../lib" ]]; then
+        # Running from bin/ directory
+        GUMMYWORM_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+    elif [[ -d "$SCRIPT_DIR/lib" ]]; then
+        # Running from project root
+        GUMMYWORM_ROOT="$SCRIPT_DIR"
+    else
+        echo "Error: Cannot find gummyworm lib directory" >&2
+        exit 1
+    fi
 fi
 
 export GUMMYWORM_ROOT
