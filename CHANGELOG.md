@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-01-11
+
 ### Added
 - **Configuration file support:** Set default options in `~/.gummywormrc`
 - Load config from `~/.config/gummyworm/config`, `~/.gummywormrc`, or `./.gummywormrc`
@@ -16,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Shell completions:** Tab completion for bash and zsh
 - Completions for all CLI options, palettes, formats, and image files
 - Automatic installation via Homebrew
+- **Docsify documentation site** at GitHub Pages
 
 ## [2.1.0] - 2026-01-11
 
@@ -121,11 +124,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 2.2.0 | 2026-01-11 | Configuration files, shell completions, Docsify docs |
 | 2.1.0 | 2026-01-11 | Animation, true color, zsh support, preprocessing, modular palettes |
 | 2.0.0 | 2024-12-01 | Multi-format export, batch processing, modular rewrite |
 | 1.0.0 | 2024-06-01 | Initial release |
 
-[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/oddurs/gummyworm/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/oddurs/gummyworm/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/oddurs/gummyworm/compare/v1.0.0...v2.0.0
 [1.0.0]: https://github.com/oddurs/gummyworm/releases/tag/v1.0.0
