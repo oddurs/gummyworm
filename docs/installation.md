@@ -234,6 +234,47 @@ gummyworm -w 40 photo.jpg
 gummyworm -w 40 https://via.placeholder.com/150
 ```
 
+## Shell Completions
+
+gummyworm includes tab completion for bash and zsh.
+
+### Homebrew Users
+
+Completions are installed automatically. Just restart your shell or run:
+
+```bash
+# Bash
+source $(brew --prefix)/etc/bash_completion.d/gummyworm
+
+# Zsh (usually automatic)
+autoload -Uz compinit && compinit
+```
+
+### Manual Installation
+
+**Bash:**
+```bash
+# Add to ~/.bashrc
+source /path/to/gummyworm/completions/gummyworm.bash
+```
+
+**Zsh:**
+```zsh
+# Add to ~/.zshrc (BEFORE compinit)
+fpath=(/path/to/gummyworm/completions $fpath)
+autoload -Uz compinit && compinit
+```
+
+See [completions/README.md](../completions/README.md) for more installation options.
+
+### Test Completions
+
+```bash
+gummyworm --<TAB>     # Shows all options
+gummyworm -p <TAB>    # Shows palette names
+gummyworm -f <TAB>    # Shows format options
+```
+
 ## Troubleshooting
 
 ### "command not found: gummyworm"

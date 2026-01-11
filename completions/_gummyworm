@@ -1,0 +1,126 @@
+#compdef gummyworm
+# ============================================================================
+# gummyworm zsh completion
+# ============================================================================
+# Installation:
+#   Option 1: Add completions directory to fpath in ~/.zshrc (BEFORE compinit):
+#     fpath=(/path/to/gummyworm/completions $fpath)
+#     autoload -Uz compinit && compinit
+#
+#   Option 2: Copy to system completions directory:
+#     sudo cp _gummyworm /usr/local/share/zsh/site-functions/
+#
+#   Option 3: Homebrew (automatic):
+#     Completions are installed to $(brew --prefix)/share/zsh/site-functions/
+# ============================================================================
+
+# Built-in palettes
+_gummyworm_palettes() {
+    local palettes=(
+        'standard:Default ASCII character ramp'
+        'detailed:Extended ASCII for more detail'
+        'simple:Minimal character set'
+        'blocks:Unicode block characters'
+        'binary:Just two characters (space and block)'
+        'shades:Unicode shade characters'
+        'retro:Classic terminal aesthetic'
+        'matrix:Matrix-style characters'
+        'emoji:Fun emoji palette'
+        'dots:Braille dot patterns'
+        'stars:Star and sparkle characters'
+        'hearts:Heart symbols'
+        'waves:Wave and water symbols'
+    )
+    _describe -t palettes 'palette' palettes
+}
+
+# Output formats
+_gummyworm_formats() {
+    local formats=(
+        'text:Plain ASCII text (default)'
+        'ansi:ANSI colored text for terminal'
+        'html:HTML document with CSS styling'
+        'svg:Scalable Vector Graphics'
+        'png:PNG image (requires ImageMagick)'
+        'gif:Animated GIF (for animated inputs)'
+    )
+    _describe -t formats 'format' formats
+}
+
+# Background colors
+_gummyworm_backgrounds() {
+    local colors=(
+        '#000000:Pure black'
+        '#1e1e1e:Dark gray (default)'
+        '#282c34:One Dark theme'
+        '#ffffff:White'
+        'transparent:Transparent background'
+    )
+    _describe -t colors 'background color' colors
+}
+
+# Gamma values
+_gummyworm_gamma() {
+    local values=(
+        '0.5:Darker midtones'
+        '0.7:Slightly darker'
+        '1.0:No change (default)'
+        '1.2:Slightly brighter'
+        '1.5:Brighter midtones'
+        '2.0:Much brighter'
+        '2.2:sRGB gamma'
+    )
+    _describe -t gamma 'gamma value' values
+}
+
+# Brightness/contrast values
+_gummyworm_adjustment() {
+    local values=(
+        '-50:Much darker/lower'
+        '-25:Darker/lower'
+        '0:No change (default)'
+        '25:Brighter/higher'
+        '50:Much brighter/higher'
+    )
+    _describe -t adjustment 'adjustment value' values
+}
+
+# Main completion function
+_gummyworm() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    _arguments -C \
+        '(-w --width)'{-w,--width}'[Output width in characters]:width (chars):' \
+        '(-h --height)'{-h,--height}'[Output height in lines]:height (lines):' \
+        '(-p --palette)'{-p,--palette}'[Character palette to use]:palette:_gummyworm_palettes' \
+        '(-c --color)'{-c,--color}'[Enable ANSI color output (256-color)]' \
+        '--truecolor[Enable true color (24-bit RGB) output]' \
+        '--no-truecolor[Disable true color (force 256-color)]' \
+        '(-i --invert)'{-i,--invert}'[Invert brightness (dark/light swap)]' \
+        '--brightness[Adjust brightness (-100 to 100)]:brightness:_gummyworm_adjustment' \
+        '--contrast[Adjust contrast (-100 to 100)]:contrast:_gummyworm_adjustment' \
+        '--gamma[Adjust gamma (0.1 to 10.0)]:gamma:_gummyworm_gamma' \
+        '(-f --format)'{-f,--format}'[Output format]:format:_gummyworm_formats' \
+        '(-o --output)'{-o,--output}'[Save output to file]:output file:_files' \
+        '(-d --output-dir)'{-d,--output-dir}'[Save outputs to directory]:output directory:_files -/' \
+        '--background[Background color for exports]:color:_gummyworm_backgrounds' \
+        '--padding[Padding in pixels for exports]:padding (px):' \
+        '(-a --animate)'{-a,--animate}'[Enable animation processing for GIFs]' \
+        '--no-animate[Disable animation (first frame only)]' \
+        '--frame-delay[Delay between frames in ms]:delay (ms):' \
+        '--max-frames[Maximum frames to process (0=all)]:max frames:' \
+        '--loops[Loop count for playback/export (0=infinite)]:loops:' \
+        '(-r --recursive)'{-r,--recursive}'[Process directories recursively]' \
+        '(-l --list-palettes)'{-l,--list-palettes}'[Show available palettes]' \
+        '(-q --quiet)'{-q,--quiet}'[Suppress info messages]' \
+        '--continue-on-error[Continue if one file fails]' \
+        '--no-aspect[Do not preserve aspect ratio]' \
+        '--help[Show help message]' \
+        '--version[Show version information]' \
+        '*:image file:_files -g "*.((#i)(jpg|jpeg|png|gif|bmp|tiff|tif|webp))(-.)"'
+
+    return 0
+}
+
+_gummyworm "$@"

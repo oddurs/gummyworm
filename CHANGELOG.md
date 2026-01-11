@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Shell completions:** Tab completion for bash and zsh
+- Completions for all CLI options, palettes, formats, and image files
+- Automatic installation via Homebrew
+
 ## [2.1.0] - 2026-01-11
 
 ### Added

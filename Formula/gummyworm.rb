@@ -21,6 +21,10 @@ class Gummyworm < Formula
     # Install palettes
     (libexec/"palettes").install Dir["palettes/*.palette"]
 
+    # Install shell completions
+    bash_completion.install "completions/gummyworm.bash" => "gummyworm"
+    zsh_completion.install "completions/_gummyworm"
+
     # Rewrite the main script to find lib files in the correct location
     inreplace bin/"gummyworm" do |s|
       s.gsub! 'GUMMYWORM_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"',
