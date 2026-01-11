@@ -69,6 +69,3 @@ New to gummyworm? Start here:
 
 This documentation is for gummyworm **v2.1.0**.
 
----
-
-← [Back to README](../README.md)

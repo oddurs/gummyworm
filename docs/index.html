@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="gummyworm - Transform images into glorious ASCII art">
+  <title>gummyworm</title>
+  <!-- Docsify theme -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.min.css">
+  <style>
+    :root {
+      /* Brand colors */
+      --theme-color: #42b983;
+      --base-background-color: #1a1a2e;
+      --cover-background-color: #1a1a2e;
+
+      /* Sidebar */
+      --sidebar-background: #16213e;
+      --sidebar-nav-link-color: #a8b2d1;
+      --sidebar-nav-link-color--active: #42b983;
+      --sidebar-nav-link-color--hover: #42b983;
+
+      /* Code blocks */
+      --code-theme-background: #0f0f23;
+      --code-inline-background: #2d2d4a;
+
+      /* Cover page */
+      --cover-color: #ccd6f6;
+      --cover-heading-color: #42b983;
+      --cover-button-background: #42b983;
+      --cover-button-color: #1a1a2e;
+    }
+
+    /* ASCII banner styling */
+    .cover-main pre {
+      text-align: center;
+      font-size: 0.4em;
+      line-height: 1.1;
+      color: #42b983;
+    }
+
+    /* Cover page emoji */
+    .cover-main h1 {
+      font-size: 3em;
+    }
+
+    /* Better code blocks */
+    .markdown-section code {
+      border-radius: 4px;
+    }
+
+    /* Table styling */
+    .markdown-section table {
+      display: table;
+      width: 100%;
+    }
+
+    .markdown-section th {
+      background: #16213e;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Loading...</div>
+
+  <script>
+    window.$docsify = {
+      name: 'gummyworm',
+      repo: 'oddurs/gummyworm',
+
+      // Load sidebar and cover
+      loadSidebar: true,
+      coverpage: true,
+      onlyCover: false,
+
+      // Navigation
+      auto2top: true,
+      maxLevel: 3,
+      subMaxLevel: 2,
+
+      // Search
+      search: {
+        placeholder: 'Search docs...',
+        noData: 'No results found',
+        depth: 3
+      },
+
+      // Copy code button
+      copyCode: {
+        buttonText: 'Copy',
+        successText: 'Copied!'
+      },
+
+      // Pagination
+      pagination: {
+        previousText: 'Previous',
+        nextText: 'Next',
+        crossChapter: true
+      },
+
+      // Tabs plugin
+      tabs: {
+        persist: true,
+        sync: true
+      },
+
+      // Footer
+      footer: {
+        copy: '<span>gummyworm &copy; 2024-2026</span>',
+        auth: 'MIT License',
+        pre: '<hr/>',
+        style: 'text-align: center; color: #666;'
+      }
+    }
+  </script>
+
+  <!-- Docsify core -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+
+  <!-- Plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination@2/dist/docsify-pagination.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-tabs@1"></script>
+
+  <!-- Syntax highlighting -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-ruby.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-markdown.min.js"></script>
+</body>
+</html>
