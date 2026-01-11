@@ -222,7 +222,7 @@ After installation, verify everything works:
 ```bash
 # Check version
 gummyworm --version
-# Expected: gummyworm 2.0.0
+# Expected: gummyworm 2.1.0
 
 # List available palettes
 gummyworm --list-palettes

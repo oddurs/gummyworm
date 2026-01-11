@@ -67,7 +67,7 @@ New to gummyworm? Start here:
 
 ## Version
 
-This documentation is for gummyworm **v2.0.0**.
+This documentation is for gummyworm **v2.1.0**.
 
 ---
 
