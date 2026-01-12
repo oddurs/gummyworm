@@ -1,30 +1,208 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Custom theme for gummyworm documentation
+ * Tokyo Night color palette
  */
 
-/* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* Tokyo Night primary - blue/purple */
+  --ifm-color-primary: #7aa2f7;
+  --ifm-color-primary-dark: #5d8cf5;
+  --ifm-color-primary-darker: #4a7df4;
+  --ifm-color-primary-darkest: #2a5ce8;
+  --ifm-color-primary-light: #97b4f9;
+  --ifm-color-primary-lighter: #aac2fa;
+  --ifm-color-primary-lightest: #c8d8fc;
+
+  /* Tokyo Night background */
+  --ifm-background-color: #1a1b26;
+  --ifm-background-surface-color: #16161e;
+  --ifm-navbar-background-color: #1a1b26;
+  --ifm-footer-background-color: #16161e;
+  --ifm-card-background-color: #1f2335;
+
+  /* Tokyo Night foreground */
+  --ifm-font-color-base: #a9b1d6;
+  --ifm-heading-color: #ffffff;
+  --ifm-color-emphasis-700: #9aa5ce;
+
+  /* Code */
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(122, 162, 247, 0.2);
+
+  /* Fonts */
+  --ifm-font-family-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  --ifm-font-family-monospace: 'SF Mono', Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+/* Navbar styling */
+.navbar {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid #292e42;
 }
+
+/* Footer styling */
+.footer--dark {
+  background-color: #16161e;
+  border-top: 1px solid #292e42;
+}
+
+/* Code blocks */
+pre {
+  border-radius: 8px;
+  background-color: #1f2335 !important;
+}
+
+/* Links */
+a:hover {
+  text-decoration: none;
+}
+
+/* Sidebar */
+.menu__link {
+  color: #ffffff;
+}
+
+.menu__link:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Category/group headers when expanded */
+.menu__link--sublist-cta[aria-expanded='true'],
+.menu__link--sublist[aria-expanded='true'] {
+  color: var(--ifm-color-primary);
+}
+
+.menu__link--active:not(.menu__link--sublist) {
+  background-color: rgba(122, 162, 247, 0.15);
+  color: var(--ifm-color-primary);
+}
+
+/* Navbar title */
+.navbar__title {
+  color: #ffffff;
+}
+
+/* Search bar - Tokyo Night styling */
+.navbar__search-input {
+  background-color: #1f2335;
+  border: 1px solid #292e42;
+  color: #a9b1d6;
+}
+
+.navbar__search-input::placeholder {
+  color: #565f89;
+}
+
+.navbar__search-input:focus {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
+}
+
+/* Search dropdown/modal */
+.search-result-match {
+  color: var(--ifm-color-primary);
+}
+
+[data-theme='dark'] .DocSearch-Button {
+  background-color: #1f2335;
+  border: 1px solid #292e42;
+  color: #a9b1d6;
+}
+
+[data-theme='dark'] .DocSearch-Button:hover {
+  background-color: #292e42;
+  border-color: #3b4261;
+}
+
+[data-theme='dark'] .DocSearch-Button-Placeholder {
+  color: #565f89;
+}
+
+[data-theme='dark'] .DocSearch-Button-Keys kbd {
+  background-color: #292e42;
+  border-color: #3b4261;
+  color: #565f89;
+}
+
+/* Local search plugin styling */
+.aa-DetachedSearchButton {
+  background-color: #1f2335 !important;
+  border: 1px solid #292e42 !important;
+}
+
+
+.aa-DetachedSearchButtonPlaceholder {
+  color: #565f89 !important;
+}
+
+.aa-Autocomplete,
+.aa-DetachedFormContainer {
+  background-color: #1a1b26 !important;
+}
+
+.aa-Form {
+  background-color: #1f2335 !important;
+  border-color: #292e42 !important;
+}
+
+.aa-Form:focus-within {
+  border-color: var(--ifm-color-primary) !important;
+  box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2) !important;
+}
+
+.aa-Input {
+  color: #a9b1d6 !important;
+}
+
+.aa-Input::placeholder {
+  color: #565f89 !important;
+}
+
+.aa-Panel {
+  background-color: #1a1b26 !important;
+  border: 1px solid #292e42 !important;
+}
+
+.aa-Item {
+  color: #a9b1d6 !important;
+}
+
+.aa-Item[aria-selected='true'] {
+  background-color: #292e42 !important;
+}
+
+.aa-ItemContentTitle mark {
+  color: var(--ifm-color-primary) !important;
+  background-color: transparent !important;
+}
+
+/* Tables - subtle dark alternating rows */
+table {
+  border-collapse: collapse;
+}
+
+table tr:nth-child(2n) {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+table tr:hover {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+table th {
+  background-color: #292e42;
+}
+
+table td, table th {
+  border-color: #292e42;
+}
+
+/* Tokyo Night accent colors for syntax */
+.token.comment { color: #565f89; }
+.token.string { color: #9ece6a; }
+.token.keyword { color: #bb9af7; }
+.token.function { color: #7aa2f7; }
+.token.number { color: #ff9e64; }

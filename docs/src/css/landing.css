@@ -1,0 +1,256 @@
+/**
+ * Landing page styles for gummyworm
+ * Dark mode only
+ */
+
+/* Hero Section */
+.hero {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: linear-gradient(180deg, #1f2335 0%, #1a1b26 100%);
+}
+
+/* ASCII Art Display */
+.ascii-showcase {
+  padding: 2rem 0;
+  margin: 0 auto;
+  overflow-x: auto;
+  background: transparent;
+}
+
+.ascii-showcase pre {
+  margin: 0;
+  padding: 0;
+  font-family: var(--ifm-font-family-monospace);
+  line-height: 1.15;
+  color: var(--ifm-color-primary-lighter);
+  white-space: pre;
+  text-align: center;
+  background: transparent !important;
+  background-color: transparent !important;
+  display: block;
+  width: 100%;
+  border: none;
+}
+
+.ascii-logo {
+  font-size: 0.85rem;
+}
+
+.ascii-tagline {
+  font-size: 1rem;
+  margin-top: 1.5rem !important;
+}
+
+/* Hero Buttons */
+.hero__buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+.hero__button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.hero__button--primary {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+.hero__button--primary:hover {
+  background: var(--ifm-color-primary-dark);
+  color: white;
+  text-decoration: none;
+}
+
+.hero__button--secondary {
+  background: transparent;
+  color: var(--ifm-color-primary);
+  border: 2px solid var(--ifm-color-primary);
+}
+
+.hero__button--secondary:hover {
+  background: var(--ifm-color-primary);
+  color: white;
+  text-decoration: none;
+}
+
+/* Features Section */
+.features {
+  padding: 4rem 2rem;
+  background: var(--ifm-background-color);
+}
+
+.features__container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.features__title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 3rem;
+  color: var(--ifm-heading-color);
+}
+
+.features__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+@media (max-width: 996px) {
+  .features__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .features__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ascii-showcase pre {
+    font-size: 0.5rem;
+  }
+}
+
+.feature {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--ifm-card-background-color);
+  border: 1px solid var(--ifm-color-emphasis-300);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.feature__icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.feature__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-heading-color);
+}
+
+.feature__description {
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+}
+
+/* Code Example Section */
+.code-example {
+  padding: 4rem 2rem;
+  background: #16161e;
+}
+
+.code-example__container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.code-example__title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.code-example__block {
+  background: #1f2335;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid #292e42;
+}
+
+.code-example__header {
+  background: #292e42;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.code-example__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.code-example__dot--red { background: #ff5f56; }
+.code-example__dot--yellow { background: #ffbd2e; }
+.code-example__dot--green { background: #27c93f; }
+
+.code-example__content {
+  padding: 1.5rem;
+}
+
+.code-example__content pre {
+  margin: 0;
+  background: transparent;
+  font-size: 0.9rem;
+}
+
+.code-example__content code {
+  color: #a9b1d6;
+}
+
+.code-example__prompt {
+  color: #9ece6a;
+}
+
+.code-example__command {
+  color: #c0caf5;
+}
+
+/* Install Section */
+.install {
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--ifm-background-color);
+}
+
+.install__title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.install__options {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.install__option {
+  background: #1f2335;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  font-family: var(--ifm-font-family-monospace);
+  color: #a9b1d6;
+  font-size: 0.95rem;
+  border: 1px solid #292e42;
+}
+
+.install__option code {
+  background: transparent;
+}

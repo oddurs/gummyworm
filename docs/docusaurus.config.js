@@ -78,7 +78,6 @@ const config = {
       '@easyops-cn/docusaurus-search-local',
       {
         hashed: true,
-        docsRouteBasePath: '/',
         indexBlog: false,
         highlightSearchTermsOnTargetPage: true,
       },
@@ -93,7 +92,6 @@ const config = {
         docs: {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/oddurs/gummyworm/tree/main/docs/',
-          routeBasePath: '/', // Docs at root, no landing page
         },
         blog: false,
         theme: {
@@ -107,12 +105,19 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       colorMode: {
-        defaultMode: 'light',
-        respectPrefersColorScheme: true,
+        defaultMode: 'dark',
+        disableSwitch: true,
+        respectPrefersColorScheme: false,
       },
       navbar: {
         title: 'gummyworm',
         items: [
+          {
+            type: 'docSidebar',
+            sidebarId: 'docs',
+            position: 'left',
+            label: 'Docs',
+          },
           {
             href: 'https://github.com/oddurs/gummyworm',
             label: 'GitHub',
@@ -128,11 +133,11 @@ const config = {
             items: [
               {
                 label: 'Getting Started',
-                to: '/',
+                to: '/docs/intro',
               },
               {
                 label: 'CLI Reference',
-                to: '/cli-reference',
+                to: '/docs/cli-reference',
               },
             ],
           },
