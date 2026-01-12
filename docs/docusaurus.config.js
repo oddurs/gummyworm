@@ -60,8 +60,8 @@ const config = {
     v4: true,
   },
 
-  url: 'https://oddurs.github.io',
-  baseUrl: '/gummyworm/',
+  url: 'https://gummyworm.dev',
+  baseUrl: '/',
 
   organizationName: 'oddurs',
   projectName: 'gummyworm',
