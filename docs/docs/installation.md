@@ -1,3 +1,8 @@
+---
+sidebar_position: 2
+title: Installation
+---
+
 # Installation
 
 This guide covers all methods for installing gummyworm on your system.
@@ -6,16 +11,16 @@ This guide covers all methods for installing gummyworm on your system.
 
 gummyworm is designed for maximum compatibility across Unix-like systems:
 
-| Platform | Status | Shell Required |
-|----------|--------|----------------|
-| macOS 10.6+ | ✅ Tested | Bash 3.2+ or zsh 5.0+ |
-| Ubuntu/Debian | ✅ Tested | Bash 4+ or zsh 5.0+ |
-| Fedora/RHEL | ✅ Tested | Bash 4+ or zsh 5.0+ |
-| Arch Linux | ✅ Tested | Bash 5+ or zsh 5.0+ |
-| FreeBSD | ✅ Compatible | Bash 3.2+ or zsh 5.0+ |
-| Alpine Linux | ✅ Compatible | Bash 5+ or zsh 5.0+ |
-| Windows (WSL) | ✅ Tested | Bash 4+ or zsh 5.0+ |
-| Windows (Git Bash) | ⚠️ Limited | Bash 4+ |
+| Platform           | Status        | Shell Required        |
+| ------------------ | ------------- | --------------------- |
+| macOS 10.6+        | ✅ Tested     | Bash 3.2+ or zsh 5.0+ |
+| Ubuntu/Debian      | ✅ Tested     | Bash 4+ or zsh 5.0+   |
+| Fedora/RHEL        | ✅ Tested     | Bash 4+ or zsh 5.0+   |
+| Arch Linux         | ✅ Tested     | Bash 5+ or zsh 5.0+   |
+| FreeBSD            | ✅ Compatible | Bash 3.2+ or zsh 5.0+ |
+| Alpine Linux       | ✅ Compatible | Bash 5+ or zsh 5.0+   |
+| Windows (WSL)      | ✅ Tested     | Bash 4+ or zsh 5.0+   |
+| Windows (Git Bash) | ⚠️ Limited    | Bash 4+               |
 
 **Note**: gummyworm supports both Bash 3.2+ and zsh 5.0+ for maximum compatibility. macOS ships with both shells by default.
 
@@ -33,15 +38,18 @@ brew install gummyworm
 ```
 
 This automatically installs:
+
 - ImageMagick (required dependency)
 - Shell completions for bash and zsh
 
 **Upgrade to latest version:**
+
 ```bash
 brew update && brew upgrade gummyworm
 ```
 
 **Uninstall:**
+
 ```bash
 brew uninstall gummyworm
 brew untap oddurs/gummyworm  # optional: remove the tap
@@ -51,12 +59,12 @@ brew untap oddurs/gummyworm  # optional: remove the tap
 
 ### Prerequisites
 
-| Dependency | Required | Purpose |
-|------------|----------|---------|
-| **Bash 3.2+ or zsh 5.0+** | Yes | Shell interpreter (macOS has both!) |
-| **ImageMagick** | Yes | Image processing and pixel extraction |
-| **Python 3** | No | Better Unicode/emoji character width detection |
-| **curl or wget** | No | URL image downloads |
+| Dependency                | Required | Purpose                                        |
+| ------------------------- | -------- | ---------------------------------------------- |
+| **Bash 3.2+ or zsh 5.0+** | Yes      | Shell interpreter (macOS has both!)            |
+| **ImageMagick**           | Yes      | Image processing and pixel extraction          |
+| **Python 3**              | No       | Better Unicode/emoji character width detection |
+| **curl or wget**          | No       | URL image downloads                            |
 
 ### Installing ImageMagick
 
@@ -131,17 +139,20 @@ python3 --version
 ### Install from Source
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/oddurs/gummyworm.git
    cd gummyworm
    ```
 
 2. **Make scripts executable:**
+
    ```bash
    chmod +x gummyworm bin/gummyworm
    ```
 
 3. **Test the installation:**
+
    ```bash
    ./gummyworm --version
    ./gummyworm --help
@@ -150,17 +161,20 @@ python3 --version
 4. **Add to PATH (choose one method):**
 
    **Option A: Symlink to /usr/local/bin (recommended)**
+
    ```bash
    sudo ln -s "$(pwd)/bin/gummyworm" /usr/local/bin/gummyworm
    ```
 
    **Option B: Add directory to PATH**
+
    ```bash
    # Add to ~/.bashrc or ~/.zshrc
    export PATH="$PATH:/path/to/gummyworm/bin"
    ```
 
    **Option C: Create an alias**
+
    ```bash
    # Add to ~/.bashrc or ~/.zshrc
    alias gummyworm='/path/to/gummyworm/bin/gummyworm'
@@ -189,6 +203,7 @@ python3 --version
 gummyworm works in Windows Subsystem for Linux:
 
 1. **Install WSL:**
+
    ```powershell
    wsl --install
    ```
@@ -203,19 +218,92 @@ gummyworm works in Windows Subsystem for Linux:
 
 ### Docker
 
-Run gummyworm in a container:
+Run gummyworm in a container without installing dependencies on your host system.
+
+#### Quick Run (No Build Required)
+
+```bash
+# One-liner using Alpine (downloads ~50MB first time)
+docker run --rm -v "$(pwd):/work" -w /work alpine:latest sh -c \
+  "apk add --no-cache bash imagemagick curl && \
+   wget -qO- https://github.com/oddurs/gummyworm/archive/refs/heads/main.tar.gz | tar xz && \
+   gummyworm-main/bin/gummyworm photo.jpg"
+```
+
+#### Build Custom Image
+
+Create a `Dockerfile`:
 
 ```dockerfile
 FROM alpine:latest
-RUN apk add --no-cache bash imagemagick curl
+
+# Install dependencies
+RUN apk add --no-cache \
+    bash \
+    imagemagick \
+    curl \
+    python3
+
+# Install gummyworm
 COPY . /opt/gummyworm
 ENV PATH="/opt/gummyworm/bin:$PATH"
+ENV GUMMYWORM_ROOT="/opt/gummyworm"
+
+WORKDIR /work
 ENTRYPOINT ["gummyworm"]
+CMD ["--help"]
+```
+
+Build and use:
+
+```bash
+# Build the image
+docker build -t gummyworm .
+
+# Convert local image
+docker run --rm -v "$(pwd):/work" gummyworm photo.jpg
+
+# Convert with options
+docker run --rm -v "$(pwd):/work" gummyworm -c -w 100 -p blocks photo.jpg
+
+# Save output to file
+docker run --rm -v "$(pwd):/work" gummyworm -c -f html photo.jpg > art.html
+
+# Interactive shell for debugging
+docker run --rm -it -v "$(pwd):/work" --entrypoint bash gummyworm
+```
+
+#### Docker Compose
+
+For frequent use, create `docker-compose.yml`:
+
+```yaml
+version: '3'
+services:
+  gummyworm:
+    build: .
+    volumes:
+      - ./images:/work
 ```
 
 ```bash
-docker build -t gummyworm .
-docker run --rm -v "$(pwd)/images:/images" gummyworm /images/photo.jpg
+docker-compose run --rm gummyworm photo.jpg
+docker-compose run --rm gummyworm -c -w 80 -p blocks photo.jpg
+```
+
+#### Volume Mounting Tips
+
+| Host Path    | Container Path | Purpose                    |
+| ------------ | -------------- | -------------------------- |
+| `$(pwd)`     | `/work`        | Current directory          |
+| `~/Pictures` | `/images:ro`   | Read-only access to photos |
+
+```bash
+# Access multiple directories
+docker run --rm \
+  -v "$(pwd):/work" \
+  -v "$HOME/Pictures:/images:ro" \
+  gummyworm /images/vacation/photo.jpg
 ```
 
 ## Verifying Installation
@@ -256,19 +344,21 @@ autoload -Uz compinit && compinit
 ### Manual Installation
 
 **Bash:**
+
 ```bash
 # Add to ~/.bashrc
 source /path/to/gummyworm/completions/gummyworm.bash
 ```
 
 **Zsh:**
+
 ```zsh
 # Add to ~/.zshrc (BEFORE compinit)
 fpath=(/path/to/gummyworm/completions $fpath)
 autoload -Uz compinit && compinit
 ```
 
-See [completions/README.md](../completions/README.md) for more installation options.
+See [Shell Completions](shell-completions.md) for more installation options.
 
 ### Test Completions
 
@@ -302,7 +392,3 @@ gummyworm -f <TAB>    # Shows format options
 - Use a font with emoji support (e.g., Noto Color Emoji)
 
 See [Troubleshooting](troubleshooting.md) for more solutions.
-
----
-
-← [Back to README](../README.md) | [CLI Reference](cli-reference.md) →

@@ -1,3 +1,8 @@
+---
+sidebar_position: 8
+title: Troubleshooting
+---
+
 # Troubleshooting
 
 Common issues and solutions when using gummyworm.
@@ -11,6 +16,7 @@ Common issues and solutions when using gummyworm.
 **Solutions:**
 
 1. **If installed via Homebrew:**
+
    ```bash
    brew link gummyworm
    # Or reinstall
@@ -18,6 +24,7 @@ Common issues and solutions when using gummyworm.
    ```
 
 2. **If installed manually:**
+
    ```bash
    # Add to PATH in ~/.bashrc or ~/.zshrc
    export PATH="$PATH:/path/to/gummyworm/bin"
@@ -54,6 +61,7 @@ convert --version
 **Cause:** Script is not executable.
 
 **Solution:**
+
 ```bash
 chmod +x gummyworm bin/gummyworm
 ```
@@ -63,6 +71,7 @@ chmod +x gummyworm bin/gummyworm
 **Cause:** Wrong line endings (Windows CRLF instead of Unix LF).
 
 **Solution:**
+
 ```bash
 # Convert to Unix line endings
 sed -i 's/\r$//' gummyworm bin/gummyworm lib/*.sh
@@ -76,6 +85,7 @@ dos2unix gummyworm bin/gummyworm lib/*.sh
 **Cause:** gummyworm requires Bash 3.2+ or zsh 5.0+.
 
 **Check your version:**
+
 ```bash
 # Check Bash version
 bash --version
@@ -85,6 +95,7 @@ zsh --version
 ```
 
 **Solution for very old systems:**
+
 ```bash
 # Install newer Bash (macOS)
 brew install bash
@@ -102,12 +113,14 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Check file type:**
+
    ```bash
    file photo.jpg
    # Should show: JPEG image data, ...
    ```
 
 2. **Verify ImageMagick can read it:**
+
    ```bash
    identify photo.jpg
    ```
@@ -121,11 +134,13 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Check URL is accessible:**
+
    ```bash
    curl -I "https://example.com/image.jpg"
    ```
 
 2. **Download manually first:**
+
    ```bash
    curl -o image.jpg "https://example.com/image.jpg"
    gummyworm image.jpg
@@ -146,6 +161,7 @@ zsh /path/to/gummyworm photo.jpg
 1. **Use a proper monospace font:** Consolas, Fira Code, JetBrains Mono, etc.
 
 2. **Try `--no-aspect`:**
+
    ```bash
    gummyworm --no-aspect -w 80 -h 40 photo.jpg
    ```
@@ -161,11 +177,13 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Try inverting:**
+
    ```bash
    gummyworm -i photo.jpg
    ```
 
 2. **Use a higher contrast palette:**
+
    ```bash
    gummyworm -p blocks photo.jpg
    gummyworm -p binary photo.jpg
@@ -187,6 +205,7 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Use ASCII-only palette:**
+
    ```bash
    gummyworm -p standard photo.jpg
    gummyworm -p detailed photo.jpg
@@ -215,15 +234,17 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Check terminal color support:**
+
    ```bash
    echo $TERM
    # Should be xterm-256color or similar
-   
+
    # Test 256 colors
    for i in {0..255}; do printf "\e[38;5;${i}m%3d " $i; done; echo
    ```
 
 2. **Set correct TERM:**
+
    ```bash
    export TERM=xterm-256color
    ```
@@ -240,6 +261,7 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **View in terminal:**
+
    ```bash
    cat output.ans
    less -R output.ans
@@ -257,6 +279,7 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Use smaller width:**
+
    ```bash
    gummyworm -p emoji -w 40 photo.jpg
    ```
@@ -270,6 +293,7 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Check the file was saved completely:**
+
    ```bash
    head -20 output.html  # Should show DOCTYPE
    tail -5 output.html   # Should show closing tags
@@ -287,15 +311,17 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Check ImageMagick has SVG support:**
+
    ```bash
    convert -list format | grep SVG
    ```
 
 2. **Reinstall ImageMagick with SVG:**
+
    ```bash
    # macOS
    brew reinstall imagemagick
-   
+
    # Ubuntu
    sudo apt install imagemagick librsvg2-bin
    ```
@@ -313,11 +339,13 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Check for errors (remove quiet mode):**
+
    ```bash
    gummyworm photo.jpg  # Look for error messages
    ```
 
 2. **Verify image is valid:**
+
    ```bash
    identify photo.jpg
    ```
@@ -336,11 +364,13 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Reduce output dimensions:**
+
    ```bash
    gummyworm -w 60 huge-image.jpg
    ```
 
 2. **Pre-resize the image:**
+
    ```bash
    convert huge.jpg -resize 800x800 smaller.jpg
    gummyworm smaller.jpg
@@ -356,6 +386,7 @@ zsh /path/to/gummyworm photo.jpg
 **Solutions:**
 
 1. **Process files one at a time:**
+
    ```bash
    for f in photos/*.jpg; do
      gummyworm -o "output/$(basename "$f" .jpg).txt" "$f"
@@ -396,7 +427,3 @@ When reporting a bug, include:
 7. A sample image (if possible)
 
 File issues at: https://github.com/oddurs/gummyworm/issues
-
----
-
-← [Examples](examples.md) | [Architecture](architecture.md) →

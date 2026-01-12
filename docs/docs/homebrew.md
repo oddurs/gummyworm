@@ -1,3 +1,8 @@
+---
+sidebar_position: 11
+title: Homebrew
+---
+
 # Homebrew Distribution
 
 gummyworm is distributed via a Homebrew tap at [oddurs/homebrew-gummyworm](https://github.com/oddurs/homebrew-gummyworm).
@@ -11,6 +16,7 @@ brew install oddurs/gummyworm/gummyworm
 ```
 
 This installs:
+
 - The `gummyworm` executable
 - ImageMagick dependency
 - Shell completions for bash and zsh
@@ -35,12 +41,14 @@ brew untap oddurs/gummyworm  # optional
 When releasing a new version:
 
 1. **Tag the release in the main repo:**
+
    ```bash
    git tag -a v2.1.1 -m "Release v2.1.1"
    git push origin v2.1.1
    ```
 
 2. **Get the SHA256 of the tarball:**
+
    ```bash
    curl -sL https://github.com/oddurs/gummyworm/archive/refs/tags/v2.1.1.tar.gz | shasum -a 256
    ```
@@ -48,6 +56,7 @@ When releasing a new version:
 3. **Update the formula:**
 
    Edit `Formula/gummyworm.rb`:
+
    ```ruby
    url "https://github.com/oddurs/gummyworm/archive/refs/tags/v2.1.1.tar.gz"
    sha256 "<new-sha256>"
@@ -55,16 +64,25 @@ When releasing a new version:
    ```
 
 4. **Update the tap repository:**
+
    ```bash
-   # Copy formula to tap
-   cp Formula/gummyworm.rb /opt/homebrew/Library/Taps/oddurs/homebrew-gummyworm/Formula/
+   # Copy formula to tap (uses brew to find correct path)
+   TAP_DIR=$(brew --repository oddurs/homebrew-gummyworm)
+   cp Formula/gummyworm.rb "$TAP_DIR/Formula/"
 
    # Commit and push
-   cd /opt/homebrew/Library/Taps/oddurs/homebrew-gummyworm
+   cd "$TAP_DIR"
    git add Formula/gummyworm.rb
    git commit -m "Update gummyworm to v2.1.1"
    git push
    ```
+
+   > **Note:** Homebrew paths differ by architecture:
+   >
+   > - **Apple Silicon (M1/M2/M3):** `/opt/homebrew/...`
+   > - **Intel Macs:** `/usr/local/...`
+   >
+   > Using `$(brew --repository)` ensures the correct path on any system.
 
 5. **Don't forget to update version in lib/config.sh**
 
@@ -85,6 +103,7 @@ brew install oddurs/gummyworm/gummyworm
 ### Formula Details
 
 The formula (`Formula/gummyworm.rb`):
+
 - Downloads the release tarball from GitHub
 - Installs `bin/gummyworm` to Homebrew's bin directory
 - Installs library files to `libexec/lib/`
@@ -98,6 +117,7 @@ The formula (`Formula/gummyworm.rb`):
 The tap lives at: https://github.com/oddurs/homebrew-gummyworm
 
 Structure:
+
 ```
 homebrew-gummyworm/
 ├── Formula/

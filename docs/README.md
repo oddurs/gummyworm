@@ -1,71 +1,41 @@
-# Documentation
+# Website
 
-Welcome to the gummyworm documentation! This index provides quick access to all guides and references.
+This website is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-## Quick Links
+## Installation
 
-| Document | Description |
-|----------|-------------|
-| [Installation](installation.md) | How to install gummyworm on any platform |
-| [CLI Reference](cli-reference.md) | Complete command-line options reference |
-| [Palettes Guide](palettes.md) | Built-in palettes and creating custom ones |
-| [Export Formats](export-formats.md) | HTML, SVG, PNG export documentation |
-| [Examples](examples.md) | Practical usage examples and recipes |
-| [Troubleshooting](troubleshooting.md) | Common issues and solutions |
-| [Architecture](architecture.md) | Internal design and extending gummyworm |
-| [Testing](testing.md) | Test infrastructure, writing and running tests |
-| [Homebrew Distribution](homebrew.md) | Publishing via Homebrew tap |
+```bash
+yarn
+```
 
-## Getting Started
+## Local Development
 
-New to gummyworm? Start here:
+```bash
+yarn start
+```
 
-1. **[Installation](installation.md)** — Get gummyworm running on your system
-2. **[Examples](examples.md)** — See common use cases and commands
-3. **[CLI Reference](cli-reference.md)** — Learn all available options
+This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
 
-## Guides by Topic
+## Build
 
-### Converting Images
+```bash
+yarn build
+```
 
-- [Basic usage](examples.md#basic-usage) — Simple image conversion
-- [Color output](examples.md#color-output) — Enable 256-color mode
-- [Dimension control](cli-reference.md#dimension-options) — Width, height, aspect ratio
+This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
-### Palettes & Appearance
+## Deployment
 
-- [Built-in palettes](palettes.md#built-in-palettes) — All 12 included palettes
-- [Custom palettes](palettes.md#custom-palettes) — Create your own
-- [Palette selection guide](palettes.md#palette-selection-guide) — Choosing the right palette
+Using SSH:
 
-### Exporting
+```bash
+USE_SSH=true yarn deploy
+```
 
-- [Format overview](export-formats.md#format-overview) — Text, ANSI, HTML, SVG, PNG
-- [HTML export](export-formats.md#html-format) — Web-ready output
-- [PNG for social media](export-formats.md#png-format) — Shareable images
-- [Background colors](export-formats.md#background-color) — Customizing backgrounds
+Not using SSH:
 
-### Batch Processing
+```bash
+GIT_USER=<Your GitHub username> yarn deploy
+```
 
-- [Multiple files](examples.md#batch-processing) — Process many images
-- [Recursive directories](cli-reference.md#-r---recursive) — Process folder trees
-- [Output directories](cli-reference.md#-d---output-dir-dir) — Auto-named outputs
-
-### Scripting & Integration
-
-- [URL input](examples.md#url-and-stdin) — Download and convert
-- [Stdin piping](cli-reference.md#stdin-input) — Pipe image data
-- [Using as a library](architecture.md#using-as-a-library) — Embed in scripts
-
-### Development
-
-- [Architecture overview](architecture.md) — How gummyworm works
-- [Module reference](architecture.md#module-descriptions) — All library modules
-- [Testing guide](testing.md) — Writing and running tests
-- [Extending gummyworm](architecture.md#extending-gummyworm) — Add features
-- [Homebrew distribution](homebrew.md) — Publishing releases
-
-## Version
-
-This documentation is for gummyworm **v2.1.1**.
-
+If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.

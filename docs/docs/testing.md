@@ -1,3 +1,8 @@
+---
+sidebar_position: 10
+title: Testing
+---
+
 # Testing Guide
 
 This guide covers the gummyworm testing infrastructure, including how to run tests, write new tests, and understand the test architecture.
@@ -41,10 +46,10 @@ tests/
 
 ### Test Categories
 
-| Category | Files | ImageMagick | Purpose |
-|----------|-------|-------------|---------|
-| **Unit** | `test_*.sh` (except integration) | Optional | Test individual functions in isolation |
-| **Integration** | `test_integration.sh` | Required | Test complete CLI workflows |
+| Category        | Files                            | ImageMagick | Purpose                                |
+| --------------- | -------------------------------- | ----------- | -------------------------------------- |
+| **Unit**        | `test_*.sh` (except integration) | Optional    | Test individual functions in isolation |
+| **Integration** | `test_integration.sh`            | Required    | Test complete CLI workflows            |
 
 ## Test Runner Framework
 
@@ -160,7 +165,7 @@ setup() {
         echo "Warning: ImageMagick not available"
         return
     fi
-    
+
     TEST_IMG=$(make_temp_file ".png")
     create_test_image "$TEST_IMG" 50 50
 }
@@ -228,15 +233,15 @@ The test suite is designed for CI environments:
 
 ### Current Coverage by Module
 
-| Module | Unit Tests | Integration Tests | Coverage |
-|--------|------------|-------------------|----------|
-| `lib/utils.sh` | ✅ | - | High |
-| `lib/palettes.sh` | ✅ | ✅ | High |
-| `lib/image.sh` | ✅ | ✅ | Medium |
-| `lib/converter.sh` | ✅ | ✅ | Medium |
-| `lib/export.sh` | ✅ | ✅ | High |
-| `lib/cli.sh` | - | ✅ | Medium |
-| `bin/gummyworm` | - | ✅ | High |
+| Module             | Unit Tests | Integration Tests | Coverage |
+| ------------------ | ---------- | ----------------- | -------- |
+| `lib/utils.sh`     | ✅         | -                 | High     |
+| `lib/palettes.sh`  | ✅         | ✅                | High     |
+| `lib/image.sh`     | ✅         | ✅                | Medium   |
+| `lib/converter.sh` | ✅         | ✅                | Medium   |
+| `lib/export.sh`    | ✅         | ✅                | High     |
+| `lib/cli.sh`       | -          | ✅                | Medium   |
+| `bin/gummyworm`    | -          | ✅                | High     |
 
 ### Adding Coverage
 
@@ -269,7 +274,7 @@ fixtures/
 test_html_output_unchanged() {
     local output=$(make_temp_file ".html")
     "$GUMMYWORM" -w 20 -f html -o "$output" "$FIXTURE_IMG"
-    
+
     # Compare with expected
     diff -q "$output" "$FIXTURES_DIR/expected/output.html"
 }
@@ -280,6 +285,7 @@ test_html_output_unchanged() {
 ### Tests fail with "command not found"
 
 Ensure scripts are executable:
+
 ```bash
 chmod +x tests/*.sh
 ```
@@ -287,6 +293,7 @@ chmod +x tests/*.sh
 ### ImageMagick tests skipped
 
 Install ImageMagick:
+
 ```bash
 # macOS
 brew install imagemagick
@@ -301,6 +308,7 @@ sudo dnf install ImageMagick
 ### Python-dependent tests fail
 
 Some unicode tests require Python 3:
+
 ```bash
 python3 --version  # Verify installation
 ```
@@ -308,6 +316,7 @@ python3 --version  # Verify installation
 ### Test hangs
 
 Check for infinite loops in tested functions, or use timeout:
+
 ```bash
 timeout 60 ./tests/test_utils.sh
 ```

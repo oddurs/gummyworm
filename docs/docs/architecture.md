@@ -1,3 +1,8 @@
+---
+sidebar_position: 9
+title: Architecture
+---
+
 # Architecture
 
 This document describes gummyworm's internal architecture, module design, and data flow. Useful for contributors and those wanting to extend the tool.
@@ -47,12 +52,14 @@ gummyworm is a modular Bash application following a library-based architecture. 
 **Purpose:** Global configuration, constants, and version information.
 
 **Key exports:**
+
 - `GUMMYWORM_VERSION` — Current version string
 - `GUMMYWORM_ROOT` — Installation root directory
 - `DEFAULT_*` — Default values for all settings
 - `COLOR_*` — ANSI color codes for output
 
 **Usage:**
+
 ```bash
 source "$GUMMYWORM_ROOT/lib/config.sh"
 echo "Version: $GUMMYWORM_VERSION"
@@ -82,6 +89,7 @@ echo "Default width: $DEFAULT_WIDTH"
 | `find_images_in_dir <dir> [recursive]` | Find image files in directory |
 
 **Logging behavior:**
+
 - Logs go to stderr (stdout reserved for ASCII output)
 - Colored output when terminal supports it
 - Respects `$QUIET` variable for suppressing info messages
@@ -100,11 +108,13 @@ echo "Default width: $DEFAULT_WIDTH"
 | `palette_to_array <string> <arrayname>` | Parse palette to array |
 
 **Palette resolution order:**
+
 1. Built-in palettes (defined in `BUILTIN_PALETTES` associative array)
 2. Custom palette files in `$GUMMYWORM_PALETTES_DIR/*.palette`
 3. Inline string (if not matching above)
 
 **Palette file format:**
+
 ```
 # Comments start with #
 # Blank lines ignored
@@ -132,14 +142,17 @@ echo "Default width: $DEFAULT_WIDTH"
 
 **Pixel extraction:**
 Uses ImageMagick's `convert` to resize and extract RGB values:
+
 ```bash
 convert "$file" -resize "${w}x${h}!" -depth 8 txt:- | ...
 ```
 
 **Brightness formula:**
+
 ```
 luminance = (R × 299 + G × 587 + B × 114) / 1000
 ```
+
 Based on ITU-R BT.601 standard for perceived brightness.
 
 ### lib/converter.sh
@@ -155,6 +168,7 @@ Based on ITU-R BT.601 standard for perceived brightness.
 | `detect_truecolor_support` | Check if terminal supports true color via `$COLORTERM` |
 
 **Conversion algorithm:**
+
 1. Calculate output dimensions (preserving aspect ratio if enabled)
 2. Extract pixel data from image at target resolution
 3. For each pixel:
@@ -165,6 +179,7 @@ Based on ITU-R BT.601 standard for perceived brightness.
 
 **Color mapping:**
 Uses the ANSI 256-color palette (colors 16-231, the 6×6×6 color cube):
+
 ```bash
 # RGB (0-255) to ANSI color cube (0-5)
 r6=$((r * 6 / 256))
@@ -188,16 +203,19 @@ ansi=$((16 + 36 * r6 + 6 * g6 + b6))
 | `export_get_extension <format>` | Get file extension for format |
 
 **HTML generation:**
+
 - Complete HTML5 document with embedded CSS
 - ANSI escape codes converted to `<span style="color:...">` elements
 - Responsive centered layout
 
 **SVG generation:**
+
 - Vector `<text>` elements for each character
 - Proper positioning and monospace font
 - Full color support via `fill` attribute
 
 **PNG generation:**
+
 - Generates SVG first
 - Uses ImageMagick to rasterize: `convert input.svg output.png`
 
@@ -216,6 +234,7 @@ ansi=$((16 + 36 * r6 + 6 * g6 + b6))
 
 **Argument parsing:**
 Sets global `ARG_*` variables:
+
 - `ARG_WIDTH`, `ARG_HEIGHT` — Dimensions
 - `ARG_PALETTE` — Selected palette
 - `ARG_COLOR`, `ARG_INVERT` — Boolean flags
@@ -314,6 +333,7 @@ declare -A BUILTIN_PALETTES=(
 ### Adding a New Export Format
 
 1. Add export function in `lib/export.sh`:
+
    ```bash
    export_myformat() {
        local content="$1"
@@ -324,6 +344,7 @@ declare -A BUILTIN_PALETTES=(
    ```
 
 2. Update `export_content()` dispatcher:
+
    ```bash
    export_content() {
        case "$format" in
@@ -340,6 +361,7 @@ declare -A BUILTIN_PALETTES=(
 ### Adding a New CLI Option
 
 1. Add to `parse_args()` in `lib/cli.sh`:
+
    ```bash
    --my-option)
        ARG_MY_OPTION=true
@@ -352,6 +374,7 @@ declare -A BUILTIN_PALETTES=(
    ```
 
 2. Initialize default in `lib/config.sh`:
+
    ```bash
    readonly DEFAULT_MY_OPTION=false
    readonly DEFAULT_MY_VALUE="default"
@@ -422,10 +445,10 @@ tests/
 
 ### Test Categories
 
-| Category | Purpose | ImageMagick |
-|----------|---------|-------------|
-| **Unit** | Test individual functions in isolation | Optional |
-| **Integration** | Test complete CLI workflows | Required |
+| Category        | Purpose                                | ImageMagick |
+| --------------- | -------------------------------------- | ----------- |
+| **Unit**        | Test individual functions in isolation | Optional    |
+| **Integration** | Test complete CLI workflows            | Required    |
 
 ### Key Testing Features
 
@@ -437,16 +460,12 @@ tests/
 
 ### Coverage by Module
 
-| Module | Unit Tests | Integration Tests |
-|--------|------------|-------------------|
-| `lib/utils.sh` | ✅ `test_utils.sh` | — |
-| `lib/palettes.sh` | ✅ `test_palettes.sh` | ✅ |
-| `lib/image.sh` | ✅ `test_image.sh` | ✅ |
-| `lib/converter.sh` | ✅ `test_export.sh` | ✅ |
-| `lib/export.sh` | ✅ `test_export.sh` | ✅ |
-| `lib/cli.sh` | — | ✅ `test_integration.sh` |
-| `bin/gummyworm` | — | ✅ `test_integration.sh` |
-
----
-
-← [Troubleshooting](troubleshooting.md) | [Back to README](../README.md) →
+| Module             | Unit Tests            | Integration Tests        |
+| ------------------ | --------------------- | ------------------------ |
+| `lib/utils.sh`     | ✅ `test_utils.sh`    | —                        |
+| `lib/palettes.sh`  | ✅ `test_palettes.sh` | ✅                       |
+| `lib/image.sh`     | ✅ `test_image.sh`    | ✅                       |
+| `lib/converter.sh` | ✅ `test_export.sh`   | ✅                       |
+| `lib/export.sh`    | ✅ `test_export.sh`   | ✅                       |
+| `lib/cli.sh`       | —                     | ✅ `test_integration.sh` |
+| `bin/gummyworm`    | —                     | ✅ `test_integration.sh` |

@@ -119,9 +119,12 @@ examples/*.tiff
 user-data/
 
 # ============================================================================
-# Documentation build
+# Documentation build (Docusaurus)
 # ============================================================================
-docs/_build/
-docs/site/
-*.html
-!docs/**/*.html
+docs/node_modules/
+docs/build/
+docs/.docusaurus/
+docs/.cache-loader/
+
+# Legacy docsify files (can be removed)
+docs-backup/

@@ -1,17 +1,22 @@
+---
+sidebar_position: 7
+title: Export Formats
+---
+
 # Export Formats
 
 gummyworm can export ASCII art in multiple formats for different use cases. This guide covers each format's features and best practices.
 
 ## Format Overview
 
-| Format | Extension | Color Support | Use Case |
-|--------|-----------|---------------|----------|
-| `text` | .txt | No | Plain ASCII, maximum compatibility |
-| `ansi` | .ans | Yes (256 or 24-bit) | Terminal display, sharing via paste |
-| `html` | .html | Yes (full RGB) | Web pages, email, documents |
-| `svg` | .svg | Yes (full RGB) | Scalable graphics, print, web |
-| `png` | .png | Yes (full RGB) | Images, social media, sharing |
-| `gif` | .gif | Yes (full RGB) | Animated ASCII art, animated input |
+| Format | Extension | Color Support       | Use Case                            |
+| ------ | --------- | ------------------- | ----------------------------------- |
+| `text` | .txt      | No                  | Plain ASCII, maximum compatibility  |
+| `ansi` | .ans      | Yes (256 or 24-bit) | Terminal display, sharing via paste |
+| `html` | .html     | Yes (full RGB)      | Web pages, email, documents         |
+| `svg`  | .svg      | Yes (full RGB)      | Scalable graphics, print, web       |
+| `png`  | .png      | Yes (full RGB)      | Images, social media, sharing       |
+| `gif`  | .gif      | Yes (full RGB)      | Animated ASCII art, animated input  |
 
 ## Specifying Format
 
@@ -24,6 +29,8 @@ gummyworm -f html photo.jpg > art.html
 gummyworm -f svg -o artwork.svg photo.jpg
 gummyworm -f png -o poster.png photo.jpg
 ```
+
+> See also: [`-f, --format`](cli-reference.md#-f---format-type) in the CLI Reference.
 
 ### Auto-Detection from Extension
 
@@ -47,6 +54,7 @@ gummyworm -f text -o art.txt photo.jpg # To file
 ```
 
 **Characteristics:**
+
 - Maximum compatibility
 - Works in any text editor
 - No color information preserved
@@ -54,12 +62,13 @@ gummyworm -f text -o art.txt photo.jpg # To file
 - Best for code comments, READMEs, plain text documents
 
 **Example output:**
+
 ```
-        .:::::..        
-      .:::::::::::.     
-    .:::.  @@  .:::.    
-   :::.   @@@@   .:::   
-  :::.   @@@@@@   .:::  
+        .:::::..
+      .:::::::::::.
+    .:::.  @@  .:::.
+   :::.   @@@@   .:::
+  :::.   @@@@@@   .:::
 ```
 
 ## ANSI Format
@@ -72,13 +81,15 @@ gummyworm -f ansi -o art.ans photo.jpg   # To file
 ```
 
 **Characteristics:**
+
 - 256-color palette (6×6×6 color cube) by default
-- True color (24-bit RGB) when `--truecolor` is used or auto-detected
+- True color (24-bit RGB) when [`--truecolor`](cli-reference.md#--truecolor) is used or auto-detected
 - Works in most modern terminals
 - Escape codes visible if opened in plain text editor
 - Great for terminal display and sharing via paste services
 
 **Color modes:**
+
 ```bash
 # 256-color (default)
 gummyworm -c -f ansi -o colored.ans photo.jpg
@@ -91,6 +102,7 @@ gummyworm -c --no-truecolor -f ansi -o 256color.ans photo.jpg
 ```
 
 **Viewing ANSI files:**
+
 ```bash
 cat art.ans           # In terminal
 less -R art.ans       # With pager
@@ -117,6 +129,7 @@ gummyworm -c -f html --padding 20 -o padded.html photo.jpg
 ```
 
 **Characteristics:**
+
 - Self-contained HTML document
 - Inline CSS for each colored character
 - Responsive, centered layout
@@ -125,6 +138,7 @@ gummyworm -c -f html --padding 20 -o padded.html photo.jpg
 - Opens in any web browser
 
 **Features:**
+
 - **Responsive design:** Scales with browser width
 - **Font stack:** Uses system monospace fonts
 - **Background control:** Customizable via `--background`
@@ -132,27 +146,33 @@ gummyworm -c -f html --padding 20 -o padded.html photo.jpg
 - **Color accuracy:** Full RGB color from source image
 
 **Example generated HTML structure:**
+
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <style>
-    body { background: #1e1e1e; }
-    pre { font-family: monospace; }
-    /* ... */
-  </style>
-</head>
-<body>
-  <pre>
+  <head>
+    <style>
+      body {
+        background: #1e1e1e;
+      }
+      pre {
+        font-family: monospace;
+      }
+      /* ... */
+    </style>
+  </head>
+  <body>
+    <pre>
     <span style="color:#ff6b6b">@</span>
     <span style="color:#4ecdc4">#</span>
     <!-- ... -->
   </pre>
-</body>
+  </body>
 </html>
 ```
 
 **Use cases:**
+
 - Web galleries
 - Email (inline in body)
 - Documentation
@@ -170,6 +190,7 @@ gummyworm -c -f svg --padding 30 -o padded.svg photo.jpg
 ```
 
 **Characteristics:**
+
 - Infinite scalability without pixelation
 - Vector text elements
 - Embedded font styles
@@ -177,12 +198,14 @@ gummyworm -c -f svg --padding 30 -o padded.svg photo.jpg
 - Editable in vector graphics software
 
 **Advantages:**
+
 - **Print-ready:** Scales to any size for printing
 - **Web-friendly:** Small file size, sharp at any zoom
 - **Editable:** Can be modified in Illustrator, Inkscape, etc.
 - **Accessible:** Text remains selectable
 
 **Example use cases:**
+
 - Posters and prints
 - Website graphics
 - Presentations
@@ -190,6 +213,7 @@ gummyworm -c -f svg --padding 30 -o padded.svg photo.jpg
 - High-DPI displays
 
 **Opening SVG files:**
+
 - Web browsers (Chrome, Firefox, Safari)
 - Vector editors (Illustrator, Inkscape, Figma)
 - Image viewers (Preview on macOS)
@@ -205,6 +229,7 @@ gummyworm -c -f png --padding 20 -o padded.png photo.jpg
 ```
 
 **Characteristics:**
+
 - High-quality rasterization via SVG conversion
 - Fixed resolution (based on character dimensions)
 - Full color support
@@ -212,11 +237,13 @@ gummyworm -c -f png --padding 20 -o padded.png photo.jpg
 - Requires ImageMagick
 
 **Best practices:**
+
 - Use larger widths (`-w 100`+) for higher resolution output
 - Consider `blocks` palette for bold, clear output
 - Good for social media sharing
 
 **Use cases:**
+
 - Social media posts (Twitter, Instagram, etc.)
 - Discord/Slack sharing
 - Image galleries
@@ -232,6 +259,7 @@ gummyworm -a --frame-delay 100 -f gif -o slow.gif fast-animation.gif
 ```
 
 **Characteristics:**
+
 - Preserves animation from source GIF
 - Each frame converted to ASCII independently
 - Full color support
@@ -239,7 +267,8 @@ gummyworm -a --frame-delay 100 -f gif -o slow.gif fast-animation.gif
 - Configurable loop count
 - Requires ImageMagick
 
-**Animation options:**
+**Animation options:** (see [Animation Options](cli-reference.md#animation-options) for all flags)
+
 ```bash
 # Basic animation export
 gummyworm -a -f gif -o output.gif animation.gif
@@ -255,6 +284,7 @@ gummyworm -a --loops 3 -f gif -o limited.gif animation.gif
 ```
 
 **Terminal playback:**
+
 ```bash
 # Play animation in terminal with color
 gummyworm -a -c animation.gif
@@ -267,18 +297,21 @@ gummyworm -a -c --loops 5 animation.gif
 ```
 
 **Best practices:**
+
 - Use smaller widths (`-w 40-60`) for reasonable file sizes
 - Higher frame counts = larger file size
 - Use `--max-frames` to limit very long animations
 - Consider the `blocks` palette for bold, visible characters
 
 **Use cases:**
+
 - Social media animated posts
 - Discord/Slack animated reactions
 - Animated documentation examples
 - Fun visual effects
 
 **Disabling animation:**
+
 ```bash
 # Convert animated GIF to static ASCII (first frame only)
 gummyworm --no-animate animation.gif
@@ -286,7 +319,7 @@ gummyworm --no-animate animation.gif
 
 ## Background Color
 
-Customize the background color for HTML, SVG, and PNG exports:
+Customize the background color for HTML, SVG, and PNG exports using [`--background`](cli-reference.md#--background-color):
 
 ```bash
 # Dark backgrounds
@@ -303,6 +336,7 @@ gummyworm -f png --background '#2d3436' -o gray.png photo.jpg
 **Default:** `#1e1e1e` (dark gray, easy on the eyes)
 
 **Tips:**
+
 - Dark backgrounds work best with color output
 - Light backgrounds may need inverted images (`-i`)
 - Match your website or presentation theme
@@ -333,25 +367,25 @@ gummyworm -c -f png -d ./png-output/ photos/*.jpg
 
 ### File Size (approximate for 80x40 output)
 
-| Format | Without Color | With Color |
-|--------|---------------|------------|
-| Text | ~3 KB | ~3 KB |
-| ANSI | ~3 KB | ~15-25 KB |
-| HTML | ~5 KB | ~50-100 KB |
-| SVG | ~10 KB | ~100-200 KB |
-| PNG | N/A | ~50-150 KB |
-| GIF | N/A | ~100-500 KB (varies by frame count) |
+| Format | Without Color | With Color                          |
+| ------ | ------------- | ----------------------------------- |
+| Text   | ~3 KB         | ~3 KB                               |
+| ANSI   | ~3 KB         | ~15-25 KB                           |
+| HTML   | ~5 KB         | ~50-100 KB                          |
+| SVG    | ~10 KB        | ~100-200 KB                         |
+| PNG    | N/A           | ~50-150 KB                          |
+| GIF    | N/A           | ~100-500 KB (varies by frame count) |
 
 ### Compatibility
 
 | Format | Terminal | Browser | Editor | Image Viewer |
-|--------|----------|---------|--------|--------------|
-| Text | ✅ | ✅ | ✅ | ❌ |
-| ANSI | ✅ | ❌ | ⚠️ | ❌ |
-| HTML | ❌ | ✅ | ✅ | ❌ |
-| SVG | ❌ | ✅ | ✅ | ✅ |
-| PNG | ❌ | ✅ | ✅ | ✅ |
-| GIF | ❌ | ✅ | ✅ | ✅ |
+| ------ | -------- | ------- | ------ | ------------ |
+| Text   | ✅       | ✅      | ✅     | ❌           |
+| ANSI   | ✅       | ❌      | ⚠️     | ❌           |
+| HTML   | ❌       | ✅      | ✅     | ❌           |
+| SVG    | ❌       | ✅      | ✅     | ✅           |
+| PNG    | ❌       | ✅      | ✅     | ✅           |
+| GIF    | ❌       | ✅      | ✅     | ✅           |
 
 ## Troubleshooting
 
@@ -376,7 +410,3 @@ gummyworm -c -f png -d ./png-output/ photos/*.jpg
 - Check that the image file exists and is readable
 - Verify ImageMagick can process the image: `identify photo.jpg`
 - Look for error messages (remove `-q` flag)
-
----
-
-← [Palettes Guide](palettes.md) | [Examples](examples.md) →

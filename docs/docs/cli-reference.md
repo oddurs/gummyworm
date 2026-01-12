@@ -1,3 +1,8 @@
+---
+sidebar_position: 4
+title: CLI Reference
+---
+
 # CLI Reference
 
 Complete command-line reference for gummyworm.
@@ -61,10 +66,10 @@ gummyworm < photo.jpg
 
 Set the output width in characters.
 
-| | |
-|---|---|
-| **Default** | 80 |
-| **Type** | Positive integer |
+|             |                  |
+| ----------- | ---------------- |
+| **Default** | 80               |
+| **Type**    | Positive integer |
 
 ```bash
 # Narrow output
@@ -81,10 +86,10 @@ gummyworm -w $(tput cols) photo.jpg
 
 Set the output height in lines.
 
-| | |
-|---|---|
+|             |                                             |
+| ----------- | ------------------------------------------- |
 | **Default** | Auto-calculated from width and aspect ratio |
-| **Type** | Positive integer |
+| **Type**    | Positive integer                            |
 
 ```bash
 # Fixed height
@@ -109,12 +114,13 @@ gummyworm -w 80 -h 40 --no-aspect photo.jpg
 
 Select a character palette for ASCII rendering.
 
-| | |
-|---|---|
-| **Default** | standard |
-| **Type** | Palette name, custom string, or file basename |
+|             |                                               |
+| ----------- | --------------------------------------------- |
+| **Default** | standard                                      |
+| **Type**    | Palette name, custom string, or file basename |
 
 **Using built-in palettes:**
+
 ```bash
 gummyworm -p blocks photo.jpg
 gummyworm -p emoji cat.jpg
@@ -122,6 +128,7 @@ gummyworm -p detailed portrait.png
 ```
 
 **Using inline custom palette:**
+
 ```bash
 # Characters from light to dark
 gummyworm -p " .oO0@#" photo.jpg
@@ -129,6 +136,7 @@ gummyworm -p " ░▒▓█" photo.jpg
 ```
 
 **Using palette files:**
+
 ```bash
 # Uses palettes/waves.palette
 gummyworm -p waves ocean.jpg
@@ -195,10 +203,10 @@ gummyworm -c -i photo.jpg
 
 Adjust image brightness before conversion.
 
-| | |
-|---|---|
-| **Default** | 0 (no change) |
-| **Type** | Integer from -100 to 100 |
+|             |                          |
+| ----------- | ------------------------ |
+| **Default** | 0 (no change)            |
+| **Type**    | Integer from -100 to 100 |
 
 ```bash
 # Brighten a dark image
@@ -212,10 +220,10 @@ gummyworm --brightness -20 bright-photo.jpg
 
 Adjust image contrast before conversion.
 
-| | |
-|---|---|
-| **Default** | 0 (no change) |
-| **Type** | Integer from -100 to 100 |
+|             |                          |
+| ----------- | ------------------------ |
+| **Default** | 0 (no change)            |
+| **Type**    | Integer from -100 to 100 |
 
 ```bash
 # Increase contrast for more dramatic output
@@ -229,10 +237,10 @@ gummyworm --contrast -20 photo.jpg
 
 Adjust image gamma (midtone brightness) before conversion.
 
-| | |
-|---|---|
-| **Default** | 1.0 (no change) |
-| **Type** | Positive number from 0.1 to 10.0 |
+|             |                                  |
+| ----------- | -------------------------------- |
+| **Default** | 1.0 (no change)                  |
+| **Type**    | Positive number from 0.1 to 10.0 |
 
 ```bash
 # Lighten midtones
@@ -251,14 +259,14 @@ gummyworm --brightness 10 --contrast 20 --gamma 1.2 photo.jpg
 
 Specify the output format.
 
-| Format | Description |
-|--------|-------------|
-| `text` | Plain ASCII text (default) |
+| Format | Description                         |
+| ------ | ----------------------------------- |
+| `text` | Plain ASCII text (default)          |
 | `ansi` | ANSI colored text with escape codes |
-| `html` | Styled HTML document |
-| `svg` | Scalable Vector Graphics |
-| `png` | PNG image |
-| `gif` | Animated GIF (for animated inputs) |
+| `html` | Styled HTML document                |
+| `svg`  | Scalable Vector Graphics            |
+| `png`  | PNG image                           |
+| `gif`  | Animated GIF (for animated inputs)  |
 
 ```bash
 gummyworm -f html photo.jpg > art.html
@@ -273,9 +281,9 @@ See [Export Formats](export-formats.md) for detailed format documentation.
 
 Save output to a file instead of stdout.
 
-| | |
-|---|---|
-| **Default** | stdout |
+|              |                                        |
+| ------------ | -------------------------------------- |
+| **Default**  | stdout                                 |
 | **Behavior** | Appends when processing multiple files |
 
 ```bash
@@ -308,10 +316,10 @@ gummyworm -d ./html-gallery/ -f html photos/*.jpg
 
 Set background color for HTML, SVG, and PNG exports.
 
-| | |
-|---|---|
+|             |                     |
+| ----------- | ------------------- |
 | **Default** | #1e1e1e (dark gray) |
-| **Type** | Hex color code |
+| **Type**    | Hex color code      |
 
 ```bash
 gummyworm -f html --background '#000000' -o dark.html photo.jpg
@@ -323,10 +331,10 @@ gummyworm -f png --background '#1a1a2e' -o styled.png photo.jpg
 
 Set padding in pixels around the ASCII art for HTML, SVG, PNG, and GIF exports.
 
-| | |
-|---|---|
-| **Default** | 0 |
-| **Type** | Non-negative integer |
+|             |                      |
+| ----------- | -------------------- |
+| **Default** | 0                    |
+| **Type**    | Non-negative integer |
 
 ```bash
 # Add 20px padding around the art
@@ -338,6 +346,8 @@ gummyworm -f svg --background '#000000' --padding 30 -o art.svg photo.jpg
 ```
 
 ### Animation Options
+
+For complete animation and GIF export examples, see [GIF Export](export-formats.md#gif-format).
 
 #### `-a, --animate`
 
@@ -366,10 +376,10 @@ gummyworm --no-animate animation.gif
 
 Set the delay between frames in milliseconds for terminal playback and GIF export.
 
-| | |
-|---|---|
+|             |                                        |
+| ----------- | -------------------------------------- |
 | **Default** | 100ms (or original timing from source) |
-| **Type** | Positive integer |
+| **Type**    | Positive integer                       |
 
 ```bash
 # Slower playback (200ms between frames)
@@ -383,10 +393,10 @@ gummyworm -a --frame-delay 50 -f gif -o fast.gif animation.gif
 
 Limit the maximum number of frames to process.
 
-| | |
-|---|---|
-| **Default** | 0 (no limit) |
-| **Type** | Non-negative integer |
+|             |                      |
+| ----------- | -------------------- |
+| **Default** | 0 (no limit)         |
+| **Type**    | Non-negative integer |
 
 ```bash
 # Process only first 10 frames
@@ -400,10 +410,10 @@ gummyworm -a --max-frames 5 -f png -d ./frames/ animation.gif
 
 Set the number of loops for terminal playback or GIF export.
 
-| | |
-|---|---|
-| **Default** | 0 (infinite) |
-| **Type** | Non-negative integer |
+|             |                      |
+| ----------- | -------------------- |
+| **Default** | 0 (infinite)         |
+| **Type**    | Non-negative integer |
 
 ```bash
 # Play animation 3 times
@@ -503,11 +513,11 @@ curl -s https://example.com/photo.jpg | gummyworm -c -w 60 | less -R
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (invalid arguments, missing files, etc.) |
-| 2 | Missing dependencies (ImageMagick not installed) |
+| Code | Meaning                                                |
+| ---- | ------------------------------------------------------ |
+| 0    | Success                                                |
+| 1    | General error (invalid arguments, missing files, etc.) |
+| 2    | Missing dependencies (ImageMagick not installed)       |
 
 ## Configuration Files
 
@@ -533,11 +543,7 @@ See [Configuration](configuration.md) for full documentation.
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
+| Variable         | Description                              |
+| ---------------- | ---------------------------------------- |
 | `GUMMYWORM_ROOT` | Override the installation root directory |
-| `NO_COLOR` | If set, disables colored log output |
-
----
-
-← [Installation](installation.md) | [Configuration](configuration.md) →
+| `NO_COLOR`       | If set, disables colored log output      |

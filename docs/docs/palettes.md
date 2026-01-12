@@ -1,3 +1,8 @@
+---
+sidebar_position: 6
+title: Palettes
+---
+
 # Palettes Guide
 
 Palettes define which characters are used to represent different brightness levels in your ASCII art. gummyworm comes with 12 built-in palettes and supports custom palettes via inline strings or files.
@@ -11,6 +16,7 @@ A palette is an ordered string of characters from **lightest** (or empty) to **d
 3. The corresponding character from the palette is output
 
 **Example:** With palette ` .oO@` (5 characters):
+
 - Very bright pixels → ` ` (space)
 - Bright pixels → `.`
 - Medium pixels → `o`
@@ -25,20 +31,82 @@ View all available palettes with:
 gummyworm --list-palettes
 ```
 
-| Palette | Characters | Best For |
-|---------|------------|----------|
-| `standard` | ` .:-=+*#%@` | General purpose, good balance |
+> See also: [`-l, --list-palettes`](cli-reference.md#-l---list-palettes) in the CLI Reference.
+
+| Palette    | Characters     | Best For                      |
+| ---------- | -------------- | ----------------------------- |
+| `standard` | ` .:-=+*#%@`   | General purpose, good balance |
 | `detailed` | 72 ASCII chars | High-detail photos, portraits |
-| `simple` | ` .oO@` | Quick previews, small sizes |
-| `blocks` | ` ░▒▓█` | High contrast, bold images |
-| `binary` | ` █` | Silhouettes, logos, line art |
-| `dots` | ` ⠁⠃⠇⠿⣿` | Braille-style, compact art |
-| `shades` | ` ░▒▓█` | Block shading |
-| `retro` | ` .:░▒▓█` | Retro computing aesthetic |
-| `matrix` | ` 01` | Matrix/hacker style |
-| `emoji` | 🌑🌒🌓🌔🌕 | Fun social posts, moon phases |
-| `stars` | ` ·✦★✷✸✹` | Dreamy, celestial effects |
-| `hearts` | ` ♡♥❤💖💗` | Love-themed art |
+| `simple`   | ` .oO@`        | Quick previews, small sizes   |
+| `blocks`   | ` ░▒▓█`        | High contrast, bold images    |
+| `binary`   | ` █`           | Silhouettes, logos, line art  |
+| `dots`     | ` ⠁⠃⠇⠿⣿`       | Braille-style, compact art    |
+| `shades`   | ` ░▒▓█`        | Block shading                 |
+| `retro`    | ` .:░▒▓█`      | Retro computing aesthetic     |
+| `matrix`   | ` 01`          | Matrix/hacker style           |
+| `emoji`    | 🌑🌒🌓🌔🌕     | Fun social posts, moon phases |
+| `stars`    | ` ·✦★✷✸✹`      | Dreamy, celestial effects     |
+| `hearts`   | ` ♡♥❤💖💗`     | Love-themed art               |
+
+### Visual Examples
+
+Here's how the same circular shape looks with different palettes:
+
+**standard** (default)
+
+```
+      .:::.
+    .::::::::.
+   :::::::::::
+  :::::::::::::
+  :::::::::::::
+   :::::::::::
+    '::::::::'
+      ':::'
+```
+
+**blocks**
+
+```
+      ░▒▒░
+    ░▒▒▒▒▒▒░
+   ▒▒▒▒▒▒▒▒▒
+  ▒▒▒▒▒▒▒▒▒▒▒
+  ▒▒▒▒▒▒▒▒▒▒▒
+   ▒▒▒▒▒▒▒▒▒
+    ░▒▒▒▒▒▒░
+      ░▒▒░
+```
+
+**binary**
+
+```
+      ███
+    ███████
+   █████████
+  ███████████
+  ███████████
+   █████████
+    ███████
+      ███
+```
+
+**emoji** (smaller width recommended)
+
+```
+    🌓🌔🌔🌓
+  🌔🌕🌕🌕🌕🌔
+  🌔🌕🌕🌕🌕🌔
+    🌓🌔🌔🌓
+```
+
+> **Tip:** Generate your own comparisons:
+>
+> ```bash
+> for p in standard blocks binary emoji; do
+>   echo "=== $p ===" && gummyworm -p "$p" -w 40 photo.jpg
+> done
+> ```
 
 ### Usage Examples
 
@@ -46,7 +114,7 @@ gummyworm --list-palettes
 # Standard palette (default)
 gummyworm photo.jpg
 
-# Block characters for bold output
+# Block characters for bold output (see -p option in CLI Reference)
 gummyworm -p blocks landscape.jpg
 
 # Emoji for fun social sharing
@@ -83,6 +151,7 @@ gummyworm -p " *#" photo.jpg
 ```
 
 **Rules for inline palettes:**
+
 - Characters go from lightest to darkest
 - Start with a space for white/bright areas
 - Minimum 2 characters required
@@ -107,29 +176,31 @@ Create reusable palette files in the `palettes/` directory with optional metadat
 
 Palette files support optional metadata headers:
 
-| Field | Description |
-|-------|-------------|
-| `Name` | Display name shown in `--list-palettes` |
-| `Description` | Brief description of the palette |
-| `Author` | Creator's name |
-| `Tags` | Comma-separated tags for categorization |
+| Field         | Description                             |
+| ------------- | --------------------------------------- |
+| `Name`        | Display name shown in `--list-palettes` |
+| `Description` | Brief description of the palette        |
+| `Author`      | Creator's name                          |
+| `Tags`        | Comma-separated tags for categorization |
 
 All metadata is optional. Lines starting with `#` are comments. The first non-comment, non-empty line is the character set.
 
 **Example: Creating a custom palette**
 
 1. Copy the template:
+
    ```bash
    cp palettes/_template.palette palettes/ocean.palette
    ```
 
 2. Edit `palettes/ocean.palette`:
+
    ```
    # Name: Ocean
    # Description: Wave-themed palette for water images
    # Author: Your Name
    # Tags: unicode, water, nature
-   
+
     ~≈≋⌇░▒▓█
    ```
 
@@ -141,6 +212,7 @@ All metadata is optional. Lines starting with `#` are comments. The first non-co
 **More example palettes:**
 
 `palettes/arrows.palette`:
+
 ```
 # Name: Arrows
 # Description: Directional arrow characters
@@ -149,6 +221,7 @@ All metadata is optional. Lines starting with `#` are comments. The first non-co
 ```
 
 `palettes/boxes.palette`:
+
 ```
 # Name: Box Drawing
 # Description: Box drawing and shade characters
@@ -157,6 +230,7 @@ All metadata is optional. Lines starting with `#` are comments. The first non-co
 ```
 
 `palettes/currency.palette`:
+
 ```
 # Name: Currency
 # Description: Money-themed with currency symbols
@@ -172,13 +246,13 @@ See `palettes/README.md` for more examples and the complete format specification
 
 Not all terminals render Unicode characters equally:
 
-| Character Type | Support Level |
-|----------------|---------------|
-| Basic ASCII | Universal |
-| Extended ASCII (░▒▓) | Most terminals |
-| Unicode symbols (✦★●) | Modern terminals |
-| Emoji (🌕❤️🔥) | Varies widely |
-| Braille (⠁⠃⠇) | Good in modern terminals |
+| Character Type        | Support Level            |
+| --------------------- | ------------------------ |
+| Basic ASCII           | Universal                |
+| Extended ASCII (░▒▓)  | Most terminals           |
+| Unicode symbols (✦★●) | Modern terminals         |
+| Emoji (🌕❤️🔥)        | Varies widely            |
+| Braille (⠁⠃⠇)         | Good in modern terminals |
 
 **Recommendation:** Test your palette in your target terminal before batch processing.
 
@@ -187,6 +261,7 @@ Not all terminals render Unicode characters equally:
 Some Unicode characters are "wide" (take 2 columns) while others are narrow (1 column). gummyworm handles this automatically when Python 3 is available.
 
 **Characters that may cause alignment issues:**
+
 - Most emoji (2 columns wide)
 - CJK characters
 - Some symbols
@@ -197,44 +272,44 @@ Some Unicode characters are "wide" (take 2 columns) while others are narrow (1 c
 
 For best results with special characters:
 
-| Palette Type | Recommended Fonts |
-|--------------|-------------------|
-| Block characters | Any monospace |
-| Braille | DejaVu Sans Mono, Consolas |
-| Emoji | Noto Color Emoji, Apple Color Emoji |
-| Stars/Symbols | Fira Code, JetBrains Mono |
+| Palette Type     | Recommended Fonts                   |
+| ---------------- | ----------------------------------- |
+| Block characters | Any monospace                       |
+| Braille          | DejaVu Sans Mono, Consolas          |
+| Emoji            | Noto Color Emoji, Apple Color Emoji |
+| Stars/Symbols    | Fira Code, JetBrains Mono           |
 
 ## Palette Selection Guide
 
 ### By Image Type
 
-| Image Type | Recommended Palette |
-|------------|---------------------|
-| Portraits | `detailed`, `standard` |
-| Landscapes | `blocks`, `shades` |
-| Logos/Icons | `binary`, `simple` |
-| Photos (general) | `standard`, `detailed` |
-| Dark images | `blocks` + `-i` (invert) |
-| Artistic/stylized | `emoji`, `stars`, `matrix` |
+| Image Type        | Recommended Palette                                      |
+| ----------------- | -------------------------------------------------------- |
+| Portraits         | `detailed`, `standard`                                   |
+| Landscapes        | `blocks`, `shades`                                       |
+| Logos/Icons       | `binary`, `simple`                                       |
+| Photos (general)  | `standard`, `detailed`                                   |
+| Dark images       | `blocks` + [`-i` (invert)](cli-reference.md#-i---invert) |
+| Artistic/stylized | `emoji`, `stars`, `matrix`                               |
 
 ### By Output Purpose
 
-| Purpose | Recommended Palette |
-|---------|---------------------|
-| Terminal display | `standard`, `blocks` |
-| Text file | `standard`, `detailed` |
-| HTML/Web | Any (colors preserved) |
-| Social media | `emoji`, `blocks` |
-| Print | `detailed`, `standard` |
-| Code comments | `simple`, `binary` |
+| Purpose                                   | Recommended Palette    |
+| ----------------------------------------- | ---------------------- |
+| Terminal display                          | `standard`, `blocks`   |
+| Text file                                 | `standard`, `detailed` |
+| [HTML/Web](export-formats.md#html-format) | Any (colors preserved) |
+| Social media                              | `emoji`, `blocks`      |
+| Print                                     | `detailed`, `standard` |
+| Code comments                             | `simple`, `binary`     |
 
 ### By Size
 
-| Output Width | Recommended Palette |
-|--------------|---------------------|
-| Small (< 40) | `simple`, `blocks`, `emoji` |
-| Medium (40-100) | `standard`, `blocks` |
-| Large (> 100) | `detailed`, `standard` |
+| Output Width    | Recommended Palette         |
+| --------------- | --------------------------- |
+| Small (< 40)    | `simple`, `blocks`, `emoji` |
+| Medium (40-100) | `standard`, `blocks`        |
+| Large (> 100)   | `detailed`, `standard`      |
 
 ## Advanced: Creating Effective Palettes
 
@@ -250,10 +325,10 @@ For best results with special characters:
 Common characters ordered by visual density:
 
 ```
-Lightest: (space) . · ' ` , - ~ _ 
-Light:    : ; ! i l | / \ ( ) 
-Medium:   o O 0 c C { } [ ] + = * 
-Dark:     # % @ & $ X W M 
+Lightest: (space) . · ' ` , - ~ _
+Light:    : ; ! i l | / \ ( )
+Medium:   o O 0 c C { } [ ] + = *
+Dark:     # % @ & $ X W M
 Darkest:  █ ▓ ▒ (solid blocks)
 ```
 
@@ -298,7 +373,3 @@ done
 - Ensure file is in `palettes/` directory
 - File must end with `.palette` extension
 - Check filename matches exactly (case-sensitive)
-
----
-
-← [CLI Reference](cli-reference.md) | [Export Formats](export-formats.md) →

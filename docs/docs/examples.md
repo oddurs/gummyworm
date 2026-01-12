@@ -1,3 +1,8 @@
+---
+sidebar_position: 3
+title: Examples
+---
+
 # Examples
 
 A collection of practical examples showing gummyworm in action.
@@ -12,21 +17,22 @@ gummyworm photo.jpg
 ```
 
 **Output:**
+
 ```
-                    ..::::::..                    
-                .::::::::::::::.                  
-              .:::::.      .:::::.                
-            .::::.   @@@@@@   .::::.              
-           .:::.   @@@@@@@@@@   .:::.             
-          .:::.   @@@@@@@@@@@@   .:::.            
-          .:::   @@@@@@@@@@@@@@   :::.            
-          .:::   @@@@@@@@@@@@@@   :::.            
-          .:::.   @@@@@@@@@@@@   .:::.            
-           .:::.   @@@@@@@@@@   .:::.             
-            .::::.   @@@@@@   .::::.              
-              .:::::.      .:::::.                
-                .::::::::::::::.                  
-                    ..::::::..                    
+                    ..::::::..
+                .::::::::::::::.
+              .:::::.      .:::::.
+            .::::.   @@@@@@   .::::.
+           .:::.   @@@@@@@@@@   .:::.
+          .:::.   @@@@@@@@@@@@   .:::.
+          .:::   @@@@@@@@@@@@@@   :::.
+          .:::   @@@@@@@@@@@@@@   :::.
+          .:::.   @@@@@@@@@@@@   .:::.
+           .:::.   @@@@@@@@@@   .:::.
+            .::::.   @@@@@@   .::::.
+              .:::::.      .:::::.
+                .::::::::::::::.
+                    ..::::::..
 ```
 
 ### Adjusting Width
@@ -193,6 +199,65 @@ gummyworm -r -d ./output/ ~/Pictures/
 gummyworm -r --continue-on-error -d ./output/ ~/Pictures/
 ```
 
+## Animation Examples
+
+gummyworm can convert animated GIFs to ASCII animations for terminal playback or re-export as ASCII GIFs.
+
+### Terminal Playback
+
+```bash
+# Play animation in terminal (with color)
+gummyworm -a -c animation.gif
+
+# Slower playback (default is 100ms between frames)
+gummyworm -a -c --frame-delay 200 animation.gif
+
+# Play 3 times then stop (default is infinite)
+gummyworm -a -c --loops 3 animation.gif
+
+# Preview first 10 frames only
+gummyworm -a -c --max-frames 10 long-animation.gif
+```
+
+Press `Ctrl+C` to stop playback at any time.
+
+### Export as ASCII GIF
+
+```bash
+# Basic conversion
+gummyworm -a -c -f gif -o ascii.gif animation.gif
+
+# Customize timing
+gummyworm -a --frame-delay 150 -f gif -o slow.gif animation.gif
+
+# Smaller file size (fewer frames, smaller dimensions)
+gummyworm -a -w 40 --max-frames 30 -f gif -o compact.gif animation.gif
+
+# Limited loops for smaller file
+gummyworm -a --loops 1 -f gif -o single-loop.gif animation.gif
+```
+
+### Static from Animated
+
+```bash
+# Extract first frame only (no animation)
+gummyworm --no-animate animation.gif
+
+# Save first frame as PNG
+gummyworm --no-animate -c -f png -o frame1.png animation.gif
+```
+
+### Animation Tips
+
+| Goal               | Recommendation                       |
+| ------------------ | ------------------------------------ |
+| Smaller file size  | Use `-w 40-60`, `--max-frames 20-50` |
+| Smoother animation | Use `--frame-delay 50-100`           |
+| Better visibility  | Use `-p blocks` palette              |
+| Quick preview      | Use `--max-frames 5` first           |
+
+See also: [Animation CLI Options](cli-reference.md#animation-options) | [GIF Export Format](export-formats.md#gif-format)
+
 ## URL and Stdin
 
 ### From URL
@@ -254,12 +319,12 @@ gummyworm -c -w 30 -f html -p blocks avatar.jpg > signature.html
 
 ### Slack/Discord Message
 
-```bash
+````bash
 # Generate code block ASCII
 echo '```'
 gummyworm -w 50 -p blocks photo.jpg
 echo '```'
-```
+````
 
 ### Watch Directory for New Images
 
@@ -289,6 +354,7 @@ done
 ```
 
 Save as `compare-palettes.sh` and run:
+
 ```bash
 chmod +x compare-palettes.sh
 ./compare-palettes.sh photo.jpg
@@ -296,19 +362,15 @@ chmod +x compare-palettes.sh
 
 ## Quick Reference
 
-| Goal | Command |
-|------|---------|
-| Basic conversion | `gummyworm photo.jpg` |
-| Color output | `gummyworm -c photo.jpg` |
-| Wider output | `gummyworm -w 120 photo.jpg` |
-| Block style | `gummyworm -p blocks photo.jpg` |
-| Emoji art | `gummyworm -p emoji -w 40 photo.jpg` |
-| Save to file | `gummyworm -o art.txt photo.jpg` |
-| Export HTML | `gummyworm -c -o art.html photo.jpg` |
-| Export PNG | `gummyworm -c -f png -o art.png photo.jpg` |
-| From URL | `gummyworm https://example.com/img.jpg` |
-| Batch process | `gummyworm -d ./out/ photos/*.jpg` |
-
----
-
-← [Export Formats](export-formats.md) | [Troubleshooting](troubleshooting.md) →
+| Goal             | Command                                    |
+| ---------------- | ------------------------------------------ |
+| Basic conversion | `gummyworm photo.jpg`                      |
+| Color output     | `gummyworm -c photo.jpg`                   |
+| Wider output     | `gummyworm -w 120 photo.jpg`               |
+| Block style      | `gummyworm -p blocks photo.jpg`            |
+| Emoji art        | `gummyworm -p emoji -w 40 photo.jpg`       |
+| Save to file     | `gummyworm -o art.txt photo.jpg`           |
+| Export HTML      | `gummyworm -c -o art.html photo.jpg`       |
+| Export PNG       | `gummyworm -c -f png -o art.png photo.jpg` |
+| From URL         | `gummyworm https://example.com/img.jpg`    |
+| Batch process    | `gummyworm -d ./out/ photos/*.jpg`         |
