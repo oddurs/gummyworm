@@ -78,7 +78,7 @@ const config = {
       '@easyops-cn/docusaurus-search-local',
       {
         hashed: true,
-        indexBlog: false,
+        indexBlog: true,
         highlightSearchTermsOnTargetPage: true,
       },
     ],
@@ -93,7 +93,12 @@ const config = {
           sidebarPath: './sidebars.js',
           editUrl: 'https://github.com/oddurs/gummyworm/tree/main/docs/',
         },
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          blogTitle: 'Blog',
+          blogDescription: 'gummyworm news and updates',
+          postsPerPage: 10,
+        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -110,13 +115,22 @@ const config = {
         respectPrefersColorScheme: false,
       },
       navbar: {
-        title: 'gummyworm',
+        title: '',
+        logo: {
+          alt: 'gummyworm',
+          src: 'img/gummyworm-logo.svg',
+        },
         items: [
           {
             type: 'docSidebar',
             sidebarId: 'docs',
             position: 'left',
             label: 'Docs',
+          },
+          {
+            to: '/blog',
+            label: 'Blog',
+            position: 'left',
           },
           {
             href: 'https://github.com/oddurs/gummyworm',
