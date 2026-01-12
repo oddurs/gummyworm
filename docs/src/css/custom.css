@@ -3,6 +3,9 @@
  * Tokyo Night color palette
  */
 
+/* Import DM Mono font */
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap');
+
 :root {
   /* Tokyo Night primary - blue/purple */
   --ifm-color-primary: #7aa2f7;
@@ -33,7 +36,7 @@
   --ifm-font-family-base: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
-  --ifm-font-family-monospace: 'SF Mono', Monaco, Consolas, 'Liberation Mono',
+  --ifm-font-family-monospace: 'DM Mono', 'SF Mono', Monaco, Consolas, 'Liberation Mono',
     'Courier New', monospace;
 }
 
@@ -83,6 +86,17 @@ a:hover {
 /* Navbar title */
 .navbar__title {
   color: #ffffff;
+}
+
+/* Navbar logo */
+.navbar__logo {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__logo img {
+  height: 0.9rem;
+  margin-top: 0.4rem;
 }
 
 /* Search bar - Tokyo Night styling */
