@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(git tag:*)",
+      "Bash(bash:*)",
+      "Bash(zsh:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(brew audit:*)",
+      "Bash(grep:*)",
+      "Bash(brew upgrade:*)",
+      "Bash(brew reinstall:*)"
+    ]
+  }
+}
