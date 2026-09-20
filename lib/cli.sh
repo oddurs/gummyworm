@@ -276,6 +276,7 @@ parse_args() {
                 ;;
             --background)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                is_valid_color "$2" || die_usage "Background must be a hex colour (#RGB or #RRGGBB) or a named colour"
                 ARG_BACKGROUND="$2"
                 shift 2
                 ;;

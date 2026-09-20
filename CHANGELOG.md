@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **`--background` is validated and escaped.** Any string was previously
+  accepted and interpolated straight into the generated SVG and HTML. A value
+  carrying markup ended up in the exported file verbatim. The value now has to
+  be a hex colour (`#RGB` or `#RRGGBB`) or a known colour name, and both
+  exporters escape it regardless — so a caller that skips validation cannot
+  reintroduce the problem. This also applies to the `background=` key in a
+  config file, which matters more: `./.gummywormrc` travels with a cloned
+  repository, so that value does not come from the person running the command.
+- **The test runner discarded most failing assertions.** A test was judged by
+  errexit inside a subshell, but the suite calls each test as
+  `run_test ... || true`, and bash suppresses errexit for everything inside an
+  `&&`/`||` list. A failing assertion that was not the last line of its test
+  printed `ASSERTION FAILED` and the test still reported PASS. 154 of the
+  suite's 384 assertions — 40% — were never enforced. Assertions now record
+  failures in a counter the runner reads, which does not depend on the call
+  site. Turning enforcement on surfaced exactly one real failure, fixed below.
+- `is_valid_hex_color` was called by the zsh compatibility suite but defined
+  nowhere in `lib/` or `bin/`. It now exists, alongside `is_valid_color`.
+
+### Added
+- `tests/test_cli.sh`: 21 tests covering `parse_args` directly — per-flag
+  validation, inclusive range boundaries at both ends, missing arguments,
+  unknown options, config/CLI precedence, and positional collection. The
+  425-line parser previously had no dedicated tests.
+- Background colour validation and escaping tests in the config and export
+  suites.
+
+The suite now runs 9 files and 319 tests, all enforced.
+
 ## [2.3.0] - 2026-09-20
 
 ### Fixed

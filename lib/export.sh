@@ -162,7 +162,7 @@ export_html() {
             box-sizing: border-box;
         }
         body {
-            background-color: ${bg_color};
+            background-color: $(escape_markup "$bg_color");
             display: flex;
             justify-content: center;
             align-items: center;
@@ -339,7 +339,7 @@ export_svg() {
       }
     </style>
   </defs>
-  <rect width="100%" height="100%" fill="${bg_color}"/>
+  <rect width="100%" height="100%" fill="$(escape_markup "$bg_color")"/>
   <g class="ascii-text">
 EOF
 

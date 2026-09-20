@@ -185,6 +185,32 @@ CONFIG_QUIET="$DEFAULT_QUIET"
 CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
 CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
 
+# Colour patterns for background validation. Hex is #RGB or #RRGGBB; the named
+# set is the conservative intersection of CSS named colours and the names
+# ImageMagick accepts, so a value that validates here works in every export.
+readonly RE_HEX_COLOR='^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$'
+readonly RE_NAMED_COLOR='^(transparent|none|black|white|red|green|blue|cyan|magenta|yellow|gray|grey|silver|maroon|olive|lime|teal|navy|purple|fuchsia|aqua|orange|pink|brown|gold|beige)$'
+
+# Colour validators live here rather than in utils.sh: config.sh is sourced
+# first and parses the config file at source time, so anything it validates
+# with must already be defined.
+
+# Check if a value is a valid hex colour (#RGB or #RRGGBB)
+# Usage: is_valid_hex_color <value>
+is_valid_hex_color() {
+    [[ "$1" =~ $RE_HEX_COLOR ]]
+}
+
+# Check if a value is usable as a background colour: hex, or one of the named
+# colours both CSS and ImageMagick understand. Validates --background and the
+# config file's background= key before either reaches an exporter.
+# Usage: is_valid_color <value>
+is_valid_color() {
+    local value
+    value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    [[ "$1" =~ $RE_HEX_COLOR ]] || [[ "$value" =~ $RE_NAMED_COLOR ]]
+}
+
 # Load a config file if it exists
 # Usage: _load_config_file "/path/to/config"
 _load_config_file() {
@@ -216,7 +242,16 @@ _load_config_file() {
                 color)           CONFIG_COLOR="$value" ;;
                 truecolor)       CONFIG_TRUECOLOR="$value" ;;
                 format)          CONFIG_FORMAT="$value" ;;
-                background)      CONFIG_BACKGROUND="$value" ;;
+                background)
+                    # Validated here too: this value does not come from the
+                    # person running the command -- ./.gummywormrc can ship
+                    # with a cloned repository.
+                    if is_valid_color "$value"; then
+                        CONFIG_BACKGROUND="$value"
+                    else
+                        echo "Warning: ignoring invalid background colour in config: $value" >&2
+                    fi
+                    ;;
                 padding)         CONFIG_PADDING="$value" ;;
                 brightness)      CONFIG_BRIGHTNESS="$value" ;;
                 contrast)        CONFIG_CONTRAST="$value" ;;

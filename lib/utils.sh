@@ -139,6 +139,20 @@ is_non_negative_int() {
     [[ "$1" =~ $RE_INTEGER ]]
 }
 
+# Escape a string for safe interpolation into HTML/SVG markup.
+# Usage: escape_markup <string>
+escape_markup() {
+    # sed rather than ${var//&/&amp;}: bash 5.2 reads an unquoted & in a
+    # substitution replacement as the matched text, so the parameter-expansion
+    # form yields "<lt;" instead of "&lt;" -- and it behaves differently again
+    # on the bash 3.2 this project still supports. & must be replaced first.
+    printf '%s' "$1" | sed -e 's/&/\&amp;/g' \
+                           -e 's/</\&lt;/g' \
+                           -e 's/>/\&gt;/g' \
+                           -e 's/"/\&quot;/g' \
+                           -e "s/'/\&#39;/g"
+}
+
 # ============================================================================
 # String Functions
 # ============================================================================

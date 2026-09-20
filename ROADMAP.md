@@ -4,7 +4,7 @@
 
 ## v2.3.0 — Proportionally accurate output
 
-`##########` 100% · 8 of 8 done
+`##########` 100% · 11 of 11 done
 
 Correct the aspect-ratio maths so default output is proportionally accurate, and let people tune it to their own terminal.
 
@@ -18,6 +18,19 @@ Correct the aspect-ratio maths so default output is proportionally accurate, and
 - [x] [`0010`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0010-stale-version-assertion-in-test-zsh-compat-sh-pins-2-1-0.md) Stale version assertion in test_zsh_compat.sh pins 2.1.0 <sup>bug · p1</sup>
 - [x] [`0011`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0011-run-all-sh-runs-only-5-of-8-test-suites.md) run_all.sh runs only 5 of 8 test suites <sup>bug · p1</sup>
 - [x] [`0012`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0012-changelog-version-history-table-missing-the-2-3-0-row.md) CHANGELOG version history table missing the 2.3.0 row <sup>docs · p2</sup>
+- [x] [`0013`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0013-background-is-never-validated-and-is-interpolated-unescaped-into-svg-html.md) --background is never validated and is interpolated unescaped into SVG/HTML <sup>bug · p1</sup>
+- [x] [`0015`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0015-add-test-cli-sh-covering-the-argument-parser-directly.md) Add test_cli.sh covering the argument parser directly <sup>chore · p1</sup>
+- [x] [`0016`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0016-test-runner-discards-a-failing-assertion-unless-it-is-the-test-s-last-line.md) Test runner discards a failing assertion unless it is the test's last line <sup>bug · p0</sup>
+
+## later — Someday
+
+`··········` 0% · 0 of 1 done
+
+Good ideas without a date yet.
+
+### backlog
+
+- [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
 
 ## Unscheduled
 

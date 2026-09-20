@@ -349,6 +349,41 @@ test_export_svg_default_padding() {
 }
 
 # ============================================================================
+# Tests: background colour escaping
+# ============================================================================
+# The exporters escape the background independently of whether the caller
+# validated it, so a future caller that skips validation cannot inject markup.
+
+test_export_svg_escapes_background() {
+    local svg
+    svg=$(export_svg "X" '"><script>x</script>' "0")
+    assert_not_contains "$svg" "<script>x</script>" "SVG does not emit a raw script tag"
+    assert_contains "$svg" "&lt;script&gt;" "SVG escapes the background value"
+}
+
+test_export_html_escapes_background() {
+    local html
+    html=$(export_html "X" '"><script>x</script>' "0")
+    assert_not_contains "$html" "<script>x</script>" "HTML does not emit a raw script tag"
+    assert_contains "$html" "&lt;script&gt;" "HTML escapes the background value"
+}
+
+test_escape_markup_handles_all_entities() {
+    assert_equals "&amp;" "$(escape_markup '&')" "ampersand is escaped"
+    assert_equals "&lt;" "$(escape_markup '<')" "less-than is escaped"
+    assert_equals "&gt;" "$(escape_markup '>')" "greater-than is escaped"
+    assert_equals "&quot;" "$(escape_markup '"')" "double quote is escaped"
+    assert_equals "&#39;" "$(escape_markup "'")" "single quote is escaped"
+    # Ampersand must be replaced first or the other entities get double-escaped.
+    assert_equals "&amp;lt;" "$(escape_markup '&lt;')" "an existing entity is not double-escaped wrongly"
+}
+
+test_valid_colors_pass_through_unchanged() {
+    assert_equals "#1e1e1e" "$(escape_markup '#1e1e1e')" "hex colour is unchanged"
+    assert_equals "black" "$(escape_markup 'black')" "named colour is unchanged"
+}
+
+# ============================================================================
 # Tests: EXPORT_FORMATS constant
 # ============================================================================
 

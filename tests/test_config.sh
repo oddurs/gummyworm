@@ -277,6 +277,58 @@ EOF
 }
 
 # ============================================================================
+# Tests: background colour validation
+# ============================================================================
+# A config file's background= value does not come from the person running the
+# command -- ./.gummywormrc ships with a cloned repository -- so it is
+# validated on the way in rather than trusted.
+
+test_config_accepts_valid_background() {
+    setup_config_tests
+    mkdir -p "$TEST_TMP_DIR"
+    printf 'background=#abcdef\n' > "$TEST_TMP_DIR/config"
+
+    CONFIG_BACKGROUND="#1e1e1e"
+    _load_config_file "$TEST_TMP_DIR/config" 2>/dev/null
+
+    assert_equals "#abcdef" "$CONFIG_BACKGROUND" "a valid hex background is accepted"
+    cleanup_config_tests
+}
+
+test_config_accepts_named_background() {
+    setup_config_tests
+    printf 'background=black\n' > "$TEST_TMP_DIR/config"
+
+    CONFIG_BACKGROUND="#1e1e1e"
+    _load_config_file "$TEST_TMP_DIR/config" 2>/dev/null
+
+    assert_equals "black" "$CONFIG_BACKGROUND" "a valid named background is accepted"
+    cleanup_config_tests
+}
+
+test_config_rejects_invalid_background() {
+    setup_config_tests
+    printf 'background=notacolor\n' > "$TEST_TMP_DIR/config"
+
+    CONFIG_BACKGROUND="#1e1e1e"
+    _load_config_file "$TEST_TMP_DIR/config" 2>/dev/null
+
+    assert_equals "#1e1e1e" "$CONFIG_BACKGROUND" "an unknown background name is ignored"
+    cleanup_config_tests
+}
+
+test_config_rejects_markup_in_background() {
+    setup_config_tests
+    printf 'background=%s\n' '"><script>x</script>' > "$TEST_TMP_DIR/config"
+
+    CONFIG_BACKGROUND="#1e1e1e"
+    _load_config_file "$TEST_TMP_DIR/config" 2>/dev/null
+
+    assert_equals "#1e1e1e" "$CONFIG_BACKGROUND" "a background carrying markup is ignored"
+    cleanup_config_tests
+}
+
+# ============================================================================
 # Run tests
 # ============================================================================
 
