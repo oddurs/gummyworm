@@ -1,0 +1,240 @@
+# cairn.toml — the schema for this project's roadmap and issues.
+#
+# Everything here is configurable: the item types, the statuses they move
+# through, any extra fields you want to track, the milestones, the saved views,
+# and how ROADMAP.md gets rendered. Delete what you do not need.
+#
+#   cairn config          show the resolved schema
+#   cairn check           validate every item against it
+#   man cairn             full reference
+
+# On-disk format version. cairn refuses to open a project written in a format it
+# does not know, rather than misreading it. See "Compatibility" in the manual.
+format = 3
+
+[project]
+name = "gummyworm"
+dir = "cairn/items"           # where item files live, relative to this file
+id_width = 4              # 0001, 0002, ...
+default_type = "feature"
+default_status = "backlog"
+# filename_max = 255      # longest filename your filesystem accepts, in bytes;
+                          # titles are only shortened as much as this demands
+url = "https://github.com/oddurs/gummyworm/blob/main"
+
+# ─── Item types ──────────────────────────────────────────────────────────────
+# `template` seeds the body of new items of that type, so every bug report and
+# every feature arrives with the same headings.
+
+[[type]]
+name = "feature"
+icon = "+"
+color = "cyan"
+template = """
+## Problem
+
+## Proposal
+
+## Acceptance criteria
+
+- [ ]
+"""
+
+[[type]]
+name = "bug"
+icon = "!"
+color = "red"
+template = """
+## What happens
+
+## What should happen
+
+## Reproduction
+
+1.
+"""
+
+[[type]]
+name = "chore"
+icon = "~"
+color = "gray"
+
+[[type]]
+name = "docs"
+icon = "*"
+color = "blue"
+
+# ─── Statuses ────────────────────────────────────────────────────────────────
+# Order matters: it is the column order on the board and the sort order in
+# listings. `category` is what the tool reasons about — open / active / done /
+# dropped — so you can rename the statuses themselves to anything you like.
+
+[[status]]
+name = "backlog"
+category = "open"
+color = "gray"
+
+[[status]]
+name = "planned"
+category = "open"
+color = "blue"
+
+[[status]]
+name = "doing"
+label = "in progress"
+category = "active"
+color = "yellow"
+
+[[status]]
+name = "blocked"
+category = "active"
+color = "red"
+
+[[status]]
+name = "done"
+category = "done"
+color = "green"
+
+[[status]]
+name = "dropped"
+category = "dropped"
+color = "gray"
+board = false             # hide this column on `cairn board`
+
+# ─── Custom fields ───────────────────────────────────────────────────────────
+# kind = text | enum | list | date | number | bool
+# `column = true` puts the field in the default `cairn list` table.
+# Composition. `part_of` is a reference: its values name other items rather than
+# describing this one. Many-valued on purpose — an item can belong to two larger
+# efforts at once, which a `parent` field could not express and which is why
+# there is no such field.
+#
+# Nothing requires it. `cairn new` still takes only a title, and structure is
+# added afterwards: `cairn set 12 part_of=7`.
+[[type]]
+name = "milestone"
+# `groups` is what makes a type the thing work is filed *under* rather than work
+# itself: absent from `cairn next`, absent from the board, and accumulating the
+# progress of everything filed under it. Declaring it also creates the field, so
+# `milestone: v0.1` names one by its key — a handle, not an identity, since `id`
+# is still the number.
+#
+# `one` because work ships in exactly one release. A type that groups work
+# several ways at once — an epic, a theme — says `many`.
+groups = "one"
+inverse = "scheduled"
+description = "a release, or whatever this project ships"
+
+[[field]]
+name = "due"
+kind = "date"
+description = "when a milestone is meant to land"
+
+[[field]]
+name = "part_of"
+kind = "ref"
+target = "*"
+cardinality = "many"
+acyclic = true
+rollup = true
+inverse = "contains"
+description = "a larger piece of work this belongs to"
+
+# Enum values are ordered: `cairn list --sort priority` respects that order.
+
+[[field]]
+name = "priority"
+kind = "enum"
+values = ["p0", "p1", "p2", "p3"]
+default = "p2"
+column = true
+description = "p0 is a release blocker"
+
+[[field]]
+name = "effort"
+kind = "enum"
+values = ["s", "m", "l", "xl"]
+description = "Rough size, not an estimate"
+
+[[field]]
+name = "area"
+kind = "text"
+description = "Subsystem this touches"
+
+# ─── Milestones ──────────────────────────────────────────────────────────────
+# Sections of the rendered roadmap, in due-date order.
+
+# ─── Saved views ─────────────────────────────────────────────────────────────
+# `cairn list --view next`, `cairn board --view triage`
+#
+# `filter` is written in cairn's filter grammar — the same one `--filter` takes,
+# documented under "Filters" in the manual and promised to stay additive. It is
+# a promise about the program, not about the file format, so another tool that
+# wants what a view selects should run `cairn list --view NAME --json` rather
+# than parse the expression itself.
+#
+# `cairn check` reports a filter naming a field this schema does not declare,
+# and so do `list`, `board` and `render` at the moment you run them.
+
+[[view]]
+name = "now"
+description = "What is actually being worked on"
+filter = "category=active"
+sort = "priority,id"
+
+[[view]]
+name = "next"
+description = "Planned work for the nearest milestone"
+filter = "status=planned"
+sort = "priority,milestone"
+
+[[view]]
+name = "triage"
+description = "Items that still need a milestone or a priority"
+filter = "milestone=,category!=done"
+columns = ["id", "type", "title", "created"]
+
+# ─── Hooks ───────────────────────────────────────────────────────────────────
+# cairn does not embed a scripting language; it runs yours. A hook takes one of
+# two forms:
+#
+#   a string  runs through the platform shell — convenient, and therefore
+#             platform-specific ($VAR on Unix is %VAR% under cmd.exe)
+#   an array  is executed directly with no shell at all — portable
+#
+# Each runs from the project root with the event in the environment and the
+# full item as JSON on stdin:
+#
+#   CAIRN_EVENT CAIRN_ROOT CAIRN_CONFIG
+#   CAIRN_ITEM_ID CAIRN_ITEM_PATH CAIRN_ITEM_TITLE
+#   CAIRN_ITEM_STATUS CAIRN_ITEM_TYPE CAIRN_ITEM_MILESTONE CAIRN_ITEM_CATEGORY
+#
+# Hooks run after the change is on disk, so a failing hook warns but never rolls
+# anything back. Suppress them with --no-hooks or CAIRN_NO_HOOKS=1.
+
+# Keeping the rendered roadmap current is the tool's whole point, so it is done
+# for you. Comment these out if you would rather render by hand — but a roadmap
+# that drifts from the items is the rot cairn exists to prevent, and leaving it
+# to discipline is how it starts.
+
+[hooks]
+after-create = "cairn render -q"
+after-change = "cairn render -q"
+after-remove = "cairn render -q"
+# after-render = "git add ROADMAP.md"
+# after-change = ["python3", "scripts/notify.py"]   # portable form
+
+# ─── Rendered roadmap ────────────────────────────────────────────────────────
+
+[render]
+target = "ROADMAP.md"
+title = "Roadmap"
+group_by = "milestone"    # any field works: milestone, area, assignee, type
+include = "category!=dropped"
+checkbox = true           # render items as a task list
+show_ids = true
+progress = true           # per-milestone progress bar
+group_by_status = true    # sub-group each section by status
+link_items = true            # items link to their source file
+# header = "docs/roadmap-intro.md"   # spliced in above the generated body
+# footer = "docs/roadmap-outro.md"
