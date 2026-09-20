@@ -108,6 +108,42 @@ Disable aspect ratio preservation. The image will be stretched to fill the speci
 gummyworm -w 80 -h 40 --no-aspect photo.jpg
 ```
 
+#### `--char-aspect`
+
+The shape of your terminal's character cell, as height divided by width.
+
+|             |                  |
+| ----------- | ---------------- |
+| **Default** | 2.0              |
+| **Type**    | Number, 0.5–5.0  |
+
+A character cell is taller than it is wide, so gummyworm divides the row count
+by this ratio to keep proportions true. Get it wrong and a circle comes out as
+an ellipse — too wide if the value is too high, too tall if it is too low.
+
+The default of 2.0 suits most setups: a monospace font advancing 0.6em per
+glyph at a line-height of 1.2. It is also what HTML and SVG exports render at,
+so exported files match what you saw in the terminal.
+
+Adjust it if your terminal's line spacing differs:
+
+| Line spacing                          | Try  |
+| ------------------------------------- | ---- |
+| Tight (e.g. iTerm2 at line-height 1.0) | 1.67 |
+| Typical                               | 2.0  |
+| Loose                                 | 2.2  |
+
+```bash
+# Output looks squashed? Your cells are less tall than assumed
+gummyworm --char-aspect 1.67 photo.jpg
+
+# Output looks stretched? Raise it
+gummyworm --char-aspect 2.2 photo.jpg
+```
+
+Set it permanently with `char_aspect` in your config file — see
+[Configuration](configuration.md).
+
 ### Palette Options
 
 #### `-p, --palette <name|string>`

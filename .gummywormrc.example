@@ -31,6 +31,15 @@
 # invert=false                # Invert brightness (for dark backgrounds)
 # preserve_aspect=true        # Maintain image aspect ratio
 
+# Terminal character cell shape (height:width)
+# A character cell is taller than it is wide, so gummyworm divides the row count
+# by this to keep proportions true. Set it to match your terminal: if output
+# looks too wide/squashed, raise it; too tall/stretched, lower it.
+#   1.67  tight line spacing (e.g. iTerm2 at line-height 1.0)
+#   2.0   typical, and what HTML/SVG exports render at
+#   2.2   loose line spacing
+# char_aspect=2.0             # Range: 0.5 to 5.0
+
 # Export defaults
 # format=text                 # Options: text, ansi, html, svg, png, gif
 # background=#1e1e1e          # Background color for html/svg/png exports

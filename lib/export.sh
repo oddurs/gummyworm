@@ -93,6 +93,44 @@ function truecolor_to_rgb(code) {
 '
 
 # ============================================================================
+# Shared Font Metrics
+# ============================================================================
+# The grid handed to these exporters was built for a character cell of a
+# particular shape (see calc_dimensions in image.sh). Painting it at a different
+# shape re-introduces exactly the distortion that calculation exists to remove,
+# so both exporters derive their metrics here from the same ratio rather than
+# restating it. Keeping these numbers in one place is the point.
+
+readonly EXPORT_FONT_SIZE=12
+# Courier New — and every font in the stacks below — advances 0.6em per glyph.
+readonly EXPORT_CHAR_WIDTH_EM="0.6"
+
+# Character advance in px. Independent of the cell ratio: the ratio scales the
+# line height, not the glyph width.
+# Usage: export_char_width
+export_char_width() {
+    awk -v s="$EXPORT_FONT_SIZE" -v em="$EXPORT_CHAR_WIDTH_EM" \
+        'BEGIN { printf "%.4g", s * em }'
+}
+
+# Line height in px: char width times the cell ratio.
+# Usage: export_line_height [char_aspect]
+export_line_height() {
+    local ratio="${1:-${CONFIG_CHAR_ASPECT:-2.0}}"
+    awk -v s="$EXPORT_FONT_SIZE" -v em="$EXPORT_CHAR_WIDTH_EM" -v r="$ratio" \
+        'BEGIN { printf "%.4g", s * em * r }'
+}
+
+# The same figure as a unitless CSS line-height, which multiplies font-size
+# rather than char width — so it is ratio * 0.6, not the ratio itself.
+# Usage: export_css_line_height [char_aspect]
+export_css_line_height() {
+    local ratio="${1:-${CONFIG_CHAR_ASPECT:-2.0}}"
+    awk -v em="$EXPORT_CHAR_WIDTH_EM" -v r="$ratio" \
+        'BEGIN { printf "%.4g", em * r }'
+}
+
+# ============================================================================
 # HTML Export
 # ============================================================================
 
@@ -104,7 +142,11 @@ export_html() {
     local bg_color="${2:-#1e1e1e}"
     local padding="${3:-0}"
     local title="${4:-ASCII Art - gummyworm}"
-    
+
+    local font_size css_line_height
+    font_size="$EXPORT_FONT_SIZE"
+    css_line_height=$(export_css_line_height)
+
     # Start HTML document
     cat << EOF
 <!DOCTYPE html>
@@ -129,8 +171,9 @@ export_html() {
         }
         .ascii-art {
             font-family: 'Courier New', Courier, 'Liberation Mono', 'DejaVu Sans Mono', monospace;
-            font-size: 12px;
-            line-height: 1.2;
+            font-size: ${font_size}px;
+            /* char_aspect * 0.6em advance — see export_css_line_height */
+            line-height: ${css_line_height};
             white-space: pre;
             letter-spacing: 0;
         }
@@ -251,10 +294,14 @@ export_svg() {
     local bg_color="${2:-#1e1e1e}"
     local padding="${3:-0}"
     
-    # Calculate dimensions (using integers scaled by 10 for decimal precision)
-    # char_width=7.2, line_height=14.4
-    local char_width_x10=72    # 7.2 * 10
-    local line_height_x10=144  # 14.4 * 10
+    # Cell metrics, both derived from the shared ratio (defaults: 7.2 x 14.4).
+    # Kept as integers scaled by 10 for decimal precision in the y-advance below.
+    local char_width line_height
+    char_width=$(export_char_width)
+    line_height=$(export_line_height)
+    local char_width_x10 line_height_x10
+    char_width_x10=$(awk -v v="$char_width" 'BEGIN { printf "%.0f", v * 10 }')
+    line_height_x10=$(awk -v v="$line_height" 'BEGIN { printf "%.0f", v * 10 }')
     
     # Get content dimensions
     local lines=()
@@ -273,8 +320,8 @@ export_svg() {
     
     # Calculate SVG dimensions using awk for floating-point (faster than bc)
     local svg_width svg_height
-    svg_width=$(awk -v w="$max_width" -v p="$padding" 'BEGIN { printf "%.1f", w * 7.2 + p * 2 }')
-    svg_height=$(awk -v h="$line_count" -v p="$padding" 'BEGIN { printf "%.1f", h * 14.4 + p * 2 }')
+    svg_width=$(awk -v w="$max_width" -v p="$padding" -v cw="$char_width" 'BEGIN { printf "%.1f", w * cw + p * 2 }')
+    svg_height=$(awk -v h="$line_count" -v p="$padding" -v lh="$line_height" 'BEGIN { printf "%.1f", h * lh + p * 2 }')
     
     # Start SVG
     cat << EOF
@@ -287,7 +334,7 @@ export_svg() {
     <style>
       .ascii-text {
         font-family: 'Courier New', Courier, monospace;
-        font-size: 12px;
+        font-size: ${EXPORT_FONT_SIZE}px;
         white-space: pre;
       }
     </style>
@@ -303,7 +350,7 @@ EOF
         # Convert back to decimal for SVG
         local y_pos
         y_pos=$(awk -v y="$y_pos_x10" 'BEGIN { printf "%.1f", y / 10 }')
-        _svg_render_line "$line" "$padding" "$y_pos" "7.2"
+        _svg_render_line "$line" "$padding" "$y_pos" "$char_width"
     done
     
     # Close SVG
@@ -421,22 +468,41 @@ export_png() {
     # Generate SVG
     export_svg "$content" "$bg_color" "$padding" > "$tmpsvg"
     
-    # Convert SVG to PNG
+    # Rasterise. rsvg-convert is tried first and is the path that actually works
+    # on a stock install: ImageMagick's built-in SVG renderer resolves the SVG's
+    # font-family itself and fails with "unable to read font ''" when it cannot,
+    # which it cannot for 'Courier New' on a default macOS ImageMagick. It also
+    # will not hand the file to its own rsvg delegate, because it believes it can
+    # render SVG natively. Going straight to rsvg-convert sidesteps both.
+    local rsvg_err
+    rsvg_err=$(mktemp -t gummyworm_rsvg.XXXXXX)
+    # shellcheck disable=SC2064
+    trap "rm -f '$tmpsvg' '$rsvg_err'" RETURN
+
+    if command_exists rsvg-convert; then
+        # Background is already painted into the SVG by export_svg
+        if rsvg-convert -o "$output_file" "$tmpsvg" 2>"$rsvg_err"; then
+            return 0
+        fi
+        log_error "Failed to convert SVG to PNG (rsvg-convert)"
+        [[ -s "$rsvg_err" ]] && log_debug "rsvg-convert: $(cat "$rsvg_err")"
+        return 1
+    fi
+
+    # Fall back to ImageMagick. A font must be named here or the built-in
+    # renderer trips over the SVG's own font-family.
     local convert_args=(-background "$bg_color")
-    
-    # Add font if specified
     if [[ -n "$font" ]]; then
         convert_args+=(-font "$font")
     fi
-    
     convert_args+=("$tmpsvg" "$output_file")
-    
+
     if $_MAGICK_CONVERT "${convert_args[@]}" 2>/dev/null; then
         return 0
-    else
-        log_error "Failed to convert SVG to PNG"
-        return 1
     fi
+
+    log_error "Failed to convert SVG to PNG"
+    return 1
 }
 
 # ============================================================================

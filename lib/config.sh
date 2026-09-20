@@ -103,7 +103,7 @@ esac
 export GUMMYWORM_PLATFORM
 
 # Version info
-readonly GUMMYWORM_VERSION="2.2.0"
+readonly GUMMYWORM_VERSION="2.3.0"
 readonly GUMMYWORM_NAME="gummyworm"
 
 # Determine the root directory of the project (portable across bash/zsh)
@@ -130,6 +130,12 @@ readonly DEFAULT_TRUECOLOR=false
 readonly DEFAULT_OUTPUT=""
 readonly DEFAULT_QUIET=false
 readonly DEFAULT_PRESERVE_ASPECT=true
+# Terminal character cells are taller than they are wide. This is that ratio
+# (height:width), and it is what makes a round image come out round instead of
+# squashed flat. 2.0 matches a 0.6em-advance monospace font at line-height 1.2,
+# which is both the common case and what the HTML/SVG exporter renders at.
+# Tighter line spacing (iTerm2 at line-height 1.0) is nearer 1.67; looser, 2.2+.
+readonly DEFAULT_CHAR_ASPECT="2.0"
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 readonly DEFAULT_PADDING=0
@@ -177,6 +183,7 @@ CONFIG_MAX_FRAMES="$DEFAULT_MAX_FRAMES"
 CONFIG_LOOPS="$DEFAULT_LOOPS"
 CONFIG_QUIET="$DEFAULT_QUIET"
 CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
+CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
 
 # Load a config file if it exists
 # Usage: _load_config_file "/path/to/config"
@@ -220,6 +227,7 @@ _load_config_file() {
                 loops)           CONFIG_LOOPS="$value" ;;
                 quiet)           CONFIG_QUIET="$value" ;;
                 preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
+                char_aspect)     CONFIG_CHAR_ASPECT="$value" ;;
             esac
         fi
     done < "$config_file"
@@ -235,7 +243,7 @@ export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
 export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
 export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
 export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
-export CONFIG_QUIET CONFIG_PRESERVE_ASPECT
+export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
 
 # ============================================================================
 # Shared Regex Patterns (Bash 3.2 compatible - stored in variables)

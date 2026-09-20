@@ -35,7 +35,7 @@ _gummyworm_completions() {
         -r --recursive
         -l --list-palettes
         -q --quiet
-        --continue-on-error --no-aspect
+        --continue-on-error --no-aspect --char-aspect
         --help --version
     "
 
@@ -58,6 +58,11 @@ _gummyworm_completions() {
         --gamma)
             # Gamma values
             COMPREPLY=($(compgen -W "0.5 0.7 1.0 1.2 1.5 2.0 2.2" -- "$cur"))
+            return
+            ;;
+        --char-aspect)
+            # Terminal cell height:width - tight, typical, loose
+            COMPREPLY=($(compgen -W "1.67 1.8 2.0 2.2 2.4" -- "$cur"))
             return
             ;;
         -p|--palette)

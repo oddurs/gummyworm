@@ -98,11 +98,18 @@ UNIT_TESTS=(
     "test_palettes.sh"
     "test_image.sh"
     "test_export.sh"
+    "test_config.sh"
 )
 
 # Integration test files (require ImageMagick)
 INTEGRATION_TESTS=(
+    "test_basic.sh"
     "test_integration.sh"
+)
+
+# Suites that need an interpreter other than bash; skipped when it is missing
+SHELL_TESTS=(
+    "test_zsh_compat.sh:zsh"
 )
 
 # ============================================================================
@@ -131,25 +138,22 @@ run_suite() {
     local start_time
     start_time=$(date +%s)
     
+    # Run the suite once and reuse its output for both display and parsing.
+    # Running it twice doubles the wall clock and can double any side effects.
     local result=0
+    local suite_output
+    suite_output=$("$suite_path" 2>&1) || result=$?
+
     if [[ "$VERBOSE" == "true" ]]; then
-        "$suite_path" || result=$?
+        echo "$suite_output"
     else
-        # Capture output and show only summary
-        local output
-        output=$("$suite_path" 2>&1) || result=$?
-        
-        # Extract and display test results (lines starting with spaces that have PASS/FAIL/SKIP)
-        echo "$output" | grep -E "^  .*(PASS|FAIL|SKIP)" || true
+        # Show only test result lines (indented, with PASS/FAIL/SKIP)
+        echo "$suite_output" | grep -E "^  .*(PASS|FAIL|SKIP)" || true
     fi
-    
+
     local end_time
     end_time=$(date +%s)
     local duration=$((end_time - start_time))
-    
-    # Parse results from output (look for Results: line)
-    local suite_output
-    suite_output=$("$suite_path" 2>&1) || true
     
     # Strip ANSI codes for parsing
     local clean_output
@@ -214,6 +218,20 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     
     for suite in "${UNIT_TESTS[@]}"; do
         run_suite "$suite" || true
+    done
+fi
+
+# Run suites that need a specific shell, skipping any whose shell is absent
+if [[ "$RUN_UNIT" == "true" ]]; then
+    for entry in "${SHELL_TESTS[@]}"; do
+        suite="${entry%%:*}"
+        shell="${entry##*:}"
+        if command -v "$shell" &>/dev/null; then
+            run_suite "$suite" || true
+        else
+            echo ""
+            echo -e "${YELLOW}⚠ Skipping $suite: $shell not installed${NC}"
+        fi
     done
 fi
 

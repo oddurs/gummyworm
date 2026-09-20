@@ -123,7 +123,7 @@ test_gummyworm_version_works() {
     local output
     output=$("$PROJECT_ROOT/gummyworm" --version 2>&1)
     assert_contains "$output" "gummyworm" "version output contains name"
-    assert_contains "$output" "2.1.0" "version output contains version"
+    assert_contains "$output" "$GUMMYWORM_VERSION" "version output contains version"
 }
 
 test_gummyworm_help_works() {

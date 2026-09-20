@@ -27,6 +27,10 @@ A playful, feature-rich command-line tool for converting images to ASCII art wit
 
 - **Shell**: Bash 3.2+ or zsh 5.0+ (macOS ships with both)
 - **ImageMagick** (`convert` and `identify` commands)
+- **Optional**: `librsvg` (`rsvg-convert`) — required for `png` and `gif` export.
+  ImageMagick cannot rasterise SVG on its own, and installing it does not pull
+  this in. `brew install librsvg`, or `apt install librsvg2-bin`.
+  Text, ANSI, HTML and SVG output need nothing extra.
 - **Optional**: `curl` or `wget` for URL input
 - **Optional**: `python3` for better Unicode support
 
@@ -133,6 +137,7 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | `--brightness <N>` | Adjust brightness (-100 to 100) |
 | `--contrast <N>` | Adjust contrast (-100 to 100) |
 | `--gamma <N>` | Adjust gamma (e.g., 0.5, 1.0, 2.2) |
+| `--char-aspect <N>` | Terminal cell height:width (default: 2.0) |
 | `-a, --animate` | Enable animation processing |
 | `-f, --format <type>` | Output: text, html, svg, png, gif |
 | `-o, --output <file>` | Save to file |

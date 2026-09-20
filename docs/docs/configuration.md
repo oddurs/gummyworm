@@ -63,6 +63,7 @@ background='#1e1e1e'
 | `width`           | 80      | Output width in characters                 |
 | `height`          | 0       | Output height (0 = auto from aspect ratio) |
 | `preserve_aspect` | true    | Maintain image aspect ratio                |
+| `char_aspect`     | 2.0     | Terminal cell height:width ([details](cli-reference.md#--char-aspect)) |
 
 ### Palette
 

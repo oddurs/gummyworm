@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-09-20
+
+### Fixed
+- **Output proportions.** Character cell aspect was hardcoded to 2.2:1, so
+  output rendered about 11% wider than it should be — a circle came out as a
+  flattened ellipse. The assumed ratio is now 2.0:1, matching a typical
+  monospace cell. A 400×400 circle at `-w 80` was an 80×36 grid and is now
+  80×40.
+- Row count now rounds half up instead of truncating, which silently dropped
+  most of a row.
+- HTML and SVG export no longer carry their own separate `7.2`/`14.4` font
+  metrics. Both derive from the same ratio as the conversion, so exported files
+  match the terminal. A square source now exports a square canvas (576×576,
+  previously 576×518.4).
+- **PNG and GIF export.** These render SVG and rasterise it, which needs a
+  renderer ImageMagick does not install alongside itself. gummyworm now checks
+  before doing any work and names the fix, instead of failing at the end with
+  `Failed to convert SVG to PNG`. Rasterisation calls `rsvg-convert` directly,
+  which also fixes an `unable to read font` failure on stock macOS ImageMagick.
+
+### Added
+- **`--char-aspect <N>` option** and `char_aspect` config key: set the terminal
+  cell height:width ratio to match your terminal. Try `1.67` for tight line
+  spacing, `2.2` for loose. Range 0.5–5.0, default 2.0. Applies to exports too.
+- Shell completions for `--char-aspect` in bash and zsh.
+- 4 new dimension tests, including ones pinning the default ratio and the
+  rounding behaviour — the previous tests asserted only that height was
+  positive, which is why the wrong ratio went unnoticed.
+
+### Changed
+- Default output dimensions change for every image. Output is roughly 11%
+  taller in rows than before at the same width. Pass `--char-aspect 2.2` to
+  restore the previous behaviour exactly.
+- Documented `librsvg` as an optional dependency for `png` and `gif` export.
+
 ## [2.2.0] - 2026-01-11
 
 ### Added
@@ -124,12 +159,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 2.3.0 | 2026-09-20 | Correct output proportions, `--char-aspect`, PNG/GIF export fixes |
 | 2.2.0 | 2026-01-11 | Configuration files, shell completions, Docsify docs |
 | 2.1.0 | 2026-01-11 | Animation, true color, zsh support, preprocessing, modular palettes |
 | 2.0.0 | 2024-12-01 | Multi-format export, batch processing, modular rewrite |
 | 1.0.0 | 2024-06-01 | Initial release |
 
-[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/oddurs/gummyworm/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/oddurs/gummyworm/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/oddurs/gummyworm/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/oddurs/gummyworm/compare/v1.0.0...v2.0.0

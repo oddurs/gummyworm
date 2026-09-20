@@ -73,6 +73,18 @@ _gummyworm_gamma() {
     _describe -t gamma 'gamma value' values
 }
 
+# Terminal character cell height:width
+_gummyworm_char_aspect() {
+    local values=(
+        '1.67:Tight line spacing'
+        '1.8:Slightly tight'
+        '2.0:Typical (default)'
+        '2.2:Loose line spacing'
+        '2.4:Very loose'
+    )
+    _describe -t char_aspect 'character aspect' values
+}
+
 # Brightness/contrast values
 _gummyworm_adjustment() {
     local values=(
@@ -116,6 +128,7 @@ _gummyworm() {
         '(-q --quiet)'{-q,--quiet}'[Suppress info messages]' \
         '--continue-on-error[Continue if one file fails]' \
         '--no-aspect[Do not preserve aspect ratio]' \
+        '--char-aspect[Terminal cell height:width (default 2.0)]:character aspect:_gummyworm_char_aspect' \
         '--help[Show help message]' \
         '--version[Show version information]' \
         '*:image file:_files -g "*.((#i)(jpg|jpeg|png|gif|bmp|tiff|tif|webp))(-.)"'

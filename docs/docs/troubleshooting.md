@@ -152,25 +152,44 @@ zsh /path/to/gummyworm photo.jpg
    gummyworm "https://example.com/path/image%20name.jpg"
    ```
 
-### Output looks distorted or wrong aspect ratio
+### Output looks squashed or stretched
 
-**Cause:** Terminal font isn't truly monospace, or aspect calculation is off.
+**Cause:** Your terminal's character cell is a different shape than gummyworm
+assumes. It defaults to cells 2.0x taller than wide; if your line spacing
+differs, everything comes out proportionally wrong by that difference.
 
-**Solutions:**
+**Solution:** Set [`--char-aspect`](cli-reference.md#--char-aspect) to match
+your terminal.
 
-1. **Use a proper monospace font:** Consolas, Fira Code, JetBrains Mono, etc.
+```bash
+# Output too wide / squashed flat? Your cells are less tall than assumed
+gummyworm --char-aspect 1.67 photo.jpg
 
-2. **Try `--no-aspect`:**
+# Output too tall / stretched? Raise it
+gummyworm --char-aspect 2.2 photo.jpg
+```
 
-   ```bash
-   gummyworm --no-aspect -w 80 -h 40 photo.jpg
-   ```
+To find your value, render something you know is round and adjust until it
+looks round:
 
-3. **Adjust dimensions manually:**
-   ```bash
-   # Terminal characters are typically ~2:1 height:width
-   gummyworm -w 80 -h 40 photo.jpg
-   ```
+```bash
+# A test circle
+magick -size 400x400 xc:white -fill black -draw "circle 200,200 200,20" circle.png
+gummyworm circle.png -w 60
+```
+
+Once it looks right, make it permanent with `char_aspect` in your
+[config file](configuration.md).
+
+:::note
+Before v2.3.0 the assumed ratio was 2.2, which rendered most output about 11%
+wider than it should be. If you had compensated for that by hand, you can
+restore the old behaviour with `--char-aspect 2.2`.
+:::
+
+**Still distorted?** Check your terminal is using a genuinely monospace font —
+Consolas, Fira Code, JetBrains Mono. A proportional font cannot be corrected
+with any ratio, because its glyph widths vary.
 
 ### Image is too dark or too light
 
@@ -304,33 +323,45 @@ zsh /path/to/gummyworm photo.jpg
    gummyworm -c -f html -o output.html photo.jpg
    ```
 
-### PNG export fails
+### PNG or GIF export fails
 
-**Cause:** ImageMagick SVG support missing.
+**Cause:** No SVG renderer installed. Both formats are produced by rendering
+SVG and rasterising it, and ImageMagick cannot rasterise SVG on its own —
+installing ImageMagick does not bring a renderer with it.
 
-**Solutions:**
+Since v2.3.0 gummyworm checks for this before doing any work and tells you so.
+Older versions failed at the end with `Failed to convert SVG to PNG`.
 
-1. **Check ImageMagick has SVG support:**
+**Solution:** Install `librsvg`, which provides `rsvg-convert`.
 
-   ```bash
-   convert -list format | grep SVG
-   ```
+```bash
+# macOS
+brew install librsvg
 
-2. **Reinstall ImageMagick with SVG:**
+# Ubuntu / Debian
+sudo apt install librsvg2-bin
 
-   ```bash
-   # macOS
-   brew reinstall imagemagick
+# Fedora
+sudo dnf install librsvg2-tools
 
-   # Ubuntu
-   sudo apt install imagemagick librsvg2-bin
-   ```
+# Arch
+sudo pacman -S librsvg
+```
 
-3. **Export to SVG and convert separately:**
-   ```bash
-   gummyworm -c -f svg -o art.svg photo.jpg
-   convert art.svg art.png
-   ```
+:::warning
+Reinstalling ImageMagick does **not** fix this, and `magick -list format | grep SVG`
+is not a useful check — it reports SVG as supported either way. Homebrew's
+ImageMagick is built without librsvg linked in, so it renders SVG with its own
+built-in renderer, which fails on the font. `rsvg-convert` is what actually
+does the work.
+:::
+
+**Alternatives that need no renderer:** `svg` and `html` export are pure text
+and always work.
+
+```bash
+gummyworm -c -f svg -o art.svg photo.jpg
+```
 
 ### Output file is empty
 

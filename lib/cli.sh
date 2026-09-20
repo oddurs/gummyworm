@@ -64,6 +64,9 @@ show_help() {
     echo "    -q, --quiet           Suppress info messages"
     echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --char-aspect <N>     Terminal cell height:width (default: $DEFAULT_CHAR_ASPECT)"
+    echo "                          Raise if output looks too tall, lower if too wide."
+    echo "                          ~1.67 tight line spacing, 2.0 typical, 2.2+ loose."
     echo "    --help                Show this help message"
     echo "    --version             Show version information"
     echo ""
@@ -181,6 +184,7 @@ parse_args() {
     ARG_CONTINUE_ON_ERROR="false"
     ARG_QUIET="$CONFIG_QUIET"
     ARG_PRESERVE_ASPECT="$CONFIG_PRESERVE_ASPECT"
+    ARG_CHAR_ASPECT="$CONFIG_CHAR_ASPECT"
     ARG_ANIMATE="$CONFIG_ANIMATE"
     ARG_FRAME_DELAY="$CONFIG_FRAME_DELAY"
     ARG_MAX_FRAMES="$CONFIG_MAX_FRAMES"
@@ -339,6 +343,18 @@ parse_args() {
                 ARG_PRESERVE_ASPECT="false"
                 shift
                 ;;
+            --char-aspect)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                if ! [[ "$2" =~ ^[0-9]*\.?[0-9]+$ ]]; then
+                    die_usage "Character aspect must be a positive number (e.g., 1.67, 2.0, 2.2)"
+                fi
+                # Range check in awk; bash cannot compare floats
+                if ! awk -v a="$2" 'BEGIN { exit !(a >= 0.5 && a <= 5.0) }'; then
+                    die_usage "Character aspect must be between 0.5 and 5.0"
+                fi
+                ARG_CHAR_ASPECT="$2"
+                shift 2
+                ;;
             --help)
                 show_help
                 exit 0
@@ -358,6 +374,12 @@ parse_args() {
         esac
     done
     
+    # The character aspect is read deep in the dimension maths and again by the
+    # exporter, neither of which sees ARG_*. Publish the resolved value (default
+    # < config file < CLI) as the config global both already read.
+    CONFIG_CHAR_ASPECT="$ARG_CHAR_ASPECT"
+    export CONFIG_CHAR_ASPECT
+
     # Now expand directories and handle special inputs
     # Only process if we have inputs (handles empty array in strict mode)
     if [[ ${#ARG_IMAGES[@]} -gt 0 ]]; then

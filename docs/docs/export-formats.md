@@ -64,11 +64,24 @@ gummyworm -f text -o art.txt photo.jpg # To file
 **Example output:**
 
 ```
-        .:::::..
-      .:::::::::::.
-    .:::.  @@  .:::.
-   :::.   @@@@   .:::
-  :::.   @@@@@@   .:::
+                 ..........                 
+            ...::----------::...            
+         ..::-==+++******+++==-::..         
+       ..:-==+**###%%%%%%###**+==-:..       
+      .:-=+**#%%%%%@@@@@@%%%%%#**+=-:.      
+     .:-=+*#%%%@%%%%%%%%%%%%@%%%#*+=-:.     
+    .:-=*##%%@%%%##******##%%%@%%##*=-:.    
+   .:-=+##%%@%%#**+==--==+**#%%@%%##+=-:.   
+   .:=+*#%%@%%#*+=-:....:-=+*#%%@%%#*+=:.   
+  .:-=+*#%%%%##+=-:.    .:-=+##%%%%#*+=-:.  
+  .:-=+*#%%%%##+=-:.    .:-=+##%%%%#*+=-:.  
+   .:=+*#%%@%%#*+=-:....:-=+*#%%@%%#*+=:.   
+   .:-=+##%%@%%#**+==--==+**#%%@%%##+=-:.   
+    .:-=*##%%@%%%##******##%%%@%%##*=-:.    
+     .:-=+*#%%%@%%%%%%%%%%%%@%%%#*+=-:.     
+      .:-=+**#%%%%%@@@@@@%%%%%#**+=-:.      
+       ..:-==+**###%%%%%%###**+==-:..       
+         ..::-==+++******+++==-::..         
 ```
 
 ## ANSI Format
@@ -221,6 +234,11 @@ gummyworm -c -f svg --padding 30 -o padded.svg photo.jpg
 ## PNG Format
 
 Rasterized PNG image rendered from the ASCII art.
+
+:::info
+Requires `librsvg` (`brew install librsvg`). See
+[Installation](installation.md#prerequisites).
+:::
 
 ```bash
 gummyworm -c -f png -o poster.png photo.jpg
@@ -403,7 +421,10 @@ gummyworm -c -f png -d ./png-output/ photos/*.jpg
 ### PNG is blank or error
 
 - Ensure ImageMagick is installed: `convert --version`
-- Check ImageMagick has SVG support: `convert -list format | grep SVG`
+- Ensure an SVG renderer is installed: `rsvg-convert --version`. PNG and GIF
+  need `librsvg`; see [Troubleshooting](troubleshooting.md#png-or-gif-export-fails).
+  Note that `convert -list format | grep SVG` is *not* a useful check here — it
+  reports SVG as supported whether or not it can actually render it.
 
 ### Output file is empty
 

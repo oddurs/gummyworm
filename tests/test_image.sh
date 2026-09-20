@@ -111,22 +111,25 @@ test_calc_brightness_yellow() {
 # Tests: calc_dimensions()
 # ============================================================================
 
+# These assert exact heights on purpose. The ratio was wrong from the initial
+# commit until v2.3.0 and no test caught it, because every assertion here only
+# checked that the height was positive — which a wrong divisor satisfies just as
+# well as a right one. Exact values are what make the constant a tested value
+# rather than an assumption. At the 2.0 default: height = width * (orig_h/orig_w) / 2.
+
 test_calc_dimensions_basic() {
     local dims
     dims=$(calc_dimensions 100 100 50 0 true)
-    # Should calculate height based on aspect ratio and terminal char ratio
-    assert_matches "$dims" "^50 [0-9]+$" "dimensions format correct"
+    assert_equals "50 25" "$dims" "square image at width 50 is 25 rows"
 }
 
 test_calc_dimensions_wide_image() {
     local dims
     dims=$(calc_dimensions 200 100 80 0 true)
-    # Wide image: height should be relatively small
     read -r w h <<< "$dims"
     assert_equals "80" "$w" "width preserved"
-    # Height should be calculated based on aspect ratio
-    assert_true '[[ "$h" -gt 0 ]]' "height is positive"
-    assert_true '[[ "$h" -lt 80 ]]' "height less than width for wide image"
+    # 2:1 image, halved again by the cell ratio
+    assert_equals "20" "$h" "wide image is a quarter of its width in rows"
 }
 
 test_calc_dimensions_tall_image() {
@@ -134,25 +137,69 @@ test_calc_dimensions_tall_image() {
     dims=$(calc_dimensions 100 200 80 0 true)
     read -r w h <<< "$dims"
     assert_equals "80" "$w" "width preserved"
-    # Height should be larger relative to width
-    assert_true '[[ "$h" -gt 0 ]]' "height is positive"
+    # 1:2 image: the cell ratio cancels the image ratio exactly
+    assert_equals "80" "$h" "tall image is square in character cells"
 }
 
 test_calc_dimensions_square_image() {
     local dims
     dims=$(calc_dimensions 100 100 40 0 true)
-    read -r w h <<< "$dims"
-    assert_equals "40" "$w" "width preserved for square"
-    # For square image with terminal ratio compensation
-    assert_true '[[ "$h" -gt 0 ]]' "height is positive"
+    assert_equals "40 20" "$dims" "square image at width 40 is 20 rows"
 }
 
+# Pins the default itself, so changing DEFAULT_CHAR_ASPECT without meaning to
+# fails here rather than silently reshaping every image the tool produces.
+test_calc_dimensions_default_ratio() {
+    assert_equals "2.0" "$DEFAULT_CHAR_ASPECT" "default character aspect is 2.0"
+    local dims
+    dims=$(calc_dimensions 400 400 80 0 true)
+    assert_equals "80 40" "$dims" "default ratio gives a 2:1 grid for a square image"
+}
+
+test_calc_dimensions_custom_ratio() {
+    local dims
+    dims=$(calc_dimensions 400 400 80 0 true 2.0)
+    assert_equals "80 40" "$dims" "explicit 2.0 matches the default"
+    dims=$(calc_dimensions 400 400 80 0 true 1.67)
+    assert_equals "80 48" "$dims" "tight line spacing gives more rows"
+    dims=$(calc_dimensions 400 400 80 0 true 2.2)
+    assert_equals "80 36" "$dims" "loose line spacing gives fewer rows"
+}
+
+# Truncation dropped most of a row and was half the visible error.
+test_calc_dimensions_rounds_half_up() {
+    local dims
+    dims=$(calc_dimensions 100 100 25 0 true)
+    # 12.5 exactly: truncation would give 12
+    assert_equals "25 13" "$dims" "exact .5 rounds up, not down"
+    dims=$(calc_dimensions 100 100 15 0 true)
+    # 7.5 exactly
+    assert_equals "15 8" "$dims" "second .5 case rounds up"
+}
+
+# A bad ratio must not reach the divisor and produce a division-by-zero or a
+# nonsense grid; it falls back to the default.
+test_calc_dimensions_invalid_ratio_falls_back() {
+    local dims
+    dims=$(calc_dimensions 400 400 80 0 true "abc")
+    assert_equals "80 40" "$dims" "non-numeric ratio falls back to default"
+    dims=$(calc_dimensions 400 400 80 0 true "0")
+    assert_equals "80 40" "$dims" "zero ratio falls back to default"
+    dims=$(calc_dimensions 400 400 80 0 true "")
+    assert_equals "80 40" "$dims" "empty ratio falls back to default"
+}
+
+# An explicit height bypasses the ratio branch entirely. This is the guard that
+# the fix did not leak into the explicit path, so it asserts against a custom
+# ratio too — that must change nothing.
 test_calc_dimensions_explicit_height() {
     local dims
     dims=$(calc_dimensions 100 100 80 40 true)
     read -r w h <<< "$dims"
     assert_equals "80" "$w" "width preserved"
     assert_equals "40" "$h" "explicit height preserved"
+    dims=$(calc_dimensions 100 100 80 40 true 1.67)
+    assert_equals "80 40" "$dims" "explicit height ignores the character aspect"
 }
 
 test_calc_dimensions_no_aspect() {
@@ -160,16 +207,22 @@ test_calc_dimensions_no_aspect() {
     dims=$(calc_dimensions 100 100 80 0 false)
     read -r w h <<< "$dims"
     assert_equals "80" "$w" "width preserved"
-    # Without aspect preservation, height defaults to width/2
+    # Still width/2 at the 2.0 default, but now because the ratio says so
     assert_equals "40" "$h" "height is half width without aspect"
+    dims=$(calc_dimensions 100 100 80 0 false 1.67)
+    assert_equals "80 48" "$dims" "no-aspect height still follows the cell ratio"
 }
 
 test_calc_dimensions_minimum_height() {
     local dims
     dims=$(calc_dimensions 1000 1 50 0 true)
     read -r w h <<< "$dims"
-    # Very wide image should still have at least height 1
-    assert_true '[[ "$h" -ge 1 ]]' "minimum height is 1"
+    # 0.025 rows before clamping — round-half-up still floors it at 0, so this
+    # exercises the clamp rather than the rounding
+    assert_equals "50" "$w" "width preserved"
+    assert_equals "1" "$h" "sub-row height clamps to 1"
+    dims=$(calc_dimensions 1000 1 50 0 true 1.67)
+    assert_equals "50 1" "$dims" "clamp holds at other ratios"
 }
 
 # ============================================================================

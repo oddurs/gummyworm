@@ -51,6 +51,43 @@ image_check_deps() {
     fi
 }
 
+# Check that ImageMagick can rasterise SVG
+#
+# The png and gif exports render SVG and hand it to ImageMagick, which cannot
+# rasterise SVG by itself — it shells out to a delegate. A plain
+# `brew install imagemagick` does not pull one in, so the documented dependency
+# alone produces a build where these formats cannot work. Without this check the
+# failure surfaces as "Failed to convert SVG to PNG" after all the conversion
+# work is done, naming neither the cause nor the fix.
+#
+# Usage: image_check_raster_deps <format>
+# Dies with an actionable message if the format needs a delegate and none exists
+image_check_raster_deps() {
+    local format="$1"
+
+    case "$format" in
+        png|gif) ;;
+        *) return 0 ;;
+    esac
+
+    # rsvg-convert is what ImageMagick's own svg delegate invokes; Inkscape is
+    # the other renderer it will accept.
+    if command_exists rsvg-convert || command_exists inkscape; then
+        return 0
+    fi
+
+    die "Cannot export $format: no SVG renderer installed.
+  ImageMagick needs a delegate to rasterise SVG, and neither
+  rsvg-convert nor inkscape was found.
+  Install with:
+    - macOS:   brew install librsvg
+    - Ubuntu:  sudo apt install librsvg2-bin
+    - Fedora:  sudo dnf install librsvg2-tools
+    - Arch:    sudo pacman -S librsvg
+    - FreeBSD: pkg install librsvg2
+  Or export to svg or html, which need no delegate."
+}
+
 # ============================================================================
 # URL & Stdin Helpers
 # ============================================================================
@@ -171,8 +208,26 @@ image_height() {
 # Dimension Calculation
 # ============================================================================
 
+# Convert a character aspect ratio ("2.0", "1.67") to hundredths (200, 167)
+# so the dimension maths can stay in integers. Rounds to the nearest hundredth.
+# Usage: char_aspect_hundredths <ratio>
+char_aspect_hundredths() {
+    local ratio="${1:-$DEFAULT_CHAR_ASPECT}"
+    local h
+    h=$(awk -v r="$ratio" 'BEGIN { printf "%.0f", r * 100 }' 2>/dev/null)
+    # Guard against a non-numeric or zero ratio reaching the divisor
+    [[ "$h" =~ ^[0-9]+$ ]] && [[ "$h" -gt 0 ]] || h=200
+    echo "$h"
+}
+
 # Calculate output dimensions preserving aspect ratio
-# Usage: calc_dimensions <orig_width> <orig_height> <target_width> <target_height> <preserve_aspect>
+#
+# A terminal character cell is taller than it is wide, so a grid whose column
+# count matches the image's pixel proportions comes out squashed. char_aspect is
+# that cell ratio (height:width) and divides the row count to compensate: get it
+# wrong and a circle renders as an ellipse. See DEFAULT_CHAR_ASPECT in config.sh.
+#
+# Usage: calc_dimensions <orig_width> <orig_height> <target_width> <target_height> <preserve_aspect> [char_aspect]
 # Output: "width height" (space-separated)
 calc_dimensions() {
     local orig_w="$1"
@@ -180,20 +235,32 @@ calc_dimensions() {
     local target_w="$3"
     local target_h="$4"
     local preserve_aspect="${5:-true}"
-    
+    local char_aspect="${6:-${CONFIG_CHAR_ASPECT:-$DEFAULT_CHAR_ASPECT}}"
+
     local out_w="$target_w"
     local out_h="$target_h"
-    
+
     if [[ "$target_h" -eq 0 ]]; then
+        local aspect_x100
+        aspect_x100=$(char_aspect_hundredths "$char_aspect")
+
+        local numerator denominator
         if [[ "$preserve_aspect" == "true" ]]; then
-            # Terminal chars are ~2:1 (height:width), compensate
-            out_h=$(( (target_w * orig_h * 10) / (orig_w * 22) ))
-            [[ "$out_h" -lt 1 ]] && out_h=1
+            numerator=$(( target_w * orig_h * 100 ))
+            denominator=$(( orig_w * aspect_x100 ))
         else
-            out_h=$((target_w / 2))
+            # No image proportions to honour, but the cell is still not square,
+            # so the ratio alone decides the row count.
+            numerator=$(( target_w * 100 ))
+            denominator="$aspect_x100"
         fi
+
+        # Round half up rather than truncating: truncation silently drops most
+        # of a row (800/22 = 36.36 -> 36) and the error is visible in the output.
+        out_h=$(( (numerator + denominator / 2) / denominator ))
+        [[ "$out_h" -lt 1 ]] && out_h=1
     fi
-    
+
     echo "$out_w $out_h"
 }
 

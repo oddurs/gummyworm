@@ -63,8 +63,16 @@ brew untap oddurs/gummyworm  # optional: remove the tap
 | ------------------------- | -------- | ---------------------------------------------- |
 | **Bash 3.2+ or zsh 5.0+** | Yes      | Shell interpreter (macOS has both!)            |
 | **ImageMagick**           | Yes      | Image processing and pixel extraction          |
+| **librsvg**               | No       | `png` and `gif` export only (`rsvg-convert`)   |
 | **Python 3**              | No       | Better Unicode/emoji character width detection |
 | **curl or wget**          | No       | URL image downloads                            |
+
+:::note
+`librsvg` is only needed for `png` and `gif` export. ImageMagick cannot
+rasterise SVG by itself and does not install a renderer alongside itself, so
+these two formats need it separately: `brew install librsvg`, or
+`apt install librsvg2-bin`. Text, ANSI, HTML and SVG output need nothing extra.
+:::
 
 ### Installing ImageMagick
 

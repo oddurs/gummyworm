@@ -316,6 +316,10 @@ main() {
     #   - --truecolor: true
     #   - --no-truecolor: false (explicit)
     
+    # Fail now, not after every image has been converted, if this format needs
+    # an SVG delegate that is not installed
+    image_check_raster_deps "$output_format"
+
     # Resolve palette once (shared across all images)
     local palette
     if palette_exists "$ARG_PALETTE"; then
