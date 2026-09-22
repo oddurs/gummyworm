@@ -191,9 +191,60 @@ CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
 readonly RE_HEX_COLOR='^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$'
 readonly RE_NAMED_COLOR='^(transparent|none|black|white|red|green|blue|cyan|magenta|yellow|gray|grey|silver|maroon|olive|lime|teal|navy|purple|fuchsia|aqua|orange|pink|brown|gold|beige)$'
 
+# Config value patterns. No leading zeros: bash reads 08 as invalid octal.
+readonly RE_CFG_POSITIVE_INT='^[1-9][0-9]*$'
+readonly RE_CFG_NON_NEGATIVE_INT='^(0|[1-9][0-9]*)$'
+readonly RE_CFG_SIGNED_INT='^-?(0|[1-9][0-9]*)$'
+readonly RE_CFG_DECIMAL='^[0-9]*[.]?[0-9]+$'
+readonly RE_CFG_BOOL='^(true|false)$'
+readonly RE_CFG_FORMAT='^(text|ansi|html|svg|png|gif)$'
+
 # Colour validators live here rather than in utils.sh: config.sh is sourced
 # first and parses the config file at source time, so anything it validates
 # with must already be defined.
+
+# Validate one config-file value against the same rule its CLI flag enforces.
+#
+# This is a security boundary, not tidiness. Every numeric value ends up in
+# shell arithmetic, and bash evaluates a variable's *value* as an arithmetic
+# expression -- array subscripts included, and a subscript undergoes command
+# substitution. An unvalidated `width=HOME[$(cmd)]` in ./.gummywormrc, which
+# travels with any cloned repository, therefore ran cmd. Nothing reaches a
+# CONFIG_* variable without passing this.
+#
+# Returns 0 if valid, 1 if invalid, 2 for a key this function does not know.
+# Usage: _config_value_valid <key> <value>
+_config_value_valid() {
+    local key="$1"
+    local value="$2"
+    case "$key" in
+        width|frame_delay)
+            [[ "$value" =~ $RE_CFG_POSITIVE_INT ]] ;;
+        height|padding|max_frames|loops)
+            [[ "$value" =~ $RE_CFG_NON_NEGATIVE_INT ]] ;;
+        brightness|contrast)
+            # The regex runs first, so the comparison only ever sees an integer
+            [[ "$value" =~ $RE_CFG_SIGNED_INT ]] && \
+                [[ "$value" -ge -100 && "$value" -le 100 ]] ;;
+        gamma)
+            [[ "$value" =~ $RE_CFG_DECIMAL ]] && \
+                awk -v v="$value" 'BEGIN { exit !(v >= 0.1 && v <= 10.0) }' ;;
+        char_aspect)
+            [[ "$value" =~ $RE_CFG_DECIMAL ]] && \
+                awk -v v="$value" 'BEGIN { exit !(v >= 0.5 && v <= 5.0) }' ;;
+        invert|color|truecolor|animate|quiet|preserve_aspect)
+            [[ "$value" =~ $RE_CFG_BOOL ]] ;;
+        format)
+            [[ "$value" =~ $RE_CFG_FORMAT ]] ;;
+        background)
+            is_valid_color "$value" ;;
+        palette)
+            # A name or a literal set of characters; never used in arithmetic
+            [[ -n "$value" ]] ;;
+        *)
+            return 2 ;;
+    esac
+}
 
 # Check if a value is a valid hex colour (#RGB or #RRGGBB)
 # Usage: is_valid_hex_color <value>
@@ -233,6 +284,18 @@ _load_config_file() {
             value="${value#\'}"
             value="${value%\'}"
 
+            # Validate before assigning anything. The value is not echoed back:
+            # it came from a file that may not be the user's, and could carry
+            # terminal escape sequences.
+            local valid_rc=0
+            _config_value_valid "$key" "$value" || valid_rc=$?
+            if [[ $valid_rc -eq 2 ]]; then
+                continue  # unknown key: ignored, as before
+            elif [[ $valid_rc -ne 0 ]]; then
+                echo "Warning: ignoring invalid value for '$key' in $config_file" >&2
+                continue
+            fi
+
             # Map config keys to CONFIG_* variables
             case "$key" in
                 width)           CONFIG_WIDTH="$value" ;;
@@ -242,16 +305,7 @@ _load_config_file() {
                 color)           CONFIG_COLOR="$value" ;;
                 truecolor)       CONFIG_TRUECOLOR="$value" ;;
                 format)          CONFIG_FORMAT="$value" ;;
-                background)
-                    # Validated here too: this value does not come from the
-                    # person running the command -- ./.gummywormrc can ship
-                    # with a cloned repository.
-                    if is_valid_color "$value"; then
-                        CONFIG_BACKGROUND="$value"
-                    else
-                        echo "Warning: ignoring invalid background colour in config: $value" >&2
-                    fi
-                    ;;
+                background)      CONFIG_BACKGROUND="$value" ;;
                 padding)         CONFIG_PADDING="$value" ;;
                 brightness)      CONFIG_BRIGHTNESS="$value" ;;
                 contrast)        CONFIG_CONTRAST="$value" ;;
