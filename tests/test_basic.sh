@@ -211,6 +211,101 @@ trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE' '$HTML_OUTPUT' 
 run_test "Format: batch html to dir" "$GUMMYWORM -q -w 20 -f html -d '$FORMAT_BATCH_DIR' '$TEST_IMG' '$TEST_IMG2' && ls '$FORMAT_BATCH_DIR'/*.html >/dev/null 2>&1"
 
 echo ""
+# ============================================================================
+# Regression: palette characters must survive to the output
+# ============================================================================
+# The palette used to be handed to awk as a |-joined string that awk split back
+# on |, and the rendered art was printed with `echo -e`. A palette containing |
+# or \ therefore lost characters, leaving rows short. Count characters, not
+# bytes: several palettes are multi-byte UTF-8.
+
+# Succeeds when every non-blank row is exactly $2 characters wide
+assert_uniform_width() {
+    local palette="$1"
+    local width="$2"
+    "$GUMMYWORM" -q -w "$width" -p "$palette" "$TEST_IMG" 2>/dev/null | python3 -c "
+import sys
+rows = [len(l.rstrip(chr(10))) for l in sys.stdin if l.strip()]
+sys.exit(0 if rows and set(rows) == {$width} else 1)
+"
+}
+
+run_test "Palette: standard rows are uniform"      "assert_uniform_width standard 20"
+run_test "Palette: detailed rows are uniform"      "assert_uniform_width detailed 20"
+run_test "Palette: blocks rows are uniform"        "assert_uniform_width blocks 20"
+run_test "Palette: simple rows are uniform"        "assert_uniform_width simple 20"
+run_test "Palette: pipe character survives"        "assert_uniform_width ' .|oO@' 14"
+run_test "Palette: backslash survives"             "assert_uniform_width ' .\\oO@' 14"
+run_test "Palette: pipe and backslash together"    "assert_uniform_width ' .|\\oO@' 14"
+
+# The two characters must actually reach the output, not merely keep the width.
+# The output is captured and matched in the shell rather than piped to grep:
+# this file runs under `set -o pipefail`, and `grep -q` closes the pipe as soon
+# as it matches, so gummyworm takes SIGPIPE and fails the whole pipeline --
+# turning a passing assertion into a flaky failure.
+assert_palette_emits() {
+    local palette="$1"
+    local needle="$2"
+    local out
+    out=$("$GUMMYWORM" -q -w 40 -p "$palette" "$TEST_IMG" 2>/dev/null)
+    case "$out" in
+        *"$needle"*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+run_test "Palette: pipe is emitted"      "assert_palette_emits ' .|oO@' '|'"
+run_test "Palette: backslash is emitted" "assert_palette_emits ' .\\oO@' '\\'"
+
+# ============================================================================
+# Regression: batch output must not overwrite itself
+# ============================================================================
+# Output was named from the basename alone, so two images with the same name in
+# different directories wrote to one file while both were reported as saved.
+
+# Succeeds when a recursive batch of two same-named images yields two files
+assert_recursive_batch_keeps_both() {
+    local d out
+    d=$(mktemp -d) || return 1
+    mkdir -p "$d/src/one" "$d/src/two" "$d/out"
+    cp "$TEST_IMG" "$d/src/one/image.png"
+    cp "$TEST_IMG" "$d/src/two/image.png"
+    "$GUMMYWORM" -q -w 10 -f html -r -d "$d/out" "$d/src" >/dev/null 2>&1
+    out=$(find "$d/out" -type f -name '*.html' | wc -l | tr -d ' ')
+    rm -rf "$d"
+    [[ "$out" -eq 2 ]]
+}
+
+# Succeeds when two directly-named same-basename images yield two files
+assert_direct_batch_keeps_both() {
+    local d out
+    d=$(mktemp -d) || return 1
+    mkdir -p "$d/one" "$d/two" "$d/out"
+    cp "$TEST_IMG" "$d/one/image.png"
+    cp "$TEST_IMG" "$d/two/image.png"
+    "$GUMMYWORM" -q -w 10 -f html -d "$d/out" "$d/one/image.png" "$d/two/image.png" >/dev/null 2>&1
+    out=$(find "$d/out" -type f -name '*.html' | wc -l | tr -d ' ')
+    rm -rf "$d"
+    [[ "$out" -eq 2 ]]
+}
+
+# A directory walked non-recursively should still land flat, as before
+assert_non_recursive_stays_flat() {
+    local d out
+    d=$(mktemp -d) || return 1
+    mkdir -p "$d/src" "$d/out"
+    cp "$TEST_IMG" "$d/src/a.png"
+    cp "$TEST_IMG" "$d/src/b.png"
+    "$GUMMYWORM" -q -w 10 -f html -d "$d/out" "$d/src" >/dev/null 2>&1
+    out=$(find "$d/out" -mindepth 2 -type f | wc -l | tr -d ' ')
+    rm -rf "$d"
+    [[ "$out" -eq 0 ]]
+}
+
+run_test "Batch: recursive same-basename keeps both" "assert_recursive_batch_keeps_both"
+run_test "Batch: direct same-basename keeps both"    "assert_direct_batch_keeps_both"
+run_test "Batch: non-recursive output stays flat"    "assert_non_recursive_stays_flat"
+
 echo "================================"
 echo "Results: $TESTS_PASSED/$TESTS_RUN passed"
 if [[ $TESTS_FAILED -gt 0 ]]; then

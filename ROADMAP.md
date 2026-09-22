@@ -4,14 +4,9 @@
 
 ## v2.3.0 — Proportionally accurate output
 
-`#########·` 85% · 11 of 13 done
+`##########` 100% · 13 of 13 done
 
 Correct the aspect-ratio maths so default output is proportionally accurate, and let people tune it to their own terminal.
-
-### backlog
-
-- [ ] [`0017`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0017-palette-characters-and-corrupt-output-the-built-in-detailed-palette-is-affected.md) Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected <sup>bug · p1</sup>
-- [ ] [`0018`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0018-recursive-batch-silently-overwrites-outputs-that-share-a-basename-then-reports-success.md) Recursive batch silently overwrites outputs that share a basename, then reports success <sup>bug · p1</sup>
 
 ### done
 
@@ -26,6 +21,8 @@ Correct the aspect-ratio maths so default output is proportionally accurate, and
 - [x] [`0013`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0013-background-is-never-validated-and-is-interpolated-unescaped-into-svg-html.md) --background is never validated and is interpolated unescaped into SVG/HTML <sup>bug · p1</sup>
 - [x] [`0015`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0015-add-test-cli-sh-covering-the-argument-parser-directly.md) Add test_cli.sh covering the argument parser directly <sup>chore · p1</sup>
 - [x] [`0016`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0016-test-runner-discards-a-failing-assertion-unless-it-is-the-test-s-last-line.md) Test runner discards a failing assertion unless it is the test's last line <sup>bug · p0</sup>
+- [x] [`0017`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0017-palette-characters-and-corrupt-output-the-built-in-detailed-palette-is-affected.md) Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected <sup>bug · p1</sup>
+- [x] [`0018`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0018-recursive-batch-silently-overwrites-outputs-that-share-a-basename-then-reports-success.md) Recursive batch silently overwrites outputs that share a basename, then reports success <sup>bug · p1</sup>
 
 ## later — Someday
 

@@ -95,43 +95,66 @@ convert_to_ascii() {
     
     log_debug "Original: ${orig_w}x${orig_h}, Output: ${out_w}x${out_h}"
     
-    # Create temp file for pixel data
-    local tmpfile
+    # Create temp files for pixel and palette data
+    local tmpfile palette_file
     tmpfile=$(mktemp)
-    trap "rm -f '$tmpfile'" RETURN
+    palette_file=$(mktemp)
+    trap "rm -f '$tmpfile' '$palette_file'" RETURN
     
     # Extract pixels with preprocessing
     image_extract_pixels "$image" "$out_w" "$out_h" "$tmpfile" "$brightness" "$contrast" "$gamma"
     
-    # Parse palette into array for awk
-    # Build a comma-separated list of palette characters
-    local palette_chars_str=""
+    # Parse palette into an array
     palette_to_array "$palette" _PALETTE_CHARS
     local palette_len=${#_PALETTE_CHARS[@]}
     
-    # Build palette string for awk (handle special chars)
+    # Hand the palette to awk as a file, one character per line, rather than as
+    # a delimiter-joined string passed with -v. Both of the obvious shortcuts
+    # corrupt real palettes:
+    #
+    #   - joining on a separator makes that character ambiguous when the
+    #     palette itself contains it, and --palette accepts any string. The
+    #     shipped "detailed" palette contains a literal |.
+    #   - awk -v processes escape sequences in the value, so a backslash in the
+    #     palette is consumed before awk ever sees it. "detailed" has one of
+    #     those too.
+    #
+    # A palette character can never be a newline, so one per line is
+    # unambiguous for every possible palette.
     local i
     for ((i=0; i<palette_len; i++)); do
-        if [[ $i -gt 0 ]]; then
-            palette_chars_str+="|"
-        fi
-        palette_chars_str+="${_PALETTE_CHARS[$i]}"
-    done
+        printf '%s\n' "${_PALETTE_CHARS[$i]}"
+    done > "$palette_file"
     
     log_debug "Palette length: $palette_len"
     
     # Process pixels using awk for performance
     # This is 10-100x faster than bash while-read loop
     # Uses portable awk syntax (BSD/GNU compatible)
-    awk -v palette_str="$palette_chars_str" \
-        -v palette_len="$palette_len" \
+    awk -v palette_file="$palette_file" \
+        -v declared_len="$palette_len" \
         -v invert="$invert" \
         -v use_color="$use_color" \
         -v use_truecolor="$use_truecolor" \
         '
     BEGIN {
-        # Split palette into array
-        n = split(palette_str, palette_arr, "|")
+        # Read the palette back, one character per line. n is the count awk
+        # actually has; every index below uses it rather than the count bash
+        # reported, so the two can never drift apart mid-render.
+        n = 0
+        while ((getline pline < palette_file) > 0) {
+            n++
+            palette_arr[n] = pline
+        }
+        close(palette_file)
+        if (n < 1) {
+            print "gummyworm: palette is empty" > "/dev/stderr"
+            exit 1
+        }
+        if (n != declared_len) {
+            printf "gummyworm: palette count mismatch (%d vs %d)\n", n, declared_len > "/dev/stderr"
+            exit 1
+        }
         current_y = -1
     }
     
@@ -175,10 +198,10 @@ convert_to_ascii() {
         }
         
         # Map brightness to character index
-        char_index = int((brightness * (palette_len - 1)) / 255) + 1
+        char_index = int((brightness * (n - 1)) / 255) + 1
         
         # Bounds check
-        if (char_index > palette_len) char_index = palette_len
+        if (char_index > n) char_index = n
         if (char_index < 1) char_index = 1
         
         char = palette_arr[char_index]

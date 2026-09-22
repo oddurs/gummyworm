@@ -2,8 +2,9 @@
 id: 18
 title: Recursive batch silently overwrites outputs that share a basename, then reports success
 type: bug
-status: backlog
+status: done
 milestone: v2.3.0
+assignee: Oddur Sigurdsson
 created: 2026-09-21
 updated: 2026-09-21
 priority: p1
@@ -55,7 +56,11 @@ an image whose output was overwritten by a later one.
 
 ## Acceptance criteria
 
-- [ ] Two inputs with the same basename in different directories both produce output
-- [ ] No output file is overwritten without the user being told
-- [ ] The completion count reflects files actually written
-- [ ] A test covers the recursive same-basename case end to end
+- [x] Two inputs with the same basename in different directories both produce output
+- [x] No output file is overwritten without the user being told
+- [x] The completion count reflects files actually written
+- [x] A test covers the recursive same-basename case end to end
+
+## 2026-09-21
+
+Fixed in two parts: parse_args now records the directory argument each image was expanded from in ARG_IMAGE_ROOTS (index-aligned with ARG_IMAGES), so recursive batches mirror the input tree under --output-dir; and _unique_output_path guards every other case, warning and appending -2/-3 rather than overwriting. Mirroring alone was not enough — two files named directly from different directories have no root and still collided. _unique_output_path returns via _UNIQUE_OUTPUT_PATH rather than stdout because it appends to the caller's written_outputs array, and a command substitution would run it in a subshell where that append is discarded (this was caught in verification). Non-recursive directory input still lands flat, unchanged.

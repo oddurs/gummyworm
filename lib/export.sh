@@ -208,7 +208,7 @@ _ansi_to_html() {
     
     # Process the content character by character, handling escape sequences
     # Using awk for more reliable ANSI parsing
-    echo -e "$content" | awk "
+    printf '%s\n' "$content" | awk "
     $AWK_ANSI256_TO_RGB
     BEGIN {
         in_span = 0
@@ -311,12 +311,12 @@ export_svg() {
     # Strip ANSI for dimension calculation and store lines
     while IFS= read -r line; do
         local clean_line
-        clean_line=$(echo -e "$line" | sed 's/\x1b\[[0-9;]*m//g')
+        clean_line=$(printf '%s\n' "$line" | sed 's/\x1b\[[0-9;]*m//g')
         lines+=("$line")
         local len=${#clean_line}
         [[ $len -gt $max_width ]] && max_width=$len
         line_count=$((line_count + 1))
-    done < <(echo -e "$content")
+    done < <(printf '%s\n' "$content")
     
     # Calculate SVG dimensions using awk for floating-point (faster than bc)
     local svg_width svg_height
@@ -367,7 +367,7 @@ _svg_render_line() {
     local char_width="$4"
     
     # Parse ANSI codes and output SVG text elements
-    echo -e "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" "
+    printf '%s\n' "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" "
     $AWK_ANSI256_TO_RGB
     BEGIN {
         current_color = \"#ffffff\"  # Default white
@@ -635,11 +635,11 @@ export_content() {
     case "$format" in
         text)
             # Plain text - strip ANSI codes
-            echo -e "$content" | sed 's/\x1b\[[0-9;]*m//g' > "$output_file"
+            printf '%s\n' "$content" | sed 's/\x1b\[[0-9;]*m//g' > "$output_file"
             ;;
         ansi)
             # ANSI - preserve escape codes
-            echo -e "$content" > "$output_file"
+            printf '%s\n' "$content" > "$output_file"
             ;;
         html)
             export_html "$content" "$bg_color" "$padding" > "$output_file"

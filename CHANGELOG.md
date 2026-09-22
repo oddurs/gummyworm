@@ -8,6 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Palette characters `|` and `\` no longer corrupt the output.** The palette
+  was handed to awk as a `|`-joined string that awk split back on `|`, so a `|`
+  in the palette was indistinguishable from a separator; `awk -v` also
+  processes escape sequences, so a backslash was eaten before awk saw it. On
+  top of that, the rendered art was printed with `echo -e`, which reinterpreted
+  any backslash that did survive. The shipped `detailed` palette contains both
+  characters, so `-p detailed` produced ragged rows — 19 and 20 characters wide
+  where every row should have been 20 — and silently dropped three brightness
+  bands. The palette now reaches awk as a file, one character per line, and the
+  eleven `echo -e` calls that carried rendered art use `printf` instead.
+- **Batch output no longer overwrites itself.** Output was named from the input
+  basename alone, so two images called `image.png` in different directories
+  both wrote to `out/image.ascii.html`. The run reported "2 images processed
+  successfully" and exited 0 with one file on disk. A recursive batch now
+  mirrors the input tree under `--output-dir`, and any remaining collision —
+  two files named directly from different directories, say — is reported and
+  written as `image-2.ascii.html` rather than silently replacing the first.
+  A directory walked non-recursively still lands flat, as before.
 - **`--background` is validated and escaped.** Any string was previously
   accepted and interpolated straight into the generated SVG and HTML. A value
   carrying markup ended up in the exported file verbatim. The value now has to
@@ -34,8 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   425-line parser previously had no dedicated tests.
 - Background colour validation and escaping tests in the config and export
   suites.
+- 12 regression tests covering palette character preservation (by character,
+  not byte — several palettes are multi-byte UTF-8) and batch output naming.
 
-The suite now runs 9 files and 319 tests, all enforced.
+The suite now runs 9 files and 331 tests, all enforced.
 
 ## [2.3.0] - 2026-09-20
 

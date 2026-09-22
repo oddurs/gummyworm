@@ -2,8 +2,9 @@
 id: 17
 title: Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected
 type: bug
-status: backlog
+status: done
 milestone: v2.3.0
+assignee: Oddur Sigurdsson
 created: 2026-09-21
 updated: 2026-09-21
 priority: p1
@@ -78,8 +79,12 @@ same number, and it is worth asserting that they are.
 
 ## Acceptance criteria
 
-- [ ] A palette containing `|` renders every row at the requested width
-- [ ] A palette containing `\` renders every row at the requested width
-- [ ] `-p detailed` renders every row at the requested width
-- [ ] No palette character is silently dropped
-- [ ] Tests cover `|`, `\`, and the `detailed` built-in, counting characters rather than bytes
+- [x] A palette containing `|` renders every row at the requested width
+- [x] A palette containing `\` renders every row at the requested width
+- [x] `-p detailed` renders every row at the requested width
+- [x] No palette character is silently dropped
+- [x] Tests cover `|`, `\`, and the `detailed` built-in, counting characters rather than bytes
+
+## 2026-09-21
+
+Two independent root causes, not one. First, the |-joined string passed to awk with -v: | is ambiguous when the palette contains it, and awk -v processes escape sequences so backslashes were eaten before awk saw them. Fixed by handing the palette to awk as a file, one character per line, and indexing off awk's own count with a mismatch guard. Second, the rendered art was printed with 'echo -e' in 5 places in bin/gummyworm and 6 in lib/export.sh, which reinterpreted any backslash the palette produced. convert_to_ascii already emits real ESC bytes (verified with od -c: zero literal backslash-033), so -e was pure liability; all 11 sites now use printf '%s\n'. Fixing only the first left custom backslash palettes still ragged, which is how the second was found.

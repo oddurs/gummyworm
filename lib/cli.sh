@@ -386,15 +386,25 @@ parse_args() {
     if [[ ${#ARG_IMAGES[@]} -gt 0 ]]; then
         local raw_inputs=("${ARG_IMAGES[@]}")
         ARG_IMAGES=()
-        
+        # For each image, the directory argument it was expanded from, or "" if
+        # it was named directly. Output naming uses this to mirror the input
+        # tree, so two files with the same name in different subdirectories do
+        # not write to the same output path. Index-aligned with ARG_IMAGES.
+        ARG_IMAGE_ROOTS=()
+
         for input in "${raw_inputs[@]}"; do
             if is_url "$input"; then
                 ARG_IMAGES+=("$input")
+                ARG_IMAGE_ROOTS+=("")
             elif [[ -d "$input" ]]; then
                 # Directory input - expand to image files
                 local found_images=0
+                # Normalise away a trailing slash so stripping the root later
+                # leaves a clean relative path.
+                local root="${input%/}"
                 while IFS= read -r -d '' img; do
                     ARG_IMAGES+=("$img")
+                    ARG_IMAGE_ROOTS+=("$root")
                     found_images=$((found_images + 1))
                 done < <(find_images_in_dir "$input" "$ARG_RECURSIVE")
                 if [[ $found_images -eq 0 ]]; then
@@ -403,6 +413,7 @@ parse_args() {
             else
                 # Regular file
                 ARG_IMAGES+=("$input")
+                ARG_IMAGE_ROOTS+=("")
             fi
         done
     fi
