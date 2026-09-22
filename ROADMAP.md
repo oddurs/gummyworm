@@ -33,13 +33,9 @@ Good ideas without a date yet.
 
 ## v2.3.1 — Correctness patch
 
-`#########·` 86% · 6 of 7 done
+`##########` 100% · 7 of 7 done
 
 Ship the fixes that landed after the v2.3.0 tag, and make the release installable.
-
-### in progress
-
-- [ ] [`0020`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0020-release-sh-prints-a-sha256-that-can-never-match-the-url-it-prints.md) release.sh prints a SHA256 that can never match the URL it prints <sup>bug · p2</sup>
 
 ### done
 
@@ -49,6 +45,7 @@ Ship the fixes that landed after the v2.3.0 tag, and make the release installabl
 - [x] [`0017`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0017-palette-characters-and-corrupt-output-the-built-in-detailed-palette-is-affected.md) Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected <sup>bug · p1</sup>
 - [x] [`0018`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0018-recursive-batch-silently-overwrites-outputs-that-share-a-basename-then-reports-success.md) Recursive batch silently overwrites outputs that share a basename, then reports success <sup>bug · p1</sup>
 - [x] [`0019`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0019-a-directory-containing-no-images-falls-through-to-stdin-and-reports-a-stdin-error.md) A directory containing no images falls through to stdin and reports a stdin error <sup>bug · p2</sup>
+- [x] [`0020`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0020-release-sh-prints-a-sha256-that-can-never-match-the-url-it-prints.md) release.sh prints a SHA256 that can never match the URL it prints <sup>bug · p2</sup>
 
 ## v2.4.0 — Foundations
 

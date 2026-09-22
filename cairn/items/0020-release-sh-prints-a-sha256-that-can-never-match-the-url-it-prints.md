@@ -2,7 +2,7 @@
 id: 20
 title: release.sh prints a SHA256 that can never match the URL it prints
 type: bug
-status: doing
+status: done
 milestone: v2.3.1
 assignee: Oddur Sigurdsson
 created: 2026-09-21
@@ -64,7 +64,11 @@ via brew. Fixing the script and bumping the formula belong together.
 
 ## Acceptance criteria
 
-- [ ] The hash written into the formula is the hash of the artefact the URL serves
-- [ ] The script fails clearly if the tag is not pushed yet, rather than hashing something else
-- [ ] The printed "next steps" describe an order that actually works
-- [ ] Formula/gummyworm.rb is bumped to the current release and verified with `brew audit` or an equivalent check
+- [x] The hash written into the formula is the hash of the artefact the URL serves
+- [x] The script fails clearly if the tag is not pushed yet, rather than hashing something else
+- [x] The printed "next steps" describe an order that actually works
+- [x] Formula/gummyworm.rb is bumped to the current release and verified with `brew audit` or an equivalent check
+
+## 2026-09-22
+
+Formula now points at v2.3.0, the latest published release; the sha256 matches an independent download of the url. brew 6 refuses to load a formula from a file path and a throwaway tap would modify the user's Homebrew install, so verification was: ruby -c, independent checksum, every path the install block uses present in the published tarball, and the formula's own test block run against a simulated libexec layout. Once v2.3.1 is pushed, 'scripts/release.sh 2.3.1' moves the formula to it.

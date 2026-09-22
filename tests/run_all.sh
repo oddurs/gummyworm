@@ -100,6 +100,7 @@ UNIT_TESTS=(
     "test_export.sh"
     "test_config.sh"
     "test_cli.sh"
+    "test_release.sh"
 )
 
 # Integration test files (require ImageMagick)
