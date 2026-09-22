@@ -3,10 +3,11 @@ id: 23
 key: v2.3.1
 title: Correctness patch
 type: milestone
-status: backlog
+status: done
 created: 2026-09-22
 updated: 2026-09-22
 priority: p2
+due: 2026-09-22
 ---
 
 Ship the fixes that landed after the v2.3.0 tag, and make the release installable.
@@ -24,3 +25,7 @@ release that `brew install` actually delivers.
 
 No behaviour changes beyond bug fixes. Anything that alters an interface goes
 in a minor release.
+
+## 2026-09-22
+
+Cut as v2.3.1 on 2026-09-22 (local tag; push is the owner's call). All 7 items done.

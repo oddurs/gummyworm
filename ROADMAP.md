@@ -20,20 +20,9 @@ Correct the aspect-ratio maths so default output is proportionally accurate, and
 - [x] [`0011`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0011-run-all-sh-runs-only-5-of-8-test-suites.md) run_all.sh runs only 5 of 8 test suites <sup>bug · p1</sup>
 - [x] [`0012`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0012-changelog-version-history-table-missing-the-2-3-0-row.md) CHANGELOG version history table missing the 2.3.0 row <sup>docs · p2</sup>
 
-## later — Someday
-
-`··········` 0% · 0 of 2 done
-
-Good ideas without a date yet.
-
-### backlog
-
-- [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
-- [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
-
 ## v2.3.1 — Correctness patch
 
-`##########` 100% · 8 of 8 done
+`##########` 100% · 8 of 8 done · due 2026-09-22
 
 Ship the fixes that landed after the v2.3.0 tag, and make the release installable.
 
@@ -47,6 +36,17 @@ Ship the fixes that landed after the v2.3.0 tag, and make the release installabl
 - [x] [`0019`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0019-a-directory-containing-no-images-falls-through-to-stdin-and-reports-a-stdin-error.md) A directory containing no images falls through to stdin and reports a stdin error <sup>bug · p2</sup>
 - [x] [`0020`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0020-release-sh-prints-a-sha256-that-can-never-match-the-url-it-prints.md) release.sh prints a SHA256 that can never match the URL it prints <sup>bug · p2</sup>
 - [x] [`0035`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0035-numeric-config-values-are-evaluated-as-shell-arithmetic-so-a-project-gummywormrc-can-execute-commands.md) Numeric config values are evaluated as shell arithmetic, so a project .gummywormrc can execute commands <sup>bug · p0</sup>
+
+## later — Someday
+
+`··········` 0% · 0 of 2 done
+
+Good ideas without a date yet.
+
+### backlog
+
+- [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
+- [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
 
 ## v2.4.0 — Foundations
 

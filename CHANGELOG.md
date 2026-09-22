@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-09-22
+
+A security and correctness release. **Upgrade if you run gummyworm inside
+directories you did not create** — see Security. Nothing here changes an
+interface; every entry is a fix or a test.
+
+### Security
+- **A project `.gummywormrc` could execute arbitrary commands.** Config files
+  are read from the current directory, and every value except `background` was
+  used without validation. Numeric values reach shell arithmetic, where bash
+  evaluates a variable's value as an expression — including array subscripts,
+  which undergo command substitution. Running gummyworm inside a cloned
+  repository or unpacked archive whose `.gummywormrc` contained, for example,
+  `width=HOME[$(command)]` ran `command`. Exploitable through `width`,
+  `height`, `padding`, `frame_delay` and `max_frames`; affects 2.2.0 through
+  2.3.0. Every config value is now validated against the same rule as its
+  command-line flag, and an invalid value is ignored with a warning.
+- **`--background` could inject markup into exported HTML and SVG**, including
+  from a config file. See Fixed.
+
 ### Fixed
 - **Palette characters `|` and `\` no longer corrupt the output.** The palette
   was handed to awk as a `|`-joined string that awk split back on `|`, so a `|`
@@ -44,6 +64,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   site. Turning enforcement on surfaced exactly one real failure, fixed below.
 - `is_valid_hex_color` was called by the zsh compatibility suite but defined
   nowhere in `lib/` or `bin/`. It now exists, alongside `is_valid_color`.
+- **An input that yields no images is reported as such.** A directory argument
+  containing no images fell through to the stdin path and failed with
+  "Stdin does not contain valid image data". It now fails with "No images
+  found in the given input". Stdin is used only when no input is named.
+- **`scripts/release.sh` hashes the file the formula actually downloads.** It
+  built its own tarball from the working tree and hashed that, then wrote the
+  hash beside GitHub's archive URL — so the formula it produced could never
+  pass Homebrew's checksum. It now requires the tag to be pushed, hashes
+  GitHub's archive for it, and refuses rather than guessing.
+- **The Homebrew formula is current.** It was still pinned to v2.2.0, so
+  `brew install` did not deliver v2.3.0. It now points at v2.3.0; run
+  `scripts/release.sh 2.3.1` once this release's tag is pushed.
 
 ### Added
 - `tests/test_cli.sh`: 21 tests covering `parse_args` directly — per-flag
@@ -54,8 +86,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   suites.
 - 12 regression tests covering palette character preservation (by character,
   not byte — several palettes are multi-byte UTF-8) and batch output naming.
+- `tests/test_release.sh`: offline tests for every case `release.sh` must
+  refuse.
+- Config validation tests for every key, including an end-to-end test that
+  runs the binary against a malicious `.gummywormrc`.
 
-The suite now runs 9 files and 331 tests, all enforced.
+The suite now runs 10 files and 346 tests, all enforced.
 
 ## [2.3.0] - 2026-09-20
 
@@ -209,13 +245,15 @@ The suite now runs 9 files and 331 tests, all enforced.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 2.3.1 | 2026-09-22 | Security: config command injection, background escaping; palette, batch and test runner fixes |
 | 2.3.0 | 2026-09-20 | Correct output proportions, `--char-aspect`, PNG/GIF export fixes |
 | 2.2.0 | 2026-01-11 | Configuration files, shell completions, Docsify docs |
 | 2.1.0 | 2026-01-11 | Animation, true color, zsh support, preprocessing, modular palettes |
 | 2.0.0 | 2024-12-01 | Multi-format export, batch processing, modular rewrite |
 | 1.0.0 | 2024-06-01 | Initial release |
 
-[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.3.1...HEAD
+[2.3.1]: https://github.com/oddurs/gummyworm/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/oddurs/gummyworm/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/oddurs/gummyworm/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/oddurs/gummyworm/compare/v2.0.0...v2.1.0
