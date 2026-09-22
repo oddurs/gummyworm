@@ -11,6 +11,8 @@
 
 **Transform images into glorious ASCII art!** 🐛
 
+[![Tests](https://github.com/oddurs/gummyworm/actions/workflows/test.yml/badge.svg)](https://github.com/oddurs/gummyworm/actions/workflows/test.yml)
+
 A playful, feature-rich command-line tool for converting images to ASCII art with 256-color support, multiple export formats, and 12+ built-in palettes.
 
 ## Platform Support

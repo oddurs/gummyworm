@@ -49,8 +49,12 @@ run_test() {
 }
 
 # Create test image
-TEST_IMG=$(mktemp -t gummyworm_test).png
-trap "rm -f '$TEST_IMG'" EXIT
+# Every scratch file lives in one directory removed on exit. `mktemp -t name`
+# without X's works on BSD but fails on GNU ("too few X's in template"), and
+# appending a suffix to a mktemp path left the suffix-less file behind.
+TEST_DIR=$(mktemp -d "${TMPDIR:-/tmp}/gummyworm_basic.XXXXXX")
+trap 'rm -rf "$TEST_DIR"' EXIT
+TEST_IMG="$TEST_DIR/test.png"
 
 convert -size 50x50 gradient:black-white "$TEST_IMG"
 
@@ -87,8 +91,7 @@ run_test "Invalid contrast rejected" "! $GUMMYWORM -q -w 20 --contrast -200 '$TE
 run_test "Invalid gamma rejected" "! $GUMMYWORM -q -w 20 --gamma 0 '$TEST_IMG' 2>/dev/null"
 
 # File output test
-OUTPUT_FILE=$(mktemp)
-trap "rm -f '$TEST_IMG' '$OUTPUT_FILE'" EXIT
+OUTPUT_FILE="$TEST_DIR/output.txt"
 run_test "File output" "$GUMMYWORM -q -w 20 -o '$OUTPUT_FILE' '$TEST_IMG' && [[ -s '$OUTPUT_FILE' ]]"
 
 # ================================
@@ -98,9 +101,8 @@ echo ""
 echo "--- Batch Processing Tests ---"
 
 # Create multiple test images for batch processing
-TEST_IMG2=$(mktemp -t gummyworm_test2).png
-TEST_IMG3=$(mktemp -t gummyworm_test3).png
-trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE'" EXIT
+TEST_IMG2="$TEST_DIR/test2.png"
+TEST_IMG3="$TEST_DIR/test3.png"
 
 convert -size 30x30 gradient:red-blue "$TEST_IMG2"
 convert -size 40x40 gradient:green-yellow "$TEST_IMG3"
@@ -110,13 +112,12 @@ run_test "Batch: three files" "$GUMMYWORM -q -w 20 '$TEST_IMG' '$TEST_IMG2' '$TE
 run_test "Batch: output to file" "$GUMMYWORM -q -w 20 -o '$OUTPUT_FILE' '$TEST_IMG' '$TEST_IMG2' && [[ -s '$OUTPUT_FILE' ]]"
 
 # Test batch output to directory
-BATCH_OUTPUT_DIR=$(mktemp -d)
-trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE'; rm -rf '$BATCH_OUTPUT_DIR'" EXIT
+BATCH_OUTPUT_DIR="$TEST_DIR/batch_out"
 
 run_test "Batch: output to directory" "$GUMMYWORM -q -w 20 -d '$BATCH_OUTPUT_DIR' '$TEST_IMG' '$TEST_IMG2' && [[ -d '$BATCH_OUTPUT_DIR' ]] && [[ \$(ls -1 '$BATCH_OUTPUT_DIR' | wc -l) -ge 2 ]]"
 
 # Test continue-on-error with batch
-INVALID_FILE="/tmp/nonexistent_image_$$.png"
+INVALID_FILE="$TEST_DIR/nonexistent_image.png"
 run_test "Batch: continue-on-error" "$GUMMYWORM -q -w 20 --continue-on-error '$TEST_IMG' '$INVALID_FILE' '$TEST_IMG2' 2>/dev/null"
 
 # ================================
@@ -161,11 +162,10 @@ echo ""
 echo "--- Export Format Tests ---"
 
 # Create output files for format tests
-HTML_OUTPUT=$(mktemp -t gummyworm_test).html
-SVG_OUTPUT=$(mktemp -t gummyworm_test).svg
-PNG_OUTPUT=$(mktemp -t gummyworm_test).png
-ANSI_OUTPUT=$(mktemp -t gummyworm_test).ans
-trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE' '$HTML_OUTPUT' '$SVG_OUTPUT' '$PNG_OUTPUT' '$ANSI_OUTPUT'; rm -rf '$BATCH_OUTPUT_DIR'" EXIT
+HTML_OUTPUT="$TEST_DIR/out.html"
+SVG_OUTPUT="$TEST_DIR/out.svg"
+PNG_OUTPUT="$TEST_DIR/out.png"
+ANSI_OUTPUT="$TEST_DIR/out.ans"
 
 # Test --format flag
 run_test "Format: text explicit" "$GUMMYWORM -q -w 20 -f text -o '$OUTPUT_FILE' '$TEST_IMG' && [[ -s '$OUTPUT_FILE' ]]"
@@ -205,8 +205,7 @@ run_test "ANSI: contains escapes" "$GUMMYWORM -q -w 20 -c -f ansi -o '$ANSI_OUTP
 run_test "Text: no ANSI codes" "$GUMMYWORM -q -w 20 -c -f text -o '$OUTPUT_FILE' '$TEST_IMG' && ! grep -q $'\\033' '$OUTPUT_FILE'"
 
 # Test batch with format in output-dir
-FORMAT_BATCH_DIR=$(mktemp -d)
-trap "rm -f '$TEST_IMG' '$TEST_IMG2' '$TEST_IMG3' '$OUTPUT_FILE' '$HTML_OUTPUT' '$SVG_OUTPUT' '$PNG_OUTPUT' '$ANSI_OUTPUT'; rm -rf '$BATCH_OUTPUT_DIR' '$FORMAT_BATCH_DIR'" EXIT
+FORMAT_BATCH_DIR="$TEST_DIR/format_batch"
 
 run_test "Format: batch html to dir" "$GUMMYWORM -q -w 20 -f html -d '$FORMAT_BATCH_DIR' '$TEST_IMG' '$TEST_IMG2' && ls '$FORMAT_BATCH_DIR'/*.html >/dev/null 2>&1"
 

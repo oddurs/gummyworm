@@ -39,7 +39,7 @@ Ship the fixes that landed after the v2.3.0 tag, and make the release installabl
 
 ## later — Someday
 
-`··········` 0% · 0 of 2 done
+`··········` 0% · 0 of 3 done
 
 Good ideas without a date yet.
 
@@ -47,10 +47,11 @@ Good ideas without a date yet.
 
 - [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
 - [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
+- [ ] [`0034`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0034-multi-byte-palettes-emit-ragged-rows-and-invalid-utf-8-under-a-c-or-posix-locale.md) Multi-byte palettes emit ragged rows and invalid UTF-8 under a C or POSIX locale <sup>bug · p2</sup>
 
 ## v2.4.0 — Foundations
 
-`··········` 0% · 0 of 6 done
+`##········` 17% · 1 of 6 done
 
 Fix the connective tissue between modules, and put a safety net under it.
 
@@ -58,10 +59,13 @@ Fix the connective tissue between modules, and put a safety net under it.
 
 - [ ] [`0021`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0021-calc-dimensions-divides-by-zero-when-given-empty-or-zero-source-dimensions.md) calc_dimensions divides by zero when given empty or zero source dimensions <sup>bug · p3</sup>
 - [ ] [`0022`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0022-no-end-of-options-marker-so-a-filename-starting-with-a-dash-cannot-be-passed.md) No -- end-of-options marker, so a filename starting with a dash cannot be passed <sup>bug · p3</sup>
-- [ ] [`0026`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0026-run-the-test-suite-and-shellcheck-in-ci-on-every-push-and-pull-request.md) Run the test suite and shellcheck in CI on every push and pull request <sup>chore · p1</sup>
 - [ ] [`0027`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0027-libraries-declare-their-dependencies-but-never-load-them-load-order-is-hand-maintained.md) Libraries declare their dependencies but never load them; load order is hand-maintained <sup>chore · p1</sup>
 - [ ] [`0028`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0028-svg-and-html-export-spawn-two-processes-per-output-row.md) SVG and HTML export spawn two processes per output row <sup>chore · p2</sup>
 - [ ] [`0029`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0029-adopt-one-convention-for-passing-data-from-bash-into-awk.md) Adopt one convention for passing data from bash into awk <sup>chore · p2</sup>
+
+### done
+
+- [x] [`0026`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0026-run-the-test-suite-and-shellcheck-in-ci-on-every-push-and-pull-request.md) Run the test suite and shellcheck in CI on every push and pull request <sup>chore · p1</sup>
 
 ## v2.5.0 — Library boundaries
 
