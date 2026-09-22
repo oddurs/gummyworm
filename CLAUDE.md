@@ -42,7 +42,7 @@ cairn render                      # regenerate ROADMAP.md
 - **`priority`**: one of p0, p1, p2, p3 — p0 is a release blocker
 - **`effort`**: one of s, m, l, xl — Rough size, not an estimate
 - **`area`**: free text — Subsystem this touches
-- **Milestones**: `v2.3.0`, `later`
+- **Milestones**: `v2.3.0`, `later`, `v2.3.1`, `v2.4.0`, `v2.5.0`
 - **Saved views** (`cairn list --view NAME`): `now`, `next`, `triage`
 
 ### Rules

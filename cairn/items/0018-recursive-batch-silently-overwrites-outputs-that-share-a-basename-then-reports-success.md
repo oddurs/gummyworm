@@ -3,10 +3,10 @@ id: 18
 title: Recursive batch silently overwrites outputs that share a basename, then reports success
 type: bug
 status: done
-milestone: v2.3.0
+milestone: v2.3.1
 assignee: Oddur Sigurdsson
 created: 2026-09-21
-updated: 2026-09-21
+updated: 2026-09-22
 priority: p1
 effort: m
 area: cli

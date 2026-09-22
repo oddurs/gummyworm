@@ -3,10 +3,10 @@ id: 15
 title: Add test_cli.sh covering the argument parser directly
 type: chore
 status: done
-milestone: v2.3.0
+milestone: v2.3.1
 assignee: Oddur Sigurdsson
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-09-22
 priority: p1
 effort: m
 area: tests

@@ -3,9 +3,9 @@ id: 19
 title: A directory containing no images falls through to stdin and reports a stdin error
 type: bug
 status: backlog
-milestone: later
+milestone: v2.3.1
 created: 2026-09-21
-updated: 2026-09-21
+updated: 2026-09-22
 priority: p2
 effort: s
 area: cli

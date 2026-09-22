@@ -3,9 +3,9 @@ id: 21
 title: calc_dimensions divides by zero when given empty or zero source dimensions
 type: bug
 status: backlog
-milestone: later
+milestone: v2.4.0
 created: 2026-09-21
-updated: 2026-09-21
+updated: 2026-09-22
 priority: p3
 effort: s
 area: image

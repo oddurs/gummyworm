@@ -3,9 +3,9 @@ id: 22
 title: No -- end-of-options marker, so a filename starting with a dash cannot be passed
 type: bug
 status: backlog
-milestone: later
+milestone: v2.4.0
 created: 2026-09-21
-updated: 2026-09-21
+updated: 2026-09-22
 priority: p3
 effort: s
 area: cli
