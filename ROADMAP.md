@@ -4,9 +4,14 @@
 
 ## v2.3.0 — Proportionally accurate output
 
-`##########` 100% · 11 of 11 done
+`#########·` 85% · 11 of 13 done
 
 Correct the aspect-ratio maths so default output is proportionally accurate, and let people tune it to their own terminal.
+
+### backlog
+
+- [ ] [`0017`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0017-palette-characters-and-corrupt-output-the-built-in-detailed-palette-is-affected.md) Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected <sup>bug · p1</sup>
+- [ ] [`0018`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0018-recursive-batch-silently-overwrites-outputs-that-share-a-basename-then-reports-success.md) Recursive batch silently overwrites outputs that share a basename, then reports success <sup>bug · p1</sup>
 
 ### done
 
@@ -24,13 +29,17 @@ Correct the aspect-ratio maths so default output is proportionally accurate, and
 
 ## later — Someday
 
-`··········` 0% · 0 of 1 done
+`··········` 0% · 0 of 5 done
 
 Good ideas without a date yet.
 
 ### backlog
 
 - [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
+- [ ] [`0019`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0019-a-directory-containing-no-images-falls-through-to-stdin-and-reports-a-stdin-error.md) A directory containing no images falls through to stdin and reports a stdin error <sup>bug · p2</sup>
+- [ ] [`0020`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0020-release-sh-prints-a-sha256-that-can-never-match-the-url-it-prints.md) release.sh prints a SHA256 that can never match the URL it prints <sup>bug · p2</sup>
+- [ ] [`0021`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0021-calc-dimensions-divides-by-zero-when-given-empty-or-zero-source-dimensions.md) calc_dimensions divides by zero when given empty or zero source dimensions <sup>bug · p3</sup>
+- [ ] [`0022`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0022-no-end-of-options-marker-so-a-filename-starting-with-a-dash-cannot-be-passed.md) No -- end-of-options marker, so a filename starting with a dash cannot be passed <sup>bug · p3</sup>
 
 ## Unscheduled
 
