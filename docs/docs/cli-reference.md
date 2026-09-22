@@ -10,7 +10,7 @@ Complete command-line reference for gummyworm.
 ## Synopsis
 
 ```bash
-gummyworm [OPTIONS] <image_file> [image_file2 ...]
+gummyworm [OPTIONS] [--] <image_file> [image_file2 ...]
 gummyworm [OPTIONS] <url>
 gummyworm [OPTIONS] < image_data
 cat image.png | gummyworm [OPTIONS]
@@ -32,6 +32,13 @@ gummyworm photo1.jpg photo2.png photo3.gif
 # Glob patterns
 gummyworm photos/*.jpg
 gummyworm **/*.png  # with recursive globbing enabled
+```
+
+A file whose name starts with `-` would be read as an option. Put `--` before
+it to end option parsing — everything after `--` is treated as an input:
+
+```bash
+gummyworm -w 60 -- -cover.png
 ```
 
 ### URL Input

@@ -240,6 +240,17 @@ calc_dimensions() {
     local out_w="$target_w"
     local out_h="$target_h"
 
+    # The source dimensions divide the row count below. They come from
+    # identify, which yields nothing on failure -- and bash evaluates an empty
+    # operand as 0, so a bad value surfaces as "division by 0" from deep in the
+    # arithmetic. Reject it here with a message that says what was wrong.
+    # Returns rather than exits: callers decide whether a failure is fatal.
+    if ! [[ "$orig_w" =~ ^[0-9]+$ && "$orig_h" =~ ^[0-9]+$ ]] \
+        || [[ "$orig_w" -eq 0 || "$orig_h" -eq 0 ]]; then
+        log_error "Cannot size output: source dimensions are '${orig_w}x${orig_h}'"
+        return 1
+    fi
+
     if [[ "$target_h" -eq 0 ]]; then
         local aspect_x100
         aspect_x100=$(char_aspect_hundredths "$char_aspect")

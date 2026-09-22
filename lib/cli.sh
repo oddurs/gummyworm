@@ -34,7 +34,7 @@ EOF
 show_help() {
     show_banner
     echo -e "${COLOR_BOLD}USAGE:${COLOR_RESET}"
-    echo "    $GUMMYWORM_NAME [OPTIONS] <image_file> [image_file2 ...]"
+    echo "    $GUMMYWORM_NAME [OPTIONS] [--] <image_file> [image_file2 ...]"
     echo "    $GUMMYWORM_NAME [OPTIONS] < image_data    (stdin)"
     echo "    cat image.png | $GUMMYWORM_NAME [OPTIONS]"
     echo ""
@@ -363,6 +363,16 @@ parse_args() {
             --version)
                 show_version
                 exit 0
+                ;;
+            --)
+                # End of options: everything after is an input, even if it
+                # starts with a dash (e.g. a file named -cover.png).
+                shift
+                while [[ $# -gt 0 ]]; do
+                    ARG_IMAGES+=("$1")
+                    shift
+                done
+                break
                 ;;
             -*)
                 die_usage "Unknown option: $1"

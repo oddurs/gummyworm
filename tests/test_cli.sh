@@ -256,6 +256,26 @@ test_empty_directory_alongside_a_file_still_proceeds() {
     rm -rf "$d"
 }
 
+test_double_dash_ends_option_parsing() {
+    local out
+    out=$(
+        parse_args -w 40 -- -cover.png --not-a-flag.png >/dev/null 2>&1 </dev/null
+        printf '%s|%s' "$ARG_WIDTH" "${ARG_IMAGES[*]}"
+    )
+    assert_equals "40|-cover.png --not-a-flag.png" "$out" \
+        "arguments after -- are inputs, options before it still apply"
+}
+
+test_double_dash_alone_is_not_an_unknown_option() {
+    local msg
+    msg=$( ( parse_args -- "$DUMMY_IMAGE" </dev/null ) 2>&1 || true )
+    assert_not_contains "$msg" "Unknown option" "-- is not reported as an unknown option"
+}
+
+test_dash_file_without_double_dash_is_still_an_option() {
+    assert_true 'cli_rejects -cover.png' "without --, a leading dash is still parsed as an option"
+}
+
 # ============================================================================
 # Tests: boolean flags
 # ============================================================================

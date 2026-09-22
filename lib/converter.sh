@@ -83,7 +83,7 @@ convert_to_ascii() {
     
     # Calculate output dimensions using visual width (for correct aspect ratio)
     local out_dims out_w out_h
-    out_dims=$(calc_dimensions "$orig_w" "$orig_h" "$width" "$height" "$preserve_aspect")
+    out_dims=$(calc_dimensions "$orig_w" "$orig_h" "$width" "$height" "$preserve_aspect") || return 1
     read -r out_w out_h <<< "$out_dims"
     
     # Adjust pixel extraction width for wide-char palettes

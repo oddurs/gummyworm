@@ -2,8 +2,9 @@
 id: 22
 title: No -- end-of-options marker, so a filename starting with a dash cannot be passed
 type: bug
-status: backlog
+status: done
 milestone: v2.4.0
+assignee: Oddur Sigurdsson
 created: 2026-09-21
 updated: 2026-09-22
 priority: p3
@@ -30,5 +31,5 @@ rather than a blocker.
 
 ## Acceptance criteria
 
-- [ ] `--` stops option parsing; everything after it is treated as a filename
-- [ ] A test covers a file whose name begins with a dash
+- [x] `--` stops option parsing; everything after it is treated as a filename
+- [x] A test covers a file whose name begins with a dash

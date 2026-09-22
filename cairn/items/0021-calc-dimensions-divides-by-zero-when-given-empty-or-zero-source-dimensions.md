@@ -2,8 +2,9 @@
 id: 21
 title: calc_dimensions divides by zero when given empty or zero source dimensions
 type: bug
-status: backlog
+status: done
 milestone: v2.4.0
+assignee: Oddur Sigurdsson
 created: 2026-09-21
 updated: 2026-09-22
 priority: p3
@@ -42,5 +43,5 @@ this one should too.
 
 ## Acceptance criteria
 
-- [ ] `calc_dimensions` fails with a clear message rather than a shell arithmetic error when a source dimension is zero or empty
-- [ ] A test covers zero and empty source dimensions
+- [x] `calc_dimensions` fails with a clear message rather than a shell arithmetic error when a source dimension is zero or empty
+- [x] A test covers zero and empty source dimensions

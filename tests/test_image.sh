@@ -117,6 +117,28 @@ test_calc_brightness_yellow() {
 # well as a right one. Exact values are what make the constant a tested value
 # rather than an assumption. At the 2.0 default: height = width * (orig_h/orig_w) / 2.
 
+test_calc_dimensions_rejects_zero_source() {
+    # Used to die with a shell "division by 0" from deep in the arithmetic.
+    local out
+    assert_false 'calc_dimensions 0 0 80 0 true >/dev/null 2>&1' "zero source dimensions fail"
+    out=$( (calc_dimensions 0 100 80 0 true) 2>&1 || true)
+    assert_contains "$out" "source dimensions" "the message names the source dimensions"
+    assert_not_contains "$out" "division by 0" "no raw shell arithmetic error"
+}
+
+test_calc_dimensions_rejects_empty_source() {
+    # identify yields nothing on failure; bash reads an empty operand as 0.
+    local out
+    assert_false 'calc_dimensions "" "" 80 0 true >/dev/null 2>&1' "empty source dimensions fail"
+    out=$( (calc_dimensions "" "" 80 0 true) 2>&1 || true)
+    assert_not_contains "$out" "division by 0" "no raw shell arithmetic error"
+}
+
+test_calc_dimensions_rejects_non_numeric_source() {
+    assert_false 'calc_dimensions abc 100 80 0 true >/dev/null 2>&1' "non-numeric width fails"
+    assert_false 'calc_dimensions 100 -5 80 0 true >/dev/null 2>&1' "negative height fails"
+}
+
 test_calc_dimensions_basic() {
     local dims
     dims=$(calc_dimensions 100 100 50 0 true)
