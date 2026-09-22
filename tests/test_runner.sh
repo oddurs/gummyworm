@@ -89,17 +89,19 @@ REGISTERED_TESTS=()
 # ============================================================================
 
 # Load gummyworm libraries for unit testing
-load_gummyworm_libs() {
-    # Source in dependency order
-    source "$PROJECT_ROOT/lib/config.sh"
-    source "$PROJECT_ROOT/lib/utils.sh"
-    source "$PROJECT_ROOT/lib/palettes.sh"
-    source "$PROJECT_ROOT/lib/image.sh"
-    source "$PROJECT_ROOT/lib/converter.sh"
-    source "$PROJECT_ROOT/lib/export.sh"
-    source "$PROJECT_ROOT/lib/cli.sh"
-    
-    # Initialize ImageMagick wrappers (if available) 
+# Test files load the modules themselves, with a top-level
+#
+#     source "$PROJECT_ROOT/lib/all.sh"
+#
+# rather than through a function here. Sourcing inside a function makes any
+# `declare`d variable local in every shell, and a readonly one local under zsh
+# unless POSIX_BUILTINS is set. This used to be a function that sourced every
+# module in a hand-kept order -- a second copy of bin/gummyworm's -- and it only
+# worked because config.sh happened to enable POSIX_BUILTINS first.
+
+# Initialise the ImageMagick command wrappers, if ImageMagick is installed.
+# Call after sourcing lib/all.sh.
+init_image_deps() {
     if command_exists magick || command_exists convert; then
         image_check_deps 2>/dev/null || true
     fi

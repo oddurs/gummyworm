@@ -23,7 +23,9 @@ else
 fi
 source "$SCRIPT_DIR/test_runner.sh"
 
-load_gummyworm_libs
+# shellcheck source=lib/all.sh
+source "$PROJECT_ROOT/lib/all.sh"
+init_image_deps
 
 # Run from a scratch directory. parse_args creates --output-dir with mkdir -p,
 # so a test that ever passes a relative -d value writes into the working

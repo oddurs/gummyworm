@@ -3,10 +3,19 @@
 # gummyworm/lib/config.sh - Configuration and constants
 # ============================================================================
 # This module defines all default settings, constants, and global configuration
-# for gummyworm. Source this first before other modules.
+# for gummyworm. Every other module sources it as a dependency, so nothing
+# needs to load it first.
 #
 # Compatibility: Bash 3.2+, zsh 5.0+ (macOS default), GNU/Linux, BSD
 # ============================================================================
+
+# Guard against multiple inclusion. Every other module sources this one, so it
+# is routinely reached more than once, and re-running it would try to redefine
+# its readonly constants. A plain assignment rather than readonly on purpose:
+# this line runs before POSIX_BUILTINS is set below, and under zsh a readonly
+# created while being sourced from inside a function is local to that function.
+[[ -n "${_GUMMYWORM_CONFIG_LOADED:-}" ]] && return 0
+_GUMMYWORM_CONFIG_LOADED=1
 
 # ============================================================================
 # Shell Detection & Compatibility Layer
@@ -322,17 +331,26 @@ _load_config_file() {
     done < "$config_file"
 }
 
-# Load config files in order (later overrides earlier)
-_load_config_file "${XDG_CONFIG_HOME:-$HOME/.config}/gummyworm/config"
-_load_config_file "$HOME/.gummywormrc"
-_load_config_file ".gummywormrc"
+# Load the user's config files, later ones overriding earlier ones.
+#
+# An explicit call, made once by bin/gummyworm, rather than something that
+# happens when this file is sourced. Sourcing a module should define things,
+# not read the user's home directory: it keeps the other modules free to
+# source this one as a dependency, and it keeps the test suite independent of
+# whatever ~/.gummywormrc the person running it happens to have.
+# Usage: config_load_files
+config_load_files() {
+    _load_config_file "${XDG_CONFIG_HOME:-$HOME/.config}/gummyworm/config"
+    _load_config_file "$HOME/.gummywormrc"
+    _load_config_file ".gummywormrc"
 
-# Export config values for use by other modules
-export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
-export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
-export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
-export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
-export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
+    # Export config values for use by other modules
+    export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
+    export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
+    export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
+    export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
+    export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
+}
 
 # ============================================================================
 # Shared Regex Patterns (Bash 3.2 compatible - stored in variables)

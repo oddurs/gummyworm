@@ -24,7 +24,9 @@ fi
 source "$SCRIPT_DIR/test_runner.sh"
 
 # Load gummyworm libraries for unit testing
-load_gummyworm_libs
+# shellcheck source=lib/all.sh
+source "$PROJECT_ROOT/lib/all.sh"
+init_image_deps
 
 # ============================================================================
 # Tests: is_url()

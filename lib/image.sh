@@ -3,12 +3,31 @@
 # gummyworm/lib/image.sh - Image processing functions
 # ============================================================================
 # Handles image validation, dimension calculation, and pixel extraction.
-# Requires: lib/config.sh, lib/utils.sh
+# Requires: lib/config.sh, lib/utils.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_IMAGE_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_IMAGE_LOADED=1
+_GUMMYWORM_IMAGE_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_LIB_DIR}/utils.sh"
 
 # ============================================================================
 # Dependencies

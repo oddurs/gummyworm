@@ -66,26 +66,13 @@ export GUMMYWORM_ROOT
 # Load Modules
 # ============================================================================
 
-# shellcheck source=lib/config.sh
-source "${GUMMYWORM_ROOT}/lib/config.sh"
+# Each module loads its own dependencies; all.sh just names them all.
+# shellcheck source=lib/all.sh
+source "${GUMMYWORM_ROOT}/lib/all.sh"
 
-# shellcheck source=lib/utils.sh
-source "${GUMMYWORM_ROOT}/lib/utils.sh"
-
-# shellcheck source=lib/palettes.sh
-source "${GUMMYWORM_ROOT}/lib/palettes.sh"
-
-# shellcheck source=lib/image.sh
-source "${GUMMYWORM_ROOT}/lib/image.sh"
-
-# shellcheck source=lib/converter.sh
-source "${GUMMYWORM_ROOT}/lib/converter.sh"
-
-# shellcheck source=lib/cli.sh
-source "${GUMMYWORM_ROOT}/lib/cli.sh"
-
-# shellcheck source=lib/export.sh
-source "${GUMMYWORM_ROOT}/lib/export.sh"
+# Read the user's config files. Explicit rather than a side effect of sourcing
+# config.sh, and it must precede parse_args, which seeds ARG_* from CONFIG_*.
+config_load_files
 
 # ============================================================================
 # Cleanup

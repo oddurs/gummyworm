@@ -2,8 +2,9 @@
 id: 27
 title: Libraries declare their dependencies but never load them; load order is hand-maintained
 type: chore
-status: backlog
+status: done
 milestone: v2.4.0
+assignee: Oddur Sigurdsson
 depends_on:
 - 26
 created: 2026-09-22
@@ -59,9 +60,13 @@ second copy of the order.
 
 ## Acceptance criteria
 
-- [ ] Each lib sources its own declared dependencies
-- [ ] config.sh has an include guard
-- [ ] Sourcing any single lib in a fresh shell works without sourcing anything else first
-- [ ] Sourcing a module has no side effects; config loading is an explicit call
-- [ ] The load order no longer lives in two places
-- [ ] A test sources each lib alone and asserts it loads
+- [x] Each lib sources its own declared dependencies
+- [x] config.sh has an include guard
+- [x] Sourcing any single lib in a fresh shell works without sourcing anything else first
+- [x] Sourcing a module has no side effects; config loading is an explicit call
+- [x] The load order no longer lives in two places
+- [x] A test sources each lib alone and asserts it loads
+
+## 2026-09-22
+
+Design forced by a measured constraint, not taste: sourcing a module from inside a function loses declare'd variables in every shell and readonly ones under zsh unless POSIX_BUILTINS is set (probe: bash 3.2/5 keep readonly, lose declare; zsh loses both by default). The old test_runner load_gummyworm_libs sourced every module from a function and only worked because config.sh happens to setopt POSIX_BUILTINS before its readonlys. So dependencies are sourced at top level of each file, never via a _require function, and guard flags are plain assignments. The Requires: headers were also wrong: cli and export both use image.sh (is_url, image_from_stdin, $_MAGICK_CONVERT) without declaring it. is_valid_color stays in config.sh: _load_config_file calls it, and moving it to utils would give config a runtime dependency on a module that load-depends on config. 'No side effects' is read as no I/O: config.sh still sets shell options and strict mode, which the other modules need to behave correctly under zsh.

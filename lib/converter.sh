@@ -3,12 +3,35 @@
 # gummyworm/lib/converter.sh - Core ASCII art conversion
 # ============================================================================
 # The main conversion engine that transforms images into ASCII art.
-# Requires: lib/config.sh, lib/utils.sh, lib/palettes.sh, lib/image.sh
+# Requires: lib/config.sh, lib/utils.sh, lib/palettes.sh, lib/image.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_CONVERTER_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_CONVERTER_LOADED=1
+_GUMMYWORM_CONVERTER_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_LIB_DIR}/utils.sh"
+# shellcheck source=lib/palettes.sh
+source "${GUMMYWORM_LIB_DIR}/palettes.sh"
+# shellcheck source=lib/image.sh
+source "${GUMMYWORM_LIB_DIR}/image.sh"
 
 # ============================================================================
 # Color Functions
