@@ -2,8 +2,9 @@
 id: 20
 title: release.sh prints a SHA256 that can never match the URL it prints
 type: bug
-status: backlog
+status: doing
 milestone: v2.3.1
+assignee: Oddur Sigurdsson
 created: 2026-09-21
 updated: 2026-09-22
 priority: p2

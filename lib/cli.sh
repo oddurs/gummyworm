@@ -383,7 +383,12 @@ parse_args() {
 
     # Now expand directories and handle special inputs
     # Only process if we have inputs (handles empty array in strict mode)
+    # Whether any input argument was given at all. Stdin is only the source
+    # when none was; an explicit directory that yields no images is an error
+    # about that directory, not a cue to read stdin.
+    local had_input_args="false"
     if [[ ${#ARG_IMAGES[@]} -gt 0 ]]; then
+        had_input_args="true"
         local raw_inputs=("${ARG_IMAGES[@]}")
         ARG_IMAGES=()
         # For each image, the directory argument it was expanded from, or "" if
@@ -418,6 +423,12 @@ parse_args() {
         done
     fi
     
+    # Inputs were named but none of them produced an image. Each empty
+    # directory has already been warned about above.
+    if [[ "$had_input_args" == "true" && ${#ARG_IMAGES[@]} -eq 0 ]]; then
+        die "No images found in the given input"
+    fi
+
     # Check for stdin input if no images provided
     if [[ ${#ARG_IMAGES[@]} -eq 0 ]]; then
         if [[ ! -t 0 ]]; then

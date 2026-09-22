@@ -25,6 +25,18 @@ source "$SCRIPT_DIR/test_runner.sh"
 
 load_gummyworm_libs
 
+# Run from a scratch directory. parse_args creates --output-dir with mkdir -p,
+# so a test that ever passes a relative -d value writes into the working
+# directory. That once left an empty ./dummy.png directory in the repository
+# root, and because DUMMY_IMAGE is relative, every "accepts" test then expanded
+# it as a directory, found no images, and passed only by falling through to
+# stdin. A private cwd keeps the suite from polluting the tree or reading back
+# its own leftovers.
+CLI_TEST_CWD=$(mktemp -d)
+cd "$CLI_TEST_CWD" || exit 1
+# Chain onto test_runner.sh's own EXIT trap rather than replacing it.
+trap 'rm -rf "$CLI_TEST_CWD"; cleanup_temp' EXIT
+
 # ============================================================================
 # Helpers
 # ============================================================================
@@ -211,6 +223,37 @@ test_positionals_collect_in_order() {
         printf '%s' "${ARG_IMAGES[*]}"
     )
     assert_equals "a.png b.png c.png" "$out" "positional images collect in order"
+}
+
+test_directory_without_images_is_an_error_about_the_directory() {
+    # An explicit input that yields no images used to fall through to the
+    # stdin path and report "Stdin does not contain valid image data".
+    local d msg
+    d=$(mktemp -d)
+    mkdir -p "$d/empty" "$d/noimg"
+    echo "not an image" > "$d/noimg/readme.txt"
+
+    assert_true "cli_rejects_bare '$d/empty'" "an empty directory is rejected"
+    msg=$( ( parse_args "$d/empty" </dev/null ) 2>&1 || true )
+    assert_contains "$msg" "No images found" "the error names the missing images"
+    assert_not_contains "$msg" "Stdin" "the error does not blame stdin"
+
+    msg=$( ( parse_args "$d/noimg" </dev/null ) 2>&1 || true )
+    assert_contains "$msg" "No images found" "a directory of non-images is rejected the same way"
+    assert_not_contains "$msg" "Stdin" "and does not blame stdin either"
+    rm -rf "$d"
+}
+
+test_empty_directory_alongside_a_file_still_proceeds() {
+    local d out
+    d=$(mktemp -d)
+    mkdir -p "$d/empty"
+    out=$(
+        parse_args "$d/empty" "$DUMMY_IMAGE" >/dev/null 2>&1 </dev/null
+        printf '%s' "${ARG_IMAGES[*]}"
+    )
+    assert_equals "$DUMMY_IMAGE" "$out" "the named file is kept when a sibling directory is empty"
+    rm -rf "$d"
 }
 
 # ============================================================================
