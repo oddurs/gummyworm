@@ -4,7 +4,7 @@ uid: 9d76d54a-f04f-4b30-bf99-63a5d7fa0d53
 title: Libraries declare their dependencies but never load them; load order is hand-maintained
 type: chore
 status: done
-milestone: v2.4.0
+milestone: foundations
 assignee: Oddur Sigurdsson
 depends_on:
 - 26

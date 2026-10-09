@@ -4,7 +4,7 @@ uid: 1529be87-a4fe-4f6e-91ac-d4b99c275de3
 title: Before/after comparison of renders across the whole corpus
 type: feature
 status: done
-milestone: fidelity
+milestone: v2.4.0
 assignee: Oddur Sigurdsson
 depends_on:
 - 38

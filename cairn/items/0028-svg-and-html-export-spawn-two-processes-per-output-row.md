@@ -4,7 +4,7 @@ uid: cea6aa89-75ca-48ee-94e1-24261f81f2c6
 title: SVG and HTML export spawn two processes per output row
 type: chore
 status: backlog
-milestone: v2.4.0
+milestone: foundations
 depends_on:
 - 26
 created: 2026-09-22

@@ -4,7 +4,7 @@ uid: 3aee3e3c-2abe-433c-a09b-9ee8cf2ed186
 title: calc_dimensions divides by zero when given empty or zero source dimensions
 type: bug
 status: done
-milestone: v2.4.0
+milestone: foundations
 assignee: Oddur Sigurdsson
 created: 2026-09-21
 updated: 2026-09-22

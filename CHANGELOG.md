@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-09
+
+Adds a way to measure how faithfully gummyworm renders an image, and the first
+change made against that measurement. **Default output changes** for photos:
+see `--enhance`. Also the first release to include the work after 2.3.1 that
+had not been pushed: CI, `--` support and the module-loading rework below.
+
 ### Added
 - **`--enhance <off|stretch|full>` and the `enhance` config key.** Before
   characters are chosen, the image's tones are now spread across the palette.
@@ -20,6 +27,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `enhance=off`.
 - **`bench/`**, a rendering fidelity benchmark: a fixed 14-image corpus, an SSIM
   score per render, and a before/after comparison page.
+- `--` ends option parsing, so a file named `-cover.png` can be passed. Everything
+  after it is an input.
+- CI runs the suite and shellcheck on every push to main and every pull request,
+  on Ubuntu (ImageMagick 6) and macOS (the system bash 3.2).
+
+### Fixed
+- `calc_dimensions` no longer dies with a raw `division by 0` when ImageMagick
+  reports an empty or zero source size. It reports the problem and returns, and
+  `convert_to_ascii` passes that on. Not reachable from the CLI today, which
+  validates images first.
+
+### Changed
+- Every module now loads its own dependencies, so any one of them can be sourced
+  alone in a fresh shell, and sourcing `lib/config.sh` no longer reads the
+  user's config files. `bin/gummyworm` and the tests share `lib/all.sh`. No
+  change for people running the command.
 
 ## [2.3.1] - 2026-09-22
 
@@ -259,6 +282,7 @@ The suite now runs 10 files and 346 tests, all enforced.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 2.4.0 | 2026-10-09 | `--enhance` tone enhancement (default changes output for photos), `bench/` fidelity benchmark, `--` support, CI |
 | 2.3.1 | 2026-09-22 | Security: config command injection, background escaping; palette, batch and test runner fixes |
 | 2.3.0 | 2026-09-20 | Correct output proportions, `--char-aspect`, PNG/GIF export fixes |
 | 2.2.0 | 2026-01-11 | Configuration files, shell completions, Docsify docs |
@@ -266,7 +290,8 @@ The suite now runs 10 files and 346 tests, all enforced.
 | 2.0.0 | 2024-12-01 | Multi-format export, batch processing, modular rewrite |
 | 1.0.0 | 2024-06-01 | Initial release |
 
-[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.3.1...HEAD
+[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/oddurs/gummyworm/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/oddurs/gummyworm/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/oddurs/gummyworm/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/oddurs/gummyworm/compare/v2.1.0...v2.2.0

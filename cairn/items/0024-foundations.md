@@ -1,12 +1,12 @@
 ---
 id: 24
 uid: 92b6e339-b56e-4ce2-a80e-5ae799385b2e
-key: v2.4.0
+key: foundations
 title: Foundations
 type: milestone
 status: backlog
 created: 2026-09-22
-updated: 2026-09-22
+updated: 2026-10-09
 priority: p2
 ---
 

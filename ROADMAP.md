@@ -37,6 +37,18 @@ Ship the fixes that landed after the v2.3.0 tag, and make the release installabl
 - [x] [`0020`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0020-release-sh-prints-a-sha256-that-can-never-match-the-url-it-prints.md) release.sh prints a SHA256 that can never match the URL it prints <sup>bug · p2</sup>
 - [x] [`0035`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0035-numeric-config-values-are-evaluated-as-shell-arithmetic-so-a-project-gummywormrc-can-execute-commands.md) Numeric config values are evaluated as shell arithmetic, so a project .gummywormrc can execute commands <sup>bug · p0</sup>
 
+## v2.4.0 — Measured rendering
+
+`##########` 100% · 3 of 3 done · due 2026-10-09
+
+The first release with a way to measure rendering fidelity (bench/), and the first change judged by it: tone enhancement as a choice (--enhance).
+
+### done
+
+- [x] [`0038`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0038-build-a-benchmark-corpus-and-scoring-harness-for-rendering-fidelity.md) Build a benchmark corpus and scoring harness for rendering fidelity <sup>feature · p1</sup>
+- [x] [`0039`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0039-before-after-comparison-of-renders-across-the-whole-corpus.md) Before/after comparison of renders across the whole corpus <sup>feature · p1</sup>
+- [x] [`0044`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0044-local-contrast-enhancement-before-quantizing.md) Local contrast enhancement before quantizing <sup>feature · p2</sup>
+
 ## later — Someday
 
 `··········` 0% · 0 of 3 done
@@ -49,7 +61,7 @@ Good ideas without a date yet.
 - [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
 - [ ] [`0034`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0034-multi-byte-palettes-emit-ragged-rows-and-invalid-utf-8-under-a-c-or-posix-locale.md) Multi-byte palettes emit ragged rows and invalid UTF-8 under a C or POSIX locale <sup>bug · p2</sup>
 
-## v2.4.0 — Foundations
+## foundations — Foundations
 
 `#######···` 67% · 4 of 6 done
 
@@ -81,7 +93,7 @@ Make `lib/` a library: functions that return errors, take their inputs
 
 ## fidelity — Rendering fidelity
 
-`##········` 13% · 2 of 15 done
+`··········` 0% · 0 of 12 done
 
 Make gummyworm's output the most faithfully comprehensible rendering of a real image that a terminal can show. Measure first, then improve against the measurement.
 
@@ -102,10 +114,4 @@ Make gummyworm's output the most faithfully comprehensible rendering of a real i
 ### in progress
 
 - [ ] [`0040`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0040-tone-mapping-in-linear-light-and-lab-l-not-gamma-encoded-srgb.md) Tone mapping in linear light and Lab L*, not gamma-encoded sRGB <sup>feature · p1</sup>
-- [ ] [`0044`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0044-local-contrast-enhancement-before-quantizing.md) Local contrast enhancement before quantizing <sup>feature · p2</sup>
-
-### done
-
-- [x] [`0038`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0038-build-a-benchmark-corpus-and-scoring-harness-for-rendering-fidelity.md) Build a benchmark corpus and scoring harness for rendering fidelity <sup>feature · p1</sup>
-- [x] [`0039`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0039-before-after-comparison-of-renders-across-the-whole-corpus.md) Before/after comparison of renders across the whole corpus <sup>feature · p1</sup>
 

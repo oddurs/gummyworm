@@ -112,7 +112,7 @@ esac
 export GUMMYWORM_PLATFORM
 
 # Version info
-readonly GUMMYWORM_VERSION="2.3.1"
+readonly GUMMYWORM_VERSION="2.4.0"
 readonly GUMMYWORM_NAME="gummyworm"
 
 # Determine the root directory of the project (portable across bash/zsh)

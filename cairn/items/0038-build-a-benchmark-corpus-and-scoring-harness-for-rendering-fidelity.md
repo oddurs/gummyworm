@@ -4,7 +4,7 @@ uid: 2f8067a8-b8eb-428b-9b76-221182b42f17
 title: Build a benchmark corpus and scoring harness for rendering fidelity
 type: feature
 status: done
-milestone: fidelity
+milestone: v2.4.0
 assignee: Oddur Sigurdsson
 created: 2026-10-09
 updated: 2026-10-09

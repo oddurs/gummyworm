@@ -4,7 +4,7 @@ uid: 8728c688-15af-4f20-b4bb-21fedcd66368
 title: Run the test suite and shellcheck in CI on every push and pull request
 type: chore
 status: done
-milestone: v2.4.0
+milestone: foundations
 assignee: Oddur Sigurdsson
 created: 2026-09-22
 updated: 2026-09-22

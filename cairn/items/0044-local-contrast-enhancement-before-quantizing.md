@@ -3,12 +3,13 @@ id: 44
 uid: 938b7dfa-a4a6-4590-8645-75b20b9f5585
 title: Local contrast enhancement before quantizing
 type: feature
-status: doing
-milestone: fidelity
+status: done
+milestone: v2.4.0
 depends_on:
 - 38
 created: 2026-10-09
 updated: 2026-10-09
+closed_at: 2026-10-09
 priority: p2
 effort: m
 area: rendering
