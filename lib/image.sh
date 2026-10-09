@@ -319,9 +319,35 @@ image_extract_pixels() {
         preprocess_opts+="-gamma $gamma "
     fi
     
-    # Note: preprocess_opts is intentionally unquoted to allow word splitting
+    # Spread the image's tones across the whole palette before the user's own
+    # adjustments. A photo rarely uses the full range, and a palette has ten
+    # to seventy steps to spend, so an unstretched midtone-heavy image lands on
+    # two or three characters. The default mode (full) is stretch plus CLAHE;
+    # bench/ measures it as raising mean SSIM over the corpus from 0.5745 to
+    # 0.5792. It is a choice because it is not a win on every image: flat
+    # graphics and some line art come out slightly worse. -clahe needs
+    # ImageMagick 7.0.8 or newer, so full falls back to stretch without it.
+    local enhance="${CONFIG_ENHANCE:-$DEFAULT_ENHANCE}"
+    local enhance_opts=""
+    case "$enhance" in
+        stretch|full) enhance_opts="-contrast-stretch 1%x1% " ;;
+    esac
+    if [[ "$enhance" == full ]]; then
+        if [[ -z "${_MAGICK_HAS_CLAHE:-}" ]]; then
+            if $_MAGICK_CONVERT -help 2>&1 | grep -q -- '-clahe'; then
+                _MAGICK_HAS_CLAHE=yes
+            else
+                _MAGICK_HAS_CLAHE=no
+            fi
+        fi
+        [[ "$_MAGICK_HAS_CLAHE" == yes ]] && enhance_opts+="-clahe 12x12%+128+3 "
+    fi
+
+    # Note: enhance_opts and preprocess_opts are intentionally unquoted to
+    # allow word splitting
     # shellcheck disable=SC2086
     $_MAGICK_CONVERT "$image" \
+        $enhance_opts \
         $preprocess_opts \
         -resize "${width}x${height}!" \
         -depth 8 \

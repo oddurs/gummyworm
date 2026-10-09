@@ -87,6 +87,8 @@ show_help() {
     echo "    -q, --quiet           Suppress info messages"
     echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --enhance <mode>      Spread tones across the palette: off, stretch, full"
+    echo "                          (default: $DEFAULT_ENHANCE). off keeps the image as it is."
     echo "    --char-aspect <N>     Terminal cell height:width (default: $DEFAULT_CHAR_ASPECT)"
     echo "                          Raise if output looks too tall, lower if too wide."
     echo "                          ~1.67 tight line spacing, 2.0 typical, 2.2+ loose."
@@ -208,6 +210,7 @@ parse_args() {
     ARG_QUIET="$CONFIG_QUIET"
     ARG_PRESERVE_ASPECT="$CONFIG_PRESERVE_ASPECT"
     ARG_CHAR_ASPECT="$CONFIG_CHAR_ASPECT"
+    ARG_ENHANCE="$CONFIG_ENHANCE"
     ARG_ANIMATE="$CONFIG_ANIMATE"
     ARG_FRAME_DELAY="$CONFIG_FRAME_DELAY"
     ARG_MAX_FRAMES="$CONFIG_MAX_FRAMES"
@@ -367,6 +370,14 @@ parse_args() {
                 ARG_PRESERVE_ASPECT="false"
                 shift
                 ;;
+            --enhance)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                if ! [[ "$2" =~ $RE_CFG_ENHANCE ]]; then
+                    die_usage "Enhance must be one of: off, stretch, full"
+                fi
+                ARG_ENHANCE="$2"
+                shift 2
+                ;;
             --char-aspect)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 if ! [[ "$2" =~ ^[0-9]*\.?[0-9]+$ ]]; then
@@ -413,6 +424,10 @@ parse_args() {
     # < config file < CLI) as the config global both already read.
     CONFIG_CHAR_ASPECT="$ARG_CHAR_ASPECT"
     export CONFIG_CHAR_ASPECT
+
+    # Likewise for enhance: image_extract_pixels reads it, not ARG_*.
+    CONFIG_ENHANCE="$ARG_ENHANCE"
+    export CONFIG_ENHANCE
 
     # Now expand directories and handle special inputs
     # Only process if we have inputs (handles empty array in strict mode)

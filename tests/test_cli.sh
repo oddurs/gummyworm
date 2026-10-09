@@ -197,6 +197,15 @@ test_background_validation() {
 # ============================================================================
 # Tests: missing arguments
 # ============================================================================
+test_enhance_accepts_only_the_three_modes() {
+    assert_true  'cli_accepts --enhance off'     "--enhance accepts off"
+    assert_true  'cli_accepts --enhance stretch' "--enhance accepts stretch"
+    assert_true  'cli_accepts --enhance full'    "--enhance accepts full"
+    assert_true  'cli_rejects --enhance on'      "--enhance rejects an unknown mode"
+    assert_true  'cli_rejects --enhance FULL'    "--enhance is case-sensitive"
+    assert_true  'cli_rejects --enhance ""'      "--enhance rejects an empty value"
+}
+
 # Each of these must produce a usage error rather than consuming the following
 # flag as its value or tripping over an unbound variable under set -u.
 
@@ -204,7 +213,7 @@ test_flags_require_an_argument() {
     local flag
     for flag in -w --width -h --height -p --palette --brightness --contrast \
                 --gamma -f --format --background --padding -o --output \
-                -d --output-dir --frame-delay --max-frames --loops --char-aspect; do
+                -d --output-dir --frame-delay --max-frames --loops --char-aspect --enhance; do
         assert_true "cli_rejects_bare $flag" "$flag alone is a usage error"
     done
 }
@@ -340,6 +349,16 @@ test_char_aspect_is_published_to_config_global() {
         printf '%s' "$CONFIG_CHAR_ASPECT"
     )
     assert_equals "1.67" "$out" "--char-aspect is published as CONFIG_CHAR_ASPECT"
+}
+
+test_enhance_is_published_to_config_global() {
+    # image_extract_pixels reads CONFIG_ENHANCE, not ARG_ENHANCE.
+    local out
+    out=$(
+        parse_args --enhance off "$DUMMY_IMAGE" >/dev/null 2>&1 </dev/null
+        printf '%s' "$CONFIG_ENHANCE"
+    )
+    assert_equals "off" "$out" "--enhance is published as CONFIG_ENHANCE"
 }
 
 # ============================================================================

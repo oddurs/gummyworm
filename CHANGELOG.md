@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **`--enhance <off|stretch|full>` and the `enhance` config key.** Before
+  characters are chosen, the image's tones are now spread across the palette.
+  Photos rarely use the full light-to-dark range, so they used to land on two
+  or three characters. `full` (the default) stretches the range and then applies
+  adaptive local contrast; `stretch` skips the local contrast; `off` restores
+  the previous behaviour. Measured by the new `bench/` suite, `full` raises mean
+  SSIM over the corpus from 0.5745 to 0.5792. It is not a win everywhere: flat
+  graphics and thin line art can come out slightly worse, so use `--enhance off`
+  for those. **Output for existing invocations changes** unless you set
+  `enhance=off`.
+- **`bench/`**, a rendering fidelity benchmark: a fixed 14-image corpus, an SSIM
+  score per render, and a before/after comparison page.
+
 ## [2.3.1] - 2026-09-22
 
 A security and correctness release. **Upgrade if you run gummyworm inside

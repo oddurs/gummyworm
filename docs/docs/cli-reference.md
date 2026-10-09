@@ -242,6 +242,50 @@ gummyworm -c -i photo.jpg
 
 ### Image Preprocessing Options
 
+#### `--enhance <mode>`
+
+Spread the image's tones across the whole palette before they are turned into
+characters.
+
+|             |                           |
+| ----------- | ------------------------- |
+| **Default** | `full`                    |
+| **Type**    | `off`, `stretch` or `full` |
+
+A photograph rarely uses the full range from black to white. Most of its tones
+sit in the middle, and a palette of ten characters then spends most of its
+steps on tones the image does not have, so the output lands on two or three
+characters and looks flat. Enhancement fixes that first.
+
+| Mode      | What it does                                                         |
+| --------- | -------------------------------------------------------------------- |
+| `off`     | Use the image as it is.                                              |
+| `stretch` | Spread the tonal range, clipping the darkest and lightest 1%.        |
+| `full`    | `stretch`, then adaptive local contrast (CLAHE), which lifts detail in flat areas. Needs ImageMagick 7.0.8 or newer; on older versions it behaves like `stretch`. |
+
+```bash
+# Keep a logo's exact tones
+gummyworm --enhance off logo.png
+
+# Spread the range but skip local contrast
+gummyworm --enhance stretch photo.jpg
+```
+
+Which mode to choose:
+
+- **Photographs:** leave it at `full`. On the benchmark corpus, `full` raised
+  the mean SSIM (a structural similarity score, where 1.0 is identical) from
+  0.5745 to 0.5792, with the largest gains on photos and at wider output.
+- **Logos, flat graphics and line art:** use `off`. Their tones are already
+  deliberate, and enhancement can shift them. Thin line art at narrow widths
+  scored slightly worse with it on.
+- **Images that are already high contrast:** `off` and `stretch` look nearly
+  the same.
+
+Enhancement runs before `--brightness`, `--contrast` and `--gamma`, so those
+still apply on top of it. Set it permanently with `enhance` in your config
+file — see [Configuration](configuration.md).
+
 #### `--brightness <N>`
 
 Adjust image brightness before conversion.

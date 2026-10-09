@@ -86,6 +86,7 @@ background='#1e1e1e'
 | `brightness` | 0       | Adjust brightness (-100 to 100) |
 | `contrast`   | 0       | Adjust contrast (-100 to 100)   |
 | `gamma`      | 1.0     | Adjust gamma (0.1 to 10.0)      |
+| `enhance`    | full    | Spread tones across the palette: `off`, `stretch` or `full` ([details](cli-reference.md#--enhance-mode)) |
 
 ### Export
 

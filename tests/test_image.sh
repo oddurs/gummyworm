@@ -29,6 +29,45 @@ source "$PROJECT_ROOT/lib/all.sh"
 init_image_deps
 
 # ============================================================================
+# Tests: tone enhancement
+# ============================================================================
+
+# Spread of the red channel (max - min) across the extracted pixels
+_enhance_spread() {
+    local img="$1" mode="$2" out
+    out=$(mktemp)
+    CONFIG_ENHANCE="$mode" image_extract_pixels "$img" 16 2 "$out"
+    sed -n 's/^[0-9]*,[0-9]*: *(\([0-9]*\),.*/\1/p' "$out" | sort -n \
+        | awk 'NR==1 { lo=$1 } { hi=$1 } END { print hi - lo }'
+    rm -f "$out"
+}
+
+test_enhance_stretch_widens_a_low_contrast_image() {
+    local img spread_off spread_stretch
+    img=$(mktemp "${TMPDIR:-/tmp}/gw-enhance.XXXXXX")
+    # A horizontal ramp squeezed into the middle third of the range
+    $_MAGICK_CONVERT -size 64x8 gradient:gray40-gray60 "png:$img"
+    spread_off=$(_enhance_spread "$img" off)
+    spread_stretch=$(_enhance_spread "$img" stretch)
+    rm -f "$img"
+    assert_true "[[ $spread_stretch -gt $((spread_off * 3)) ]]" \
+        "stretch widens the tonal range (off=$spread_off, stretch=$spread_stretch)"
+}
+
+test_enhance_off_leaves_tones_alone() {
+    local img spread_off
+    img=$(mktemp "${TMPDIR:-/tmp}/gw-enhance.XXXXXX")
+    $_MAGICK_CONVERT -size 64x8 gradient:gray40-gray60 "png:$img"
+    spread_off=$(_enhance_spread "$img" off)
+    rm -f "$img"
+    assert_true "[[ $spread_off -lt 60 ]]" "off keeps a narrow range narrow (spread=$spread_off)"
+}
+
+test_enhance_default_is_full() {
+    assert_equals "full" "$DEFAULT_ENHANCE" "default enhance mode is full"
+}
+
+# ============================================================================
 # Tests: is_url()
 # ============================================================================
 

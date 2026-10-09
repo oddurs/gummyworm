@@ -145,6 +145,10 @@ readonly DEFAULT_PRESERVE_ASPECT=true
 # which is both the common case and what the HTML/SVG exporter renders at.
 # Tighter line spacing (iTerm2 at line-height 1.0) is nearer 1.67; looser, 2.2+.
 readonly DEFAULT_CHAR_ASPECT="2.0"
+# How far to stretch the image's tones across the palette before mapping them:
+# off (use the image as it is), stretch (spread the tonal range), or full
+# (stretch, then adaptive local contrast). See docs/docs/cli-reference.md.
+readonly DEFAULT_ENHANCE="full"
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 readonly DEFAULT_PADDING=0
@@ -193,6 +197,7 @@ CONFIG_LOOPS="$DEFAULT_LOOPS"
 CONFIG_QUIET="$DEFAULT_QUIET"
 CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
 CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
+CONFIG_ENHANCE="$DEFAULT_ENHANCE"
 
 # Colour patterns for background validation. Hex is #RGB or #RRGGBB; the named
 # set is the conservative intersection of CSS named colours and the names
@@ -206,6 +211,7 @@ readonly RE_CFG_NON_NEGATIVE_INT='^(0|[1-9][0-9]*)$'
 readonly RE_CFG_SIGNED_INT='^-?(0|[1-9][0-9]*)$'
 readonly RE_CFG_DECIMAL='^[0-9]*[.]?[0-9]+$'
 readonly RE_CFG_BOOL='^(true|false)$'
+readonly RE_CFG_ENHANCE='^(off|stretch|full)$'
 readonly RE_CFG_FORMAT='^(text|ansi|html|svg|png|gif)$'
 
 # Colour validators live here rather than in utils.sh: config.sh is sourced
@@ -245,6 +251,8 @@ _config_value_valid() {
             [[ "$value" =~ $RE_CFG_BOOL ]] ;;
         format)
             [[ "$value" =~ $RE_CFG_FORMAT ]] ;;
+        enhance)
+            [[ "$value" =~ $RE_CFG_ENHANCE ]] ;;
         background)
             is_valid_color "$value" ;;
         palette)
@@ -326,6 +334,7 @@ _load_config_file() {
                 quiet)           CONFIG_QUIET="$value" ;;
                 preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
                 char_aspect)     CONFIG_CHAR_ASPECT="$value" ;;
+                enhance)         CONFIG_ENHANCE="$value" ;;
             esac
         fi
     done < "$config_file"
@@ -350,6 +359,7 @@ config_load_files() {
     export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
     export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
     export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
+    export CONFIG_ENHANCE
 }
 
 # ============================================================================
