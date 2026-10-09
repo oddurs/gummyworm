@@ -79,3 +79,33 @@ Make `lib/` a library: functions that return errors, take their inputs
 - [ ] [`0031`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0031-layers-communicate-through-global-arg-and-config-variables.md) Layers communicate through global ARG_ and CONFIG_ variables <sup>chore · p2</sup>
 - [ ] [`0032`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0032-split-bin-gummyworm-and-replace-long-positional-signatures.md) Split bin/gummyworm and replace long positional signatures <sup>chore · p3</sup>
 
+## fidelity — Rendering fidelity
+
+`##········` 13% · 2 of 15 done
+
+Make gummyworm's output the most faithfully comprehensible rendering of a real image that a terminal can show. Measure first, then improve against the measurement.
+
+### backlog
+
+- [ ] [`0037`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0037-decide-whether-maximum-fidelity-is-ascii-only-or-includes-unicode-modes.md) Decide whether maximum fidelity is ASCII-only or includes Unicode modes <sup>chore · p1</sup>
+- [ ] [`0041`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0041-256-colour-mode-picks-the-nearest-palette-colour-not-a-truncated-cube-index.md) 256-colour mode picks the nearest palette colour, not a truncated cube index <sup>bug · p2</sup>
+- [ ] [`0042`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0042-detect-background-polarity-instead-of-requiring-invert.md) Detect background polarity instead of requiring --invert <sup>feature · p1</sup>
+- [ ] [`0043`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0043-measure-the-cell-pixel-size-instead-of-assuming-an-aspect-of-2-2.md) Measure the cell pixel size instead of assuming an aspect of 2.2 <sup>feature · p2</sup>
+- [ ] [`0045`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0045-check-how-alpha-is-handled-in-the-pixel-pipeline.md) Check how alpha is handled in the pixel pipeline <sup>chore · p2</sup>
+- [ ] [`0046`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0046-build-palette-ramps-from-measured-glyph-coverage.md) Build palette ramps from measured glyph coverage <sup>feature · p1</sup>
+- [ ] [`0047`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0047-glyph-shape-matching-renderer.md) Glyph shape-matching renderer <sup>feature · p1</sup>
+- [ ] [`0048`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0048-unicode-subpixel-modes-half-blocks-braille-sextants-octants.md) Unicode subpixel modes: half-blocks, braille, sextants, octants <sup>feature · p1</sup>
+- [ ] [`0049`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0049-choose-glyph-and-colours-jointly-against-the-terminal-background.md) Choose glyph and colours jointly against the terminal background <sup>feature · p2</sup>
+- [ ] [`0050`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0050-evaluate-dithering-against-shape-matching.md) Evaluate dithering against shape matching <sup>chore · p3</sup>
+- [ ] [`0051`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0051-human-recognition-study-across-renderers-and-widths.md) Human recognition study across renderers and widths <sup>chore · p2</sup>
+
+### in progress
+
+- [ ] [`0040`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0040-tone-mapping-in-linear-light-and-lab-l-not-gamma-encoded-srgb.md) Tone mapping in linear light and Lab L*, not gamma-encoded sRGB <sup>feature · p1</sup>
+- [ ] [`0044`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0044-local-contrast-enhancement-before-quantizing.md) Local contrast enhancement before quantizing <sup>feature · p2</sup>
+
+### done
+
+- [x] [`0038`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0038-build-a-benchmark-corpus-and-scoring-harness-for-rendering-fidelity.md) Build a benchmark corpus and scoring harness for rendering fidelity <sup>feature · p1</sup>
+- [x] [`0039`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0039-before-after-comparison-of-renders-across-the-whole-corpus.md) Before/after comparison of renders across the whole corpus <sup>feature · p1</sup>
+
