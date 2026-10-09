@@ -1,5 +1,6 @@
 ---
 id: 15
+uid: 650bf135-bee3-4f6a-8b91-1f577c8e8d37
 title: Add test_cli.sh covering the argument parser directly
 type: chore
 status: done

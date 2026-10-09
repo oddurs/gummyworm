@@ -1,5 +1,6 @@
 ---
 id: 31
+uid: 2284ef52-91c5-4315-a112-ac34c0e07eeb
 title: Layers communicate through global ARG_ and CONFIG_ variables
 type: chore
 status: backlog

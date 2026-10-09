@@ -1,5 +1,6 @@
 ---
 id: 19
+uid: d0a537ee-d52d-4884-9474-d5ee50f39e43
 title: A directory containing no images falls through to stdin and reports a stdin error
 type: bug
 status: done

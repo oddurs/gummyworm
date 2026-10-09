@@ -1,5 +1,6 @@
 ---
 id: 33
+uid: 369ec7d7-81cf-4e9f-8405-0a5f71cec61f
 title: Decide whether to keep supporting bash 3.2
 type: chore
 status: backlog

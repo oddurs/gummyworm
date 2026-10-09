@@ -1,5 +1,6 @@
 ---
 id: 16
+uid: c300f954-2f97-4d57-987c-a4f7cf4c0340
 title: Test runner discards a failing assertion unless it is the test's last line
 type: bug
 status: done

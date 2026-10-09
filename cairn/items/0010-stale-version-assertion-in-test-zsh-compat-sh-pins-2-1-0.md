@@ -1,5 +1,6 @@
 ---
 id: 10
+uid: a15a424a-8532-4daa-83f5-f43397e549cf
 title: Stale version assertion in test_zsh_compat.sh pins 2.1.0
 type: bug
 status: done

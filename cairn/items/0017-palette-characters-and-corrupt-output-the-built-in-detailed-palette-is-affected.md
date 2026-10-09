@@ -1,5 +1,6 @@
 ---
 id: 17
+uid: 5010e3fc-c122-46e8-9076-e758e7441b63
 title: Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected
 type: bug
 status: done

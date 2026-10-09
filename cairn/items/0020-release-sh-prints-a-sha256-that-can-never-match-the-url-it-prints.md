@@ -1,5 +1,6 @@
 ---
 id: 20
+uid: 39edce99-3837-493a-a0cf-718e2b65c02c
 title: release.sh prints a SHA256 that can never match the URL it prints
 type: bug
 status: done

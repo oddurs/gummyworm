@@ -1,5 +1,6 @@
 ---
 id: 25
+uid: 6e6d7fd1-0ed6-4c37-952e-0a960413eab9
 key: v2.5.0
 title: Library boundaries
 type: milestone

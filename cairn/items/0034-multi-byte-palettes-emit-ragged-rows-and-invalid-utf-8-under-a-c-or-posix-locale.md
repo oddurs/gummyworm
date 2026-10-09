@@ -1,5 +1,6 @@
 ---
 id: 34
+uid: 5caabbb8-4fb2-4678-ac7e-54048c941e15
 title: Multi-byte palettes emit ragged rows and invalid UTF-8 under a C or POSIX locale
 type: bug
 status: backlog

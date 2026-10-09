@@ -1,5 +1,6 @@
 ---
 id: 29
+uid: 9483764f-39b6-4284-b655-eb3349bacd55
 title: Adopt one convention for passing data from bash into awk
 type: chore
 status: backlog

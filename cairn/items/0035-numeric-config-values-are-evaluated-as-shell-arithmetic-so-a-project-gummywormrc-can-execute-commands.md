@@ -1,5 +1,6 @@
 ---
 id: 35
+uid: 1a478910-c3a2-452d-92e9-1242f24aa247
 title: Numeric config values are evaluated as shell arithmetic, so a project .gummywormrc can execute commands
 type: bug
 status: done

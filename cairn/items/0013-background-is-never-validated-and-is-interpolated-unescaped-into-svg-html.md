@@ -1,5 +1,6 @@
 ---
 id: 13
+uid: 3a5d8ea4-6d90-4079-a80c-23b79437782e
 title: --background is never validated and is interpolated unescaped into SVG/HTML
 type: bug
 status: done

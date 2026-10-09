@@ -1,5 +1,6 @@
 ---
 id: 18
+uid: 9018ce32-d940-4a89-9968-bc26adb0d889
 title: Recursive batch silently overwrites outputs that share a basename, then reports success
 type: bug
 status: done

@@ -1,5 +1,6 @@
 ---
 id: 22
+uid: 41add187-7983-4798-81fc-3068897f83c7
 title: No -- end-of-options marker, so a filename starting with a dash cannot be passed
 type: bug
 status: done

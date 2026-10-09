@@ -1,5 +1,6 @@
 ---
 id: 11
+uid: 5280339b-d8d3-4399-bff9-6bc6ac2522f5
 title: run_all.sh runs only 5 of 8 test suites
 type: bug
 status: done

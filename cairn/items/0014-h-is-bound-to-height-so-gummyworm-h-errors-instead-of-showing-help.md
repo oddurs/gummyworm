@@ -1,5 +1,6 @@
 ---
 id: 14
+uid: d5731291-5a13-4df5-8b60-0827aa325bc9
 title: -h is bound to --height, so 'gummyworm -h' errors instead of showing help
 type: bug
 status: backlog

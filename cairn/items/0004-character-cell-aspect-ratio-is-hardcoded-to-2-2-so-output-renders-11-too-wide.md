@@ -1,5 +1,6 @@
 ---
 id: 4
+uid: 7b6a28d3-193c-448f-b0b6-77a959705780
 title: Character cell aspect ratio is hardcoded to 2.2, so output renders ~11% too wide
 type: bug
 status: done

@@ -1,5 +1,6 @@
 ---
 id: 21
+uid: 3aee3e3c-2abe-433c-a09b-9ee8cf2ed186
 title: calc_dimensions divides by zero when given empty or zero source dimensions
 type: bug
 status: done

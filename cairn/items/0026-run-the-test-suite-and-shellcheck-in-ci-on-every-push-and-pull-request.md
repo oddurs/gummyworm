@@ -1,5 +1,6 @@
 ---
 id: 26
+uid: 8728c688-15af-4f20-b4bb-21fedcd66368
 title: Run the test suite and shellcheck in CI on every push and pull request
 type: chore
 status: done
