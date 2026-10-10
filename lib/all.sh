@@ -27,6 +27,8 @@ source "$_gw_all_dir/utils.sh"
 source "$_gw_all_dir/palettes.sh"
 # shellcheck source=lib/image.sh
 source "$_gw_all_dir/image.sh"
+# shellcheck source=lib/coverage.sh
+source "$_gw_all_dir/coverage.sh"
 # shellcheck source=lib/converter.sh
 source "$_gw_all_dir/converter.sh"
 # shellcheck source=lib/export.sh

@@ -149,6 +149,11 @@ readonly DEFAULT_CHAR_ASPECT="2.0"
 # off (use the image as it is), stretch (spread the tonal range), or full
 # (stretch, then adaptive local contrast). See docs/docs/cli-reference.md.
 readonly DEFAULT_ENHANCE="full"
+# How colour is chosen. plain paints each glyph in the pixel's own colour.
+# optical picks the glyph and the foreground together so that, mixed with the
+# background the glyph is drawn on, the cell reaches the eye as the pixel's
+# colour. See docs/docs/cli-reference.md.
+readonly DEFAULT_COLOR_ENGINE="optical"
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 readonly DEFAULT_PADDING=0
@@ -198,6 +203,7 @@ CONFIG_QUIET="$DEFAULT_QUIET"
 CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
 CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
 CONFIG_ENHANCE="$DEFAULT_ENHANCE"
+CONFIG_COLOR_ENGINE="$DEFAULT_COLOR_ENGINE"
 
 # Colour patterns for background validation. Hex is #RGB or #RRGGBB; the named
 # set is the conservative intersection of CSS named colours and the names
@@ -212,6 +218,7 @@ readonly RE_CFG_SIGNED_INT='^-?(0|[1-9][0-9]*)$'
 readonly RE_CFG_DECIMAL='^[0-9]*[.]?[0-9]+$'
 readonly RE_CFG_BOOL='^(true|false)$'
 readonly RE_CFG_ENHANCE='^(off|stretch|full)$'
+readonly RE_CFG_COLOR_ENGINE='^(plain|optical)$'
 readonly RE_CFG_FORMAT='^(text|ansi|html|svg|png|gif)$'
 
 # Colour validators live here rather than in utils.sh: config.sh is sourced
@@ -253,6 +260,8 @@ _config_value_valid() {
             [[ "$value" =~ $RE_CFG_FORMAT ]] ;;
         enhance)
             [[ "$value" =~ $RE_CFG_ENHANCE ]] ;;
+        color_engine)
+            [[ "$value" =~ $RE_CFG_COLOR_ENGINE ]] ;;
         background)
             is_valid_color "$value" ;;
         palette)
@@ -335,6 +344,7 @@ _load_config_file() {
                 preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
                 char_aspect)     CONFIG_CHAR_ASPECT="$value" ;;
                 enhance)         CONFIG_ENHANCE="$value" ;;
+                color_engine)    CONFIG_COLOR_ENGINE="$value" ;;
             esac
         fi
     done < "$config_file"
@@ -359,7 +369,7 @@ config_load_files() {
     export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
     export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
     export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
-    export CONFIG_ENHANCE
+    export CONFIG_ENHANCE CONFIG_COLOR_ENGINE
 }
 
 # ============================================================================

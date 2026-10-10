@@ -78,6 +78,7 @@ background='#1e1e1e'
 | `color`     | false   | Enable 256-color output   |
 | `truecolor` | false   | Enable 24-bit true color  |
 | `invert`    | false   | Invert brightness mapping |
+| `color_engine` | optical | How colour is chosen: `plain` or `optical` ([details](cli-reference.md#--color-engine-engine)) |
 
 ### Image Preprocessing
 

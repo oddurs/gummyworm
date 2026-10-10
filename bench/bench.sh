@@ -9,8 +9,11 @@
 #   bench.sh corpus                       build the synthetic part of the corpus
 #   bench.sh render <label> [--ref REF]   render + score; REF is a git ref to
 #                                         render with instead of the working tree
-#   bench.sh compare <before> <after> [out.html]
+#   bench.sh rescore <label>              recompute scores from saved renders
+#   bench.sh compare <before> <after> [out.html]   COMPARE_WIDTHS="40 80" limits widths
 #
+# Each render is scored two ways. SSIM compares structure in greyscale; the colour
+# score (colorscore.py) compares colour in OKLab after matching exposure.
 # Score is SSIM between the source and the render rasterised back to an image,
 # both reduced to 200x200 greyscale so it measures what survives at a glance,
 # not glyph-level pixel alignment. 1.0 is identical.
@@ -90,15 +93,20 @@ cmd_render() {
         for w in $WIDTHS; do
             "$gw" -q -w "$w" $FLAGS -- "$f" > "$dir/$name.$w.txt" 2>/dev/null \
                 || { echo "bench: render failed: $name @ $w" >&2; continue; }
+            "$gw" -q -w "$w" $FLAGS -c --truecolor --background '#000000' -- "$f" \
+                > "$dir/$name.$w.ans" 2>/dev/null \
+                || { echo "bench: colour render failed: $name @ $w" >&2; continue; }
             "$gw" -q -w "$w" $FLAGS -f png --background '#000000' --padding 0 \
                 -o "$dir/$name.$w.png" -- "$f" >/dev/null 2>&1 \
                 || { echo "bench: raster failed: $name @ $w" >&2; continue; }
-            printf '%s\t%s\t%s\n' "$name" "$w" "$(ssim "$f" "$dir/$name.$w.png")" >> "$dir/scores.tsv"
+            printf '%s\t%s\t%s\t%s\n' "$name" "$w" "$(ssim "$f" "$dir/$name.$w.png")" \
+                "$(python3 "$BENCH_DIR/colorscore.py" "$f" "$dir/$name.$w.png")" >> "$dir/scores.tsv"
         done
         echo "  rendered $name" >&2
     done < <(corpus_files)
 
-    awk -F'\t' '{ s += $3; n++ } END { printf "mean SSIM %.4f over %d renders\n", s/n, n }' "$dir/scores.tsv"
+    awk -F'\t' '{ s += $3; d += $4; g += $5; c += $6; n++ }
+        END { printf "mean SSIM %.4f, delta-E %.2f, gain %.2f, chroma kept %.2f over %d renders\n", s/n, d/n, g/n, c/n, n }' "$dir/scores.tsv"
 }
 
 cmd_compare() {
@@ -108,7 +116,30 @@ cmd_compare() {
     echo "wrote $html"
 }
 
+# Recompute the scores of an existing run from its saved renders, after the
+# scorer has changed. Does not render anything.
+cmd_rescore() {
+    local label="${1:-}" dir f name w src ext
+    dir="$OUT/$label"
+    [[ -f "$dir/scores.tsv" ]] || die "no run named '$label'"
+    local tmp; tmp="$(mktemp)"
+    while IFS=$'\t' read -r name w _; do
+        src=""
+        for ext in png jpg; do
+            f="$(find "$CORPUS" -name "$name.$ext" | head -1)"
+            [[ -n "$f" ]] && { src="$f"; break; }
+        done
+        [[ -n "$src" ]] || die "cannot find the source for $name"
+        printf '%s\t%s\t%s\t%s\n' "$name" "$w" "$(ssim "$src" "$dir/$name.$w.png")" \
+            "$(python3 "$BENCH_DIR/colorscore.py" "$src" "$dir/$name.$w.png")" >> "$tmp"
+    done < "$dir/scores.tsv"
+    mv "$tmp" "$dir/scores.tsv"
+    awk -F'\t' '{ s += $3; d += $4; g += $5; c += $6; n++ }
+        END { printf "mean SSIM %.4f, delta-E %.2f, gain %.2f, chroma kept %.2f over %d renders\n", s/n, d/n, g/n, c/n, n }' "$dir/scores.tsv"
+}
+
 case "${1:-}" in
+    rescore) shift; cmd_rescore "$@" ;;
     corpus)  shift; cmd_corpus "$@" ;;
     render)  shift; cmd_render "$@" ;;
     compare) shift; cmd_compare "$@" ;;

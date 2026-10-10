@@ -140,6 +140,7 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | `--brightness <N>` | Adjust brightness (-100 to 100) |
 | `--contrast <N>` | Adjust contrast (-100 to 100) |
 | `--gamma <N>` | Adjust gamma (e.g., 0.5, 1.0, 2.2) |
+| `--color-engine <e>` | How colour is chosen: plain, optical (default: optical) |
 | `--enhance <mode>` | Spread tones across the palette: off, stretch, full (default: full) |
 | `--char-aspect <N>` | Terminal cell height:width (default: 2.0) |
 | `-a, --animate` | Enable animation processing |

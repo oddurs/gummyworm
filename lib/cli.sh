@@ -89,6 +89,8 @@ show_help() {
     echo "    -q, --quiet           Suppress info messages"
     echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --color-engine <e>    How colour is chosen: plain, optical (default: $DEFAULT_COLOR_ENGINE)"
+    echo "                          optical compensates for glyphs covering part of their cell."
     echo "    --enhance <mode>      Spread tones across the palette: off, stretch, full"
     echo "                          (default: $DEFAULT_ENHANCE). off keeps the image as it is."
     echo "    --char-aspect <N>     Terminal cell height:width (default: $DEFAULT_CHAR_ASPECT)"
@@ -213,6 +215,7 @@ parse_args() {
     ARG_PRESERVE_ASPECT="$CONFIG_PRESERVE_ASPECT"
     ARG_CHAR_ASPECT="$CONFIG_CHAR_ASPECT"
     ARG_ENHANCE="$CONFIG_ENHANCE"
+    ARG_COLOR_ENGINE="$CONFIG_COLOR_ENGINE"
     ARG_ANIMATE="$CONFIG_ANIMATE"
     ARG_FRAME_DELAY="$CONFIG_FRAME_DELAY"
     ARG_MAX_FRAMES="$CONFIG_MAX_FRAMES"
@@ -388,6 +391,14 @@ parse_args() {
                 ARG_PRESERVE_ASPECT="false"
                 shift
                 ;;
+            --color-engine)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                if ! [[ "$2" =~ $RE_CFG_COLOR_ENGINE ]]; then
+                    die_usage "Color engine must be one of: plain, optical"
+                fi
+                ARG_COLOR_ENGINE="$2"
+                shift 2
+                ;;
             --enhance)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 if ! [[ "$2" =~ $RE_CFG_ENHANCE ]]; then
@@ -451,6 +462,12 @@ parse_args() {
     # Likewise for enhance: image_extract_pixels reads it, not ARG_*.
     CONFIG_ENHANCE="$ARG_ENHANCE"
     export CONFIG_ENHANCE
+
+    # And for the colour engine, which also needs to know the background the
+    # glyphs are drawn on: --background says so for exports and terminals alike.
+    CONFIG_COLOR_ENGINE="$ARG_COLOR_ENGINE"
+    CONFIG_BACKGROUND="$ARG_BACKGROUND"
+    export CONFIG_COLOR_ENGINE CONFIG_BACKGROUND
 
     # Now expand directories and handle special inputs
     # Only process if we have inputs (handles empty array in strict mode)

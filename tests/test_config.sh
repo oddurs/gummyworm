@@ -356,6 +356,7 @@ CONFIG_KEY_CASES=(
     "preserve_aspect:false:0"
     "format:svg:pdf"
     "enhance:stretch:bright"
+    "color_engine:plain:fancy"
     "background:#1e1e1e:notacolor"
 )
 

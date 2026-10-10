@@ -73,6 +73,15 @@ _gummyworm_gamma() {
     _describe -t gamma 'gamma value' values
 }
 
+# Colour engine
+_gummyworm_color_engine() {
+    local values=(
+        'plain:Paint each character in the pixel colour'
+        'optical:Compensate for characters covering part of their cell (default)'
+    )
+    _describe -t color_engine 'colour engine' values
+}
+
 # Tone enhancement mode
 _gummyworm_enhance() {
     local values=(
@@ -138,6 +147,7 @@ _gummyworm() {
         '(-q --quiet)'{-q,--quiet}'[Suppress info messages]' \
         '--continue-on-error[Continue if one file fails]' \
         '--no-aspect[Do not preserve aspect ratio]' \
+        '--color-engine[How colour is chosen (default optical)]:colour engine:_gummyworm_color_engine' \
         '--enhance[Spread tones across the palette (default full)]:enhance mode:_gummyworm_enhance' \
         '--char-aspect[Terminal cell height:width (default 2.0)]:character aspect:_gummyworm_char_aspect' \
         '(-h --help)'{-h,--help}'[Show help message]' \

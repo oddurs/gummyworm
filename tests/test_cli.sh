@@ -224,7 +224,7 @@ test_flags_require_an_argument() {
     local flag
     for flag in -w --width -H --height -p --palette --brightness --contrast \
                 --gamma -f --format --background --padding -o --output \
-                -d --output-dir --frame-delay --max-frames --loops --char-aspect --enhance; do
+                -d --output-dir --frame-delay --max-frames --loops --char-aspect --enhance --color-engine; do
         assert_true "cli_rejects_bare $flag" "$flag alone is a usage error"
     done
 }
@@ -360,6 +360,23 @@ test_char_aspect_is_published_to_config_global() {
         printf '%s' "$CONFIG_CHAR_ASPECT"
     )
     assert_equals "1.67" "$out" "--char-aspect is published as CONFIG_CHAR_ASPECT"
+}
+
+test_color_engine_accepts_only_the_two_engines() {
+    assert_true  'cli_accepts --color-engine plain'   "--color-engine accepts plain"
+    assert_true  'cli_accepts --color-engine optical' "--color-engine accepts optical"
+    assert_true  'cli_rejects --color-engine vivid'   "--color-engine rejects an unknown engine"
+    assert_true  'cli_rejects --color-engine ""'      "--color-engine rejects an empty value"
+}
+
+test_color_engine_and_background_are_published_to_config_globals() {
+    # convert_to_ascii reads CONFIG_COLOR_ENGINE and CONFIG_BACKGROUND, not ARG_*.
+    local out
+    out=$(
+        parse_args --color-engine plain --background '#102030' "$DUMMY_IMAGE" >/dev/null 2>&1 </dev/null
+        printf '%s %s' "$CONFIG_COLOR_ENGINE" "$CONFIG_BACKGROUND"
+    )
+    assert_equals "plain #102030" "$out" "the engine and background reach the converter"
 }
 
 test_enhance_is_published_to_config_global() {

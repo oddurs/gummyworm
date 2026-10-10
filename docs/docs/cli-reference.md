@@ -222,6 +222,10 @@ gummyworm --color photo.jpg
 ```
 
 > **Note:** Color output only works in terminals that support 256 colors. When saving to file, use `--format ansi` to preserve colors.
+>
+> In 256-colour mode each colour is snapped to the nearest colour the palette
+> really has, using the colour cube (16–231) or the grey ramp (232–255). Colours
+> 0–15 are never used, because terminals let people theme them.
 
 #### `--truecolor`
 
@@ -242,6 +246,61 @@ Disable true color auto-detection and force 256-color mode.
 # Force 256-color even if terminal supports true color
 gummyworm -c --no-truecolor photo.jpg
 ```
+
+#### `--color-engine <engine>`
+
+Choose how a pixel's colour becomes a coloured character.
+
+|             |                     |
+| ----------- | ------------------- |
+| **Default** | `optical`           |
+| **Type**    | `plain` or `optical` |
+
+A character does not fill its cell. A `.` inks a few percent of it and the rest
+shows the background, so a colour reaches your eye at a fraction of the
+brightness it was given, and dark colours vanish into a dark background.
+
+| Engine    | What it does                                                                 |
+| --------- | ---------------------------------------------------------------------------- |
+| `plain`   | Paints each character in the pixel's own colour, as earlier versions did.    |
+| `optical` | Picks the character and its colour together, so that the character's light mixed with the background lands on the pixel's colour. |
+
+With `optical`, a dark orange pixel becomes a sparse character in a brighter
+orange, not a dense character in dark orange. Hue and saturation are kept, and
+relative contrast is kept. The picture as a whole is dimmer than the source,
+because no character can light a whole cell, but it is much closer to it than
+`plain`, and the colours stay recognisable.
+
+On the benchmark corpus, `optical` cut the colour error (OKLab delta-E, after
+matching the white point) from 11.1 to 9.7, kept 92% of the source's saturation
+against 78%, and was better on 28 of 42 renders. It is not better everywhere:
+smooth grey gradients and some line art come out slightly worse.
+
+The engine needs to know what the characters are drawn on, so it uses
+`--background` (default `#1e1e1e`). It is exact for dark backgrounds and falls
+back to `plain` where it cannot be:
+
+- on a light background (`--background '#ffffff'`)
+- with `--invert`
+- with a palette it has no measurements for, such as `emoji`, `hearts` or a
+  custom palette of unusual symbols. ASCII, the block characters and braille are
+  measured.
+
+It affects colour output (`-c`, `--truecolor`) and the HTML, SVG, PNG and GIF
+exports, which are always coloured. Plain text output is unaffected.
+
+```bash
+gummyworm -c photo.jpg                          # optical (default)
+gummyworm -c --color-engine plain photo.jpg     # the earlier behaviour
+gummyworm -f png --background '#000000' -o poster.png photo.jpg
+```
+
+Glyph measurements are for the exporter's font (Courier New at 12px). Your
+terminal's font will differ, so treat the result as a close approximation
+rather than an exact match.
+
+Set it permanently with `color_engine` in your config file — see
+[Configuration](configuration.md).
 
 #### `-i, --invert`
 
@@ -425,7 +484,9 @@ gummyworm -d ./html-gallery/ -f html photos/*.jpg
 
 #### `--background <color>`
 
-Set background color for HTML, SVG, and PNG exports.
+Set the background colour for HTML, SVG, and PNG exports. It also tells the
+[colour engine](#--color-engine-engine) what the characters are drawn on, so set
+it to your terminal's background when printing coloured text.
 
 |             |                     |
 | ----------- | ------------------- |

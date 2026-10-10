@@ -37,7 +37,7 @@ _gummyworm_completions() {
         -r --recursive
         -l --list-palettes
         -q --quiet
-        --continue-on-error --no-aspect --char-aspect --enhance
+        --continue-on-error --no-aspect --char-aspect --enhance --color-engine
     "
 
     # Built-in palettes
@@ -59,6 +59,10 @@ _gummyworm_completions() {
         --gamma)
             # Gamma values
             COMPREPLY=($(compgen -W "0.5 0.7 1.0 1.2 1.5 2.0 2.2" -- "$cur"))
+            return
+            ;;
+        --color-engine)
+            COMPREPLY=($(compgen -W "plain optical" -- "$cur"))
             return
             ;;
         --enhance)
