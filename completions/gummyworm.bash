@@ -20,7 +20,9 @@ _gummyworm_completions() {
     # All options
     local opts="
         -w --width
-        -h --height
+        -H --height
+        -h --help
+        -V --version
         -p --palette
         -c --color
         --truecolor --no-truecolor
@@ -35,8 +37,7 @@ _gummyworm_completions() {
         -r --recursive
         -l --list-palettes
         -q --quiet
-        --continue-on-error --no-aspect --char-aspect --enhance
-        --help --version
+        --continue-on-error --no-aspect --char-aspect --enhance --color-engine --classic
     "
 
     # Built-in palettes
@@ -46,7 +47,7 @@ _gummyworm_completions() {
     local formats="text ansi html svg png gif"
 
     case "$prev" in
-        -w|--width|-h|--height|--frame-delay|--max-frames|--loops|--padding)
+        -w|--width|-H|--height|--frame-delay|--max-frames|--loops|--padding)
             # Numeric argument - no completion
             return
             ;;
@@ -58,6 +59,10 @@ _gummyworm_completions() {
         --gamma)
             # Gamma values
             COMPREPLY=($(compgen -W "0.5 0.7 1.0 1.2 1.5 2.0 2.2" -- "$cur"))
+            return
+            ;;
+        --color-engine)
+            COMPREPLY=($(compgen -W "plain optical" -- "$cur"))
             return
             ;;
         --enhance)

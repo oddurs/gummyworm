@@ -22,6 +22,7 @@ MODULES=(
     "utils:log_error:is_valid_color"
     "palettes:palette_get:log_error"
     "image:calc_dimensions:log_error"
+    "coverage:glyph_coverage_table:glyph_coverage_table"
     "converter:convert_to_ascii:palette_to_array"
     "export:export_svg:image_check_deps"
     "cli:parse_args:is_url"

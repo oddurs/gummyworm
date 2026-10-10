@@ -377,6 +377,12 @@ main() {
     else
         # Treat as custom inline palette
         palette="$ARG_PALETTE"
+        # Any string is a valid palette, so a mistyped name ('blokcs') quietly
+        # renders with the letters b, l, o, k, c and s. A plain word of four or
+        # more letters is far more likely a typo than a character ramp.
+        if [[ "$ARG_PALETTE" =~ ^[A-Za-z][A-Za-z_-]{3,}$ ]]; then
+            log_warn "'$ARG_PALETTE' is not a palette name, so it is used as literal characters. See: $GUMMYWORM_NAME --list-palettes"
+        fi
     fi
     
     # Validate palette
@@ -685,28 +691,48 @@ main() {
                 if [[ "$ARG_QUIET" != "true" && $total_images -eq 1 ]]; then
                     log_success "Saved to: $ARG_OUTPUT"
                 fi
+            elif [[ "$output_format" != "text" ]]; then
+                # -f names a format but there is no file to put it in. Text
+                # based formats go to stdout; png and gif are binary and are
+                # only written to a pipe or a redirect, never to a terminal.
+                if [[ "$output_format" =~ ^(png|gif)$ && -t 1 ]]; then
+                    die "Refusing to write $output_format data to a terminal. Use -o FILE, or redirect: $GUMMYWORM_NAME -f $output_format ... > out.$output_format"
+                fi
+                local export_content_arg stdout_tmp
+                export_content_arg=$(get_export_content "$output_format" "$result" "$resolved_image" \
+                    "$ARG_WIDTH" "$ARG_HEIGHT" "$palette" "$ARG_INVERT" "$ARG_COLOR" "$ARG_PRESERVE_ASPECT" "$ARG_TRUECOLOR" \
+                    "$ARG_BRIGHTNESS" "$ARG_CONTRAST" "$ARG_GAMMA")
+                stdout_tmp=$(mktemp "${TMPDIR:-/tmp}/gummyworm_out.XXXXXX")
+                if export_content "$output_format" "$export_content_arg" "$stdout_tmp" "$ARG_BACKGROUND" "$ARG_PADDING"; then
+                    cat "$stdout_tmp"
+                    rm -f "$stdout_tmp"
+                else
+                    rm -f "$stdout_tmp"
+                    die "Export to $output_format failed"
+                fi
             else
-                # Print to stdout
+                # Print to stdout. On a terminal the art gets a blank line
+                # above and below; into a pipe or file it is the art alone.
                 if [[ $total_images -gt 1 ]]; then
-                    echo ""
+                    [[ -t 1 ]] && echo ""
                     echo "# ============ $(basename "$image") ============"
                 fi
-                echo ""
+                [[ -t 1 ]] && echo ""
                 printf '%s\n' "$result"
-                echo ""
+                [[ -t 1 ]] && echo ""
             fi
         fi
     done
     
     # Batch summary
     if [[ "$ARG_QUIET" != "true" && $total_images -gt 1 ]]; then
-        echo ""
+        echo "" >&2
         if [[ $failed -eq 0 ]]; then
             log_success "Completed: $processed images processed successfully"
         else
             log_warn "Completed: $((processed - failed))/$processed successful, $failed failed"
             for f in "${failed_files[@]}"; do
-                echo "  - $f"
+                echo "  - $f" >&2
             done
         fi
         if [[ -n "$ARG_OUTPUT" ]]; then

@@ -78,6 +78,7 @@ background='#1e1e1e'
 | `color`     | false   | Enable 256-color output   |
 | `truecolor` | false   | Enable 24-bit true color  |
 | `invert`    | false   | Invert brightness mapping |
+| `color_engine` | optical | How colour is chosen: `plain` or `optical` ([details](cli-reference.md#--color-engine-engine)) |
 
 ### Image Preprocessing
 
@@ -86,6 +87,7 @@ background='#1e1e1e'
 | `brightness` | 0       | Adjust brightness (-100 to 100) |
 | `contrast`   | 0       | Adjust contrast (-100 to 100)   |
 | `gamma`      | 1.0     | Adjust gamma (0.1 to 10.0)      |
+| `classic`    | false   | Render as before 2.4: `enhance=off` and `color_engine=plain` ([details](cli-reference.md#--classic)) |
 | `enhance`    | full    | Spread tones across the palette: `off`, `stretch` or `full` ([details](cli-reference.md#--enhance-mode)) |
 
 ### Export

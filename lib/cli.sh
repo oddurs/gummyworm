@@ -39,6 +39,8 @@ source "${GUMMYWORM_LIB_DIR}/image.sh"
 
 # Display the ASCII art banner
 show_banner() {
+    # Decoration is for people; piped into a pager, grep or a file it is noise.
+    [[ -t 1 ]] || return 0
     cat << 'EOF'
 
  ██████╗ ██╗   ██╗███╗   ███╗███╗   ███╗██╗   ██╗██╗    ██╗ ██████╗ ██████╗ ███╗   ███╗
@@ -58,12 +60,12 @@ show_help() {
     show_banner
     echo -e "${COLOR_BOLD}USAGE:${COLOR_RESET}"
     echo "    $GUMMYWORM_NAME [OPTIONS] [--] <image_file> [image_file2 ...]"
-    echo "    $GUMMYWORM_NAME [OPTIONS] < image_data    (stdin)"
+    echo "    $GUMMYWORM_NAME [OPTIONS] - < image_data  (stdin, also read when piped)"
     echo "    cat image.png | $GUMMYWORM_NAME [OPTIONS]"
     echo ""
     echo -e "${COLOR_BOLD}OPTIONS:${COLOR_RESET}"
     echo "    -w, --width <N>       Output width in characters (default: $DEFAULT_WIDTH)"
-    echo "    -h, --height <N>      Output height in lines (default: auto)"
+    echo "    -H, --height <N>      Output height in lines (default: auto)"
     echo "    -p, --palette <name>  Character palette to use (default: $DEFAULT_PALETTE)"
     echo "    -c, --color           Enable ANSI color output (256-color)"
     echo "    --truecolor           Enable true color (24-bit RGB) output"
@@ -87,13 +89,16 @@ show_help() {
     echo "    -q, --quiet           Suppress info messages"
     echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --classic             Render as before 2.4: --enhance off --color-engine plain"
+    echo "    --color-engine <e>    How colour is chosen: plain, optical (default: $DEFAULT_COLOR_ENGINE)"
+    echo "                          optical compensates for glyphs covering part of their cell."
     echo "    --enhance <mode>      Spread tones across the palette: off, stretch, full"
     echo "                          (default: $DEFAULT_ENHANCE). off keeps the image as it is."
     echo "    --char-aspect <N>     Terminal cell height:width (default: $DEFAULT_CHAR_ASPECT)"
     echo "                          Raise if output looks too tall, lower if too wide."
     echo "                          ~1.67 tight line spacing, 2.0 typical, 2.2+ loose."
-    echo "    --help                Show this help message"
-    echo "    --version             Show version information"
+    echo "    -h, --help            Show this help message"
+    echo "    -V, --version         Show version information"
     echo ""
     echo -e "${COLOR_BOLD}EXAMPLES:${COLOR_RESET}"
     echo -e "    ${COLOR_CYAN}# Basic conversion${COLOR_RESET}"
@@ -211,6 +216,10 @@ parse_args() {
     ARG_PRESERVE_ASPECT="$CONFIG_PRESERVE_ASPECT"
     ARG_CHAR_ASPECT="$CONFIG_CHAR_ASPECT"
     ARG_ENHANCE="$CONFIG_ENHANCE"
+    ARG_COLOR_ENGINE="$CONFIG_COLOR_ENGINE"
+    ARG_CLASSIC="false"
+    ARG_ENHANCE_SET="false"
+    ARG_ENGINE_SET="false"
     ARG_ANIMATE="$CONFIG_ANIMATE"
     ARG_FRAME_DELAY="$CONFIG_FRAME_DELAY"
     ARG_MAX_FRAMES="$CONFIG_MAX_FRAMES"
@@ -219,6 +228,8 @@ parse_args() {
     ARG_CONTRAST="$CONFIG_CONTRAST"
     ARG_GAMMA="$CONFIG_GAMMA"
     ARG_IMAGES=()
+    ARG_IMAGE_ROOTS=()
+    ARG_STDIN_REQUESTED="false"
     
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -228,7 +239,21 @@ parse_args() {
                 ARG_WIDTH="$2"
                 shift 2
                 ;;
-            -h|--height)
+            -h)
+                # -h used to mean --height. It means help now, as everywhere
+                # else, but '-h 40' keeps working for a while so scripts that
+                # wrote it do not break: a bare number after -h is a height.
+                if [[ "${2:-}" =~ ^[0-9]+$ ]]; then
+                    log_warn "'-h <N>' for height is deprecated and will become help; use -H or --height"
+                    is_non_negative_int "$2" || die_usage "Height must be a non-negative integer"
+                    ARG_HEIGHT="$2"
+                    shift 2
+                else
+                    show_help
+                    exit 0
+                fi
+                ;;
+            -H|--height)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 is_non_negative_int "$2" || die_usage "Height must be a non-negative integer"
                 ARG_HEIGHT="$2"
@@ -370,12 +395,26 @@ parse_args() {
                 ARG_PRESERVE_ASPECT="false"
                 shift
                 ;;
+            --classic)
+                ARG_CLASSIC="true"
+                shift
+                ;;
+            --color-engine)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                if ! [[ "$2" =~ $RE_CFG_COLOR_ENGINE ]]; then
+                    die_usage "Color engine must be one of: plain, optical"
+                fi
+                ARG_COLOR_ENGINE="$2"
+                ARG_ENGINE_SET="true"
+                shift 2
+                ;;
             --enhance)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 if ! [[ "$2" =~ $RE_CFG_ENHANCE ]]; then
                     die_usage "Enhance must be one of: off, stretch, full"
                 fi
                 ARG_ENHANCE="$2"
+                ARG_ENHANCE_SET="true"
                 shift 2
                 ;;
             --char-aspect)
@@ -394,9 +433,14 @@ parse_args() {
                 show_help
                 exit 0
                 ;;
-            --version)
+            -V|--version)
                 show_version
                 exit 0
+                ;;
+            -)
+                # A lone dash means standard input, as in most tools
+                ARG_STDIN_REQUESTED="true"
+                shift
                 ;;
             --)
                 # End of options: everything after is an input, even if it
@@ -425,9 +469,22 @@ parse_args() {
     CONFIG_CHAR_ASPECT="$ARG_CHAR_ASPECT"
     export CONFIG_CHAR_ASPECT
 
+    # --classic stands in for the two settings it names, except where the same
+    # command line set one of them itself. It beats the config file.
+    if [[ "$ARG_CLASSIC" == "true" ]]; then
+        [[ "$ARG_ENHANCE_SET" == "true" ]] || ARG_ENHANCE="off"
+        [[ "$ARG_ENGINE_SET" == "true" ]] || ARG_COLOR_ENGINE="plain"
+    fi
+
     # Likewise for enhance: image_extract_pixels reads it, not ARG_*.
     CONFIG_ENHANCE="$ARG_ENHANCE"
     export CONFIG_ENHANCE
+
+    # And for the colour engine, which also needs to know the background the
+    # glyphs are drawn on: --background says so for exports and terminals alike.
+    CONFIG_COLOR_ENGINE="$ARG_COLOR_ENGINE"
+    CONFIG_BACKGROUND="$ARG_BACKGROUND"
+    export CONFIG_COLOR_ENGINE CONFIG_BACKGROUND
 
     # Now expand directories and handle special inputs
     # Only process if we have inputs (handles empty array in strict mode)
@@ -477,15 +534,33 @@ parse_args() {
         die "No images found in the given input"
     fi
 
-    # Check for stdin input if no images provided
-    if [[ ${#ARG_IMAGES[@]} -eq 0 ]]; then
-        if [[ ! -t 0 ]]; then
-            # stdin is piped - save to temp file
-            ARG_IMAGES+=("$(image_from_stdin)")
-            ARG_STDIN_TEMP="${ARG_IMAGES[0]}"
+    # Standard input is the source when '-' names it, or when nothing else was
+    # given and it is piped. With nothing to read and a terminal on stdin, say
+    # how to use the command instead of waiting on a keyboard, and exit 2.
+    if [[ "$ARG_STDIN_REQUESTED" == "true" || ${#ARG_IMAGES[@]} -eq 0 ]]; then
+        if [[ "$ARG_STDIN_REQUESTED" == "true" || ! -t 0 ]]; then
+            ARG_STDIN_TEMP="$(image_from_stdin)" || exit 1
+            ARG_IMAGES+=("$ARG_STDIN_TEMP")
+            ARG_IMAGE_ROOTS+=("")
         else
-            show_help
-            exit 1
+            {
+                echo "Usage: $GUMMYWORM_NAME [OPTIONS] [--] <image_file>..."
+                echo "       $GUMMYWORM_NAME [OPTIONS] - < image_data"
+                echo "Try '$GUMMYWORM_NAME --help' for more information."
+            } >&2
+            exit 2
+        fi
+    fi
+
+    # An output file has to be writable before any work is done on its behalf.
+    # Otherwise the failure surfaces as a raw redirection error from deep in the
+    # exporter, with a library line number.
+    if [[ -n "$ARG_OUTPUT" ]]; then
+        local out_dir
+        out_dir="$(dirname -- "$ARG_OUTPUT")"
+        [[ -d "$out_dir" ]] || die "Cannot write to $ARG_OUTPUT: directory $out_dir does not exist"
+        if [[ -e "$ARG_OUTPUT" && ! -w "$ARG_OUTPUT" ]] || [[ ! -e "$ARG_OUTPUT" && ! -w "$out_dir" ]]; then
+            die "Cannot write to $ARG_OUTPUT: permission denied"
         fi
     fi
     

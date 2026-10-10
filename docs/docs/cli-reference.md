@@ -12,7 +12,7 @@ Complete command-line reference for gummyworm.
 ```bash
 gummyworm [OPTIONS] [--] <image_file> [image_file2 ...]
 gummyworm [OPTIONS] <url>
-gummyworm [OPTIONS] < image_data
+gummyworm [OPTIONS] - < image_data
 cat image.png | gummyworm [OPTIONS]
 ```
 
@@ -65,6 +65,16 @@ cat photo.jpg | gummyworm -w 60
 gummyworm < photo.jpg
 ```
 
+A lone `-` names standard input explicitly. It can be combined with files, and
+it is how you read stdin when something else is also on the command line:
+
+```bash
+curl -s https://example.com/image.png | gummyworm -w 60 -
+```
+
+Run with no input and a terminal on stdin, gummyworm prints a short usage line
+and exits with status 2 rather than waiting for you to type.
+
 ## Options Reference
 
 ### Dimension Options
@@ -89,7 +99,7 @@ gummyworm -w 200 landscape.jpg
 gummyworm -w $(tput cols) photo.jpg
 ```
 
-#### `-h, --height <N>`
+#### `-H, --height <N>`
 
 Set the output height in lines.
 
@@ -100,11 +110,16 @@ Set the output height in lines.
 
 ```bash
 # Fixed height
-gummyworm -h 30 photo.jpg
+gummyworm -H 30 photo.jpg
 
 # Both dimensions specified
-gummyworm -w 100 -h 50 photo.jpg
+gummyworm -w 100 -H 50 photo.jpg
 ```
+
+> **Changed:** `-h` used to mean `--height`. It now shows help, as in
+> most command-line tools, and the height flag is `-H`. A number straight after
+> `-h` (`-h 30`) still works as a height for now, with a deprecation warning, so
+> existing scripts keep running.
 
 #### `--no-aspect`
 
@@ -112,7 +127,7 @@ Disable aspect ratio preservation. The image will be stretched to fill the speci
 
 ```bash
 # Stretch to exact dimensions
-gummyworm -w 80 -h 40 --no-aspect photo.jpg
+gummyworm -w 80 -H 40 --no-aspect photo.jpg
 ```
 
 #### `--char-aspect`
@@ -207,6 +222,10 @@ gummyworm --color photo.jpg
 ```
 
 > **Note:** Color output only works in terminals that support 256 colors. When saving to file, use `--format ansi` to preserve colors.
+>
+> In 256-colour mode each colour is snapped to the nearest colour the palette
+> really has, using the colour cube (16–231) or the grey ramp (232–255). Colours
+> 0–15 are never used, because terminals let people theme them.
 
 #### `--truecolor`
 
@@ -228,6 +247,61 @@ Disable true color auto-detection and force 256-color mode.
 gummyworm -c --no-truecolor photo.jpg
 ```
 
+#### `--color-engine <engine>`
+
+Choose how a pixel's colour becomes a coloured character.
+
+|             |                     |
+| ----------- | ------------------- |
+| **Default** | `optical`           |
+| **Type**    | `plain` or `optical` |
+
+A character does not fill its cell. A `.` inks a few percent of it and the rest
+shows the background, so a colour reaches your eye at a fraction of the
+brightness it was given, and dark colours vanish into a dark background.
+
+| Engine    | What it does                                                                 |
+| --------- | ---------------------------------------------------------------------------- |
+| `plain`   | Paints each character in the pixel's own colour, as earlier versions did.    |
+| `optical` | Picks the character and its colour together, so that the character's light mixed with the background lands on the pixel's colour. |
+
+With `optical`, a dark orange pixel becomes a sparse character in a brighter
+orange, not a dense character in dark orange. Hue and saturation are kept, and
+relative contrast is kept. The picture as a whole is dimmer than the source,
+because no character can light a whole cell, but it is much closer to it than
+`plain`, and the colours stay recognisable.
+
+On the benchmark corpus, `optical` cut the colour error (OKLab delta-E, after
+matching the white point) from 11.1 to 9.7, kept 92% of the source's saturation
+against 78%, and was better on 28 of 42 renders. It is not better everywhere:
+smooth grey gradients and some line art come out slightly worse.
+
+The engine needs to know what the characters are drawn on, so it uses
+`--background` (default `#1e1e1e`). It is exact for dark backgrounds and falls
+back to `plain` where it cannot be:
+
+- on a light background (`--background '#ffffff'`)
+- with `--invert`
+- with a palette it has no measurements for, such as `emoji`, `hearts` or a
+  custom palette of unusual symbols. ASCII, the block characters and braille are
+  measured.
+
+It affects colour output (`-c`, `--truecolor`) and the HTML, SVG, PNG and GIF
+exports, which are always coloured. Plain text output is unaffected.
+
+```bash
+gummyworm -c photo.jpg                          # optical (default)
+gummyworm -c --color-engine plain photo.jpg     # the earlier behaviour
+gummyworm -f png --background '#000000' -o poster.png photo.jpg
+```
+
+Glyph measurements are for the exporter's font (Courier New at 12px). Your
+terminal's font will differ, so treat the result as a close approximation
+rather than an exact match.
+
+Set it permanently with `color_engine` in your config file — see
+[Configuration](configuration.md).
+
 #### `-i, --invert`
 
 Invert the brightness mapping. Useful for images with dark backgrounds or when your terminal has a light theme.
@@ -241,6 +315,48 @@ gummyworm -c -i photo.jpg
 ```
 
 ### Image Preprocessing Options
+
+#### `--classic`
+
+Render the way gummyworm did before 2.4: `--enhance off` and `--color-engine plain`
+together.
+
+|             |         |
+| ----------- | ------- |
+| **Default** | off     |
+| **Type**    | Flag    |
+
+The tone enhancement and the optical colour engine are the defaults because they
+score better on the benchmark corpus, but they change how every image looks. If
+you prefer the plain mapping, or you have output you need to reproduce exactly,
+`--classic` switches both off at once.
+
+Either setting can still be chosen on its own, and an explicit one wins over
+`--classic`:
+
+```bash
+gummyworm --classic photo.jpg                   # both off
+gummyworm --classic --enhance full photo.jpg    # enhance on, plain colours
+gummyworm --classic --color-engine optical -c photo.jpg
+```
+
+Across the benchmark corpus the four combinations score as follows. Colour error
+is OKLab delta-E against the unenhanced source (lower is better), so it counts
+the enhancement's deliberate tone changes against it.
+
+| Settings                       | SSIM  | Colour error | Brightness needed | Saturation kept |
+| ------------------------------ | ----- | ------------ | ----------------- | --------------- |
+| `--classic` (off + plain)      | 0.5745 | 11.25       | ×37               | 74%             |
+| `--enhance off`, optical       | 0.5765 | **8.90**    | ×20               | 87%             |
+| `--enhance full`, plain        | 0.5792 | 11.13       | ×23               | 78%             |
+| **default** (full + optical)   | **0.5838** | 9.74    | **×16**           | **92%**         |
+
+The default has the best structure and the best brightness and saturation.
+`--enhance off` with the optical engine has the lowest colour error, because it
+leaves the image's tones alone.
+
+Set it permanently with `classic=true` in your config file — see
+[Configuration](configuration.md).
 
 #### `--enhance <mode>`
 
@@ -362,6 +478,15 @@ gummyworm -f png -o poster.png photo.jpg
 gummyworm -f gif -o animation.gif animated.gif
 ```
 
+Without `-o`, the result goes to standard output. That works for every
+format; `png` and `gif` are binary, so gummyworm refuses to write them to a
+terminal and writes them to a pipe or redirect:
+
+```bash
+gummyworm -f svg photo.jpg | pbcopy
+gummyworm -f png photo.jpg > poster.png
+```
+
 See [Export Formats](export-formats.md) for detailed format documentation.
 
 #### `-o, --output <FILE>`
@@ -401,7 +526,9 @@ gummyworm -d ./html-gallery/ -f html photos/*.jpg
 
 #### `--background <color>`
 
-Set background color for HTML, SVG, and PNG exports.
+Set the background colour for HTML, SVG, and PNG exports. It also tells the
+[colour engine](#--color-engine-engine) what the characters are drawn on, so set
+it to your terminal's background when printing coloured text.
 
 |             |                     |
 | ----------- | ------------------- |
@@ -543,7 +670,7 @@ Suppress informational messages. Only errors and actual output are shown.
 gummyworm -q photo.jpg > art.txt
 ```
 
-#### `--help`
+#### `-h, --help`
 
 Display help message with usage information.
 
@@ -551,14 +678,38 @@ Display help message with usage information.
 gummyworm --help
 ```
 
-#### `--version`
+#### `-V, --version`
 
 Display version information.
 
 ```bash
 gummyworm --version
-# Output: gummyworm 2.1.1
+# Output: gummyworm version 2.5.0
 ```
+
+## Streams, Colour and Exit Status
+
+gummyworm follows the usual command-line conventions, so it behaves in
+pipelines and scripts.
+
+**Standard output carries only the art** (or the exported file, when no `-o` is
+given). Progress, success and warning messages go to standard error, so
+`gummyworm photo.jpg | pbcopy` copies the picture and nothing else. Output sent
+to a pipe or file has no blank padding lines and no banner; those are added only
+on a terminal.
+
+**Colour is for terminals.** Help and messages use colour only when the stream
+is a terminal and the `NO_COLOR` environment variable is unset
+([no-color.org](https://no-color.org)). Colour in the *art* is a separate choice
+made with `-c` or `--truecolor`.
+
+**Exit status**
+
+| Status | Meaning                                                              |
+| ------ | -------------------------------------------------------------------- |
+| `0`    | Success, including `--help` and `--version`                          |
+| `1`    | A runtime failure: a missing or unreadable image, a failed conversion |
+| `2`    | A usage error: an unknown option, a bad value, no input              |
 
 ## Common Command Combinations
 

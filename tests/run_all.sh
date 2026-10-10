@@ -102,6 +102,7 @@ UNIT_TESTS=(
     "test_cli.sh"
     "test_release.sh"
     "test_modules.sh"
+    "test_color.sh"
 )
 
 # Integration test files (require ImageMagick)

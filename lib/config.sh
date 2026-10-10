@@ -112,7 +112,7 @@ esac
 export GUMMYWORM_PLATFORM
 
 # Version info
-readonly GUMMYWORM_VERSION="2.4.0"
+readonly GUMMYWORM_VERSION="2.5.0"
 readonly GUMMYWORM_NAME="gummyworm"
 
 # Determine the root directory of the project (portable across bash/zsh)
@@ -149,6 +149,11 @@ readonly DEFAULT_CHAR_ASPECT="2.0"
 # off (use the image as it is), stretch (spread the tonal range), or full
 # (stretch, then adaptive local contrast). See docs/docs/cli-reference.md.
 readonly DEFAULT_ENHANCE="full"
+# How colour is chosen. plain paints each glyph in the pixel's own colour.
+# optical picks the glyph and the foreground together so that, mixed with the
+# background the glyph is drawn on, the cell reaches the eye as the pixel's
+# colour. See docs/docs/cli-reference.md.
+readonly DEFAULT_COLOR_ENGINE="optical"
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 readonly DEFAULT_PADDING=0
@@ -198,6 +203,13 @@ CONFIG_QUIET="$DEFAULT_QUIET"
 CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
 CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
 CONFIG_ENHANCE="$DEFAULT_ENHANCE"
+CONFIG_COLOR_ENGINE="$DEFAULT_COLOR_ENGINE"
+# classic = enhance off + the plain colour engine, the rendering before 2.4.
+# _CFG_*_SET record that a key was given explicitly, so an explicit value beats
+# the preset whatever order the keys appear in.
+CONFIG_CLASSIC="false"
+_CFG_ENHANCE_SET=""
+_CFG_ENGINE_SET=""
 
 # Colour patterns for background validation. Hex is #RGB or #RRGGBB; the named
 # set is the conservative intersection of CSS named colours and the names
@@ -212,6 +224,7 @@ readonly RE_CFG_SIGNED_INT='^-?(0|[1-9][0-9]*)$'
 readonly RE_CFG_DECIMAL='^[0-9]*[.]?[0-9]+$'
 readonly RE_CFG_BOOL='^(true|false)$'
 readonly RE_CFG_ENHANCE='^(off|stretch|full)$'
+readonly RE_CFG_COLOR_ENGINE='^(plain|optical)$'
 readonly RE_CFG_FORMAT='^(text|ansi|html|svg|png|gif)$'
 
 # Colour validators live here rather than in utils.sh: config.sh is sourced
@@ -253,6 +266,10 @@ _config_value_valid() {
             [[ "$value" =~ $RE_CFG_FORMAT ]] ;;
         enhance)
             [[ "$value" =~ $RE_CFG_ENHANCE ]] ;;
+        color_engine)
+            [[ "$value" =~ $RE_CFG_COLOR_ENGINE ]] ;;
+        classic)
+            [[ "$value" =~ $RE_CFG_BOOL ]] ;;
         background)
             is_valid_color "$value" ;;
         palette)
@@ -334,7 +351,9 @@ _load_config_file() {
                 quiet)           CONFIG_QUIET="$value" ;;
                 preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
                 char_aspect)     CONFIG_CHAR_ASPECT="$value" ;;
-                enhance)         CONFIG_ENHANCE="$value" ;;
+                enhance)         CONFIG_ENHANCE="$value"; _CFG_ENHANCE_SET=1 ;;
+                color_engine)    CONFIG_COLOR_ENGINE="$value"; _CFG_ENGINE_SET=1 ;;
+                classic)         CONFIG_CLASSIC="$value" ;;
             esac
         fi
     done < "$config_file"
@@ -353,13 +372,20 @@ config_load_files() {
     _load_config_file "$HOME/.gummywormrc"
     _load_config_file ".gummywormrc"
 
+    # classic=true is a preset for the two settings it names. It fills in
+    # whichever of them the files did not set themselves.
+    if [[ "$CONFIG_CLASSIC" == "true" ]]; then
+        [[ -n "$_CFG_ENHANCE_SET" ]] || CONFIG_ENHANCE="off"
+        [[ -n "$_CFG_ENGINE_SET" ]] || CONFIG_COLOR_ENGINE="plain"
+    fi
+
     # Export config values for use by other modules
     export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
     export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
     export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
     export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
     export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
-    export CONFIG_ENHANCE
+    export CONFIG_ENHANCE CONFIG_COLOR_ENGINE CONFIG_CLASSIC
 }
 
 # ============================================================================
@@ -376,6 +402,16 @@ readonly RE_INTEGER='^[0-9]+$'
 readonly RE_GRAPHICAL_FORMAT='^(html|svg|png)$'
 readonly RE_TEXT_FORMAT='^(text|ansi)$'
 
+# Colour is for people. Use it only when the stream is a terminal, never when
+# NO_COLOR is set (https://no-color.org) or the terminal is "dumb". Help and the
+# palette list go to stdout, so the COLOR_* set follows stdout; diagnostics go
+# to stderr, so the ERR_* set follows stderr. Each is empty when colour is off,
+# which makes every `echo -e "${COLOR_X}text${COLOR_RESET}"` print plain text.
+# Usage: _color_ok <fd>
+_color_ok() {
+    [[ -z "${NO_COLOR:-}" && "${TERM:-}" != "dumb" && -t "$1" ]]
+}
+
 # ANSI color codes - bash 3.x compatible (no associative arrays)
 COLOR_RESET="\033[0m"
 COLOR_BOLD="\033[1m"
@@ -387,6 +423,21 @@ COLOR_BLUE="\033[34m"
 COLOR_MAGENTA="\033[35m"
 COLOR_CYAN="\033[36m"
 COLOR_WHITE="\033[37m"
+
+ERR_RESET="$COLOR_RESET"
+ERR_RED="$COLOR_RED"
+ERR_GREEN="$COLOR_GREEN"
+ERR_YELLOW="$COLOR_YELLOW"
+ERR_CYAN="$COLOR_CYAN"
+ERR_DIM="$COLOR_DIM"
+
+if ! _color_ok 1; then
+    COLOR_RESET="" COLOR_BOLD="" COLOR_DIM="" COLOR_RED="" COLOR_GREEN=""
+    COLOR_YELLOW="" COLOR_BLUE="" COLOR_MAGENTA="" COLOR_CYAN="" COLOR_WHITE=""
+fi
+if ! _color_ok 2; then
+    ERR_RESET="" ERR_RED="" ERR_GREEN="" ERR_YELLOW="" ERR_CYAN="" ERR_DIM=""
+fi
 
 # Export for subshells
 export GUMMYWORM_VERSION GUMMYWORM_NAME GUMMYWORM_ROOT

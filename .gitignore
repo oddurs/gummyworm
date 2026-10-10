@@ -131,3 +131,4 @@ docs-backup/
 
 # Benchmark output
 bench/out/
+__pycache__/

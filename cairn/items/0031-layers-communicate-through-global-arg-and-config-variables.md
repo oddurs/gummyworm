@@ -4,7 +4,7 @@ uid: 2284ef52-91c5-4315-a112-ac34c0e07eeb
 title: Layers communicate through global ARG_ and CONFIG_ variables
 type: chore
 status: backlog
-milestone: v2.5.0
+milestone: v2.6.0
 depends_on:
 - 27
 created: 2026-09-22

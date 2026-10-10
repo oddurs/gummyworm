@@ -96,10 +96,21 @@ test_width_validation() {
 }
 
 test_height_validation() {
-    assert_true  'cli_accepts -h 40'        "--height accepts a positive integer"
-    assert_true  'cli_accepts -h 0'         "--height accepts zero (auto)"
-    assert_equals "40" "$(cli_value ARG_HEIGHT -h 40)" "--height is stored"
-    assert_true  'cli_rejects -h abc'       "--height rejects non-numeric"
+    assert_true  'cli_accepts -H 40'        "--height accepts a positive integer"
+    assert_true  'cli_accepts -H 0'         "--height accepts zero (auto)"
+    assert_equals "40" "$(cli_value ARG_HEIGHT -H 40)" "--height is stored"
+    assert_equals "40" "$(cli_value ARG_HEIGHT --height 40)" "--height long form is stored"
+    assert_true  'cli_rejects -H abc'       "--height rejects non-numeric"
+}
+
+test_dash_h_number_is_a_deprecated_height() {
+    assert_equals "40" "$(cli_value ARG_HEIGHT -h 40)" "-h <N> still sets the height"
+}
+
+test_usage_errors_exit_status_2() {
+    local rc=0
+    ( parse_args -w abc "$DUMMY_IMAGE" >/dev/null 2>&1 </dev/null ) || rc=$?
+    assert_equals "2" "$rc" "a usage error exits 2"
 }
 
 test_padding_validation() {
@@ -211,9 +222,9 @@ test_enhance_accepts_only_the_three_modes() {
 
 test_flags_require_an_argument() {
     local flag
-    for flag in -w --width -h --height -p --palette --brightness --contrast \
+    for flag in -w --width -H --height -p --palette --brightness --contrast \
                 --gamma -f --format --background --padding -o --output \
-                -d --output-dir --frame-delay --max-frames --loops --char-aspect --enhance; do
+                -d --output-dir --frame-delay --max-frames --loops --char-aspect --enhance --color-engine; do
         assert_true "cli_rejects_bare $flag" "$flag alone is a usage error"
     done
 }
@@ -349,6 +360,32 @@ test_char_aspect_is_published_to_config_global() {
         printf '%s' "$CONFIG_CHAR_ASPECT"
     )
     assert_equals "1.67" "$out" "--char-aspect is published as CONFIG_CHAR_ASPECT"
+}
+
+test_color_engine_accepts_only_the_two_engines() {
+    assert_true  'cli_accepts --color-engine plain'   "--color-engine accepts plain"
+    assert_true  'cli_accepts --color-engine optical' "--color-engine accepts optical"
+    assert_true  'cli_rejects --color-engine vivid'   "--color-engine rejects an unknown engine"
+    assert_true  'cli_rejects --color-engine ""'      "--color-engine rejects an empty value"
+}
+
+test_color_engine_and_background_are_published_to_config_globals() {
+    # convert_to_ascii reads CONFIG_COLOR_ENGINE and CONFIG_BACKGROUND, not ARG_*.
+    local out
+    out=$(
+        parse_args --color-engine plain --background '#102030' "$DUMMY_IMAGE" >/dev/null 2>&1 </dev/null
+        printf '%s %s' "$CONFIG_COLOR_ENGINE" "$CONFIG_BACKGROUND"
+    )
+    assert_equals "plain #102030" "$out" "the engine and background reach the converter"
+}
+
+test_classic_stands_in_for_enhance_off_and_plain_engine() {
+    assert_equals "off plain" "$(cli_value ARG_ENHANCE --classic) $(cli_value ARG_COLOR_ENGINE --classic)" \
+        "--classic sets both"
+    assert_equals "full" "$(cli_value ARG_ENHANCE --classic --enhance full)" "an explicit --enhance after --classic wins"
+    assert_equals "full" "$(cli_value ARG_ENHANCE --enhance full --classic)" "an explicit --enhance before --classic wins"
+    assert_equals "optical" "$(cli_value ARG_COLOR_ENGINE --classic --color-engine optical)" "an explicit --color-engine wins"
+    assert_equals "full optical" "$(cli_value ARG_ENHANCE) $(cli_value ARG_COLOR_ENGINE)" "without --classic the new defaults apply"
 }
 
 test_enhance_is_published_to_config_global() {

@@ -340,7 +340,7 @@ test_format_auto_detect_svg() {
 
 test_format_invalid_rejected() {
     require_imagemagick || return 0
-    assert_exit_code 1 "$GUMMYWORM -q -w 20 -f invalid '$TEST_IMG' 2>/dev/null"
+    assert_exit_code 2 "$GUMMYWORM -q -w 20 -f invalid '$TEST_IMG' 2>/dev/null"
 }
 
 # ============================================================================
@@ -457,17 +457,97 @@ test_nonexistent_file_error() {
 
 test_invalid_width_error() {
     require_imagemagick || return 0
-    assert_exit_code 1 "$GUMMYWORM -q -w 0 '$TEST_IMG' 2>/dev/null"
+    assert_exit_code 2 "$GUMMYWORM -q -w 0 '$TEST_IMG' 2>/dev/null"
 }
 
 test_invalid_width_negative_error() {
     require_imagemagick || return 0
-    assert_exit_code 1 "$GUMMYWORM -q -w -10 '$TEST_IMG' 2>/dev/null"
+    assert_exit_code 2 "$GUMMYWORM -q -w -10 '$TEST_IMG' 2>/dev/null"
 }
 
 test_invalid_width_string_error() {
     require_imagemagick || return 0
-    assert_exit_code 1 "$GUMMYWORM -q -w abc '$TEST_IMG' 2>/dev/null"
+    assert_exit_code 2 "$GUMMYWORM -q -w abc '$TEST_IMG' 2>/dev/null"
+}
+
+# ============================================================================
+# Tests: Command-line conventions
+# ============================================================================
+
+test_usage_errors_exit_2_and_runtime_failures_exit_1() {
+    assert_exit_code 2 "$GUMMYWORM --no-such-flag 2>/dev/null" "an unknown flag is a usage error"
+    assert_exit_code 1 "$GUMMYWORM -q '/nonexistent/file.png' 2>/dev/null" "a missing file is a runtime failure"
+}
+
+test_short_help_and_version_flags() {
+    assert_exit_code 0 "$GUMMYWORM -h" "-h shows help"
+    assert_exit_code 0 "$GUMMYWORM -V" "-V shows the version"
+    assert_contains "$($GUMMYWORM -h)" "USAGE" "-h prints the usage text"
+    assert_equals "$($GUMMYWORM --version)" "$($GUMMYWORM -V)" "-V matches --version"
+}
+
+test_h_with_a_number_is_still_a_deprecated_height() {
+    require_imagemagick || return 0
+    local err
+    err=$($GUMMYWORM -q -w 20 -h 5 "$TEST_IMG" 2>&1 >/dev/null)
+    assert_contains "$err" "deprecated" "-h <N> warns that it is deprecated"
+    assert_equals "5" "$($GUMMYWORM -q -w 20 -h 5 "$TEST_IMG" 2>/dev/null | grep -c .)" "-h <N> still sets the height"
+}
+
+test_stdout_carries_only_the_art() {
+    require_imagemagick || return 0
+    local out
+    out=$($GUMMYWORM -w 20 "$TEST_IMG" 2>/dev/null)
+    assert_not_contains "$out" "Converting" "the progress line is not on stdout"
+    assert_not_contains "$out" "Output size" "the size line is not on stdout"
+    assert_equals "$($GUMMYWORM -q -w 20 "$TEST_IMG" 2>/dev/null | wc -l | tr -d ' ')" \
+        "$(printf '%s\n' "$out" | wc -l | tr -d ' ')" "quiet and verbose stdout are the same"
+}
+
+test_piped_output_has_no_padding_lines() {
+    require_imagemagick || return 0
+    local first
+    first=$($GUMMYWORM -q -w 20 "$TEST_IMG" 2>/dev/null | head -1)
+    assert_true "[[ -n '$first' ]]" "the first line of piped output is art, not a blank line"
+}
+
+test_diagnostics_have_no_escape_codes_when_piped() {
+    local err
+    err=$($GUMMYWORM -q '/nonexistent/file.png' 2>&1 >/dev/null || true)
+    assert_not_contains "$err" $'\033' "an error piped to a file carries no colour codes"
+}
+
+test_format_without_output_goes_to_stdout() {
+    require_imagemagick || return 0
+    assert_contains "$($GUMMYWORM -q -w 20 -f svg "$TEST_IMG" 2>/dev/null | head -c 200)" "<svg" "-f svg writes SVG to stdout"
+    assert_contains "$($GUMMYWORM -q -w 20 -f html "$TEST_IMG" 2>/dev/null | head -c 400)" "<" "-f html writes HTML to stdout"
+}
+
+test_png_to_a_pipe_is_a_png() {
+    require_imagemagick
+    image_check_raster_deps png >/dev/null 2>&1 || return 0
+    local magic
+    magic=$($GUMMYWORM -q -w 20 -f png "$TEST_IMG" 2>/dev/null | head -c 4 | od -An -c | tr -d ' ')
+    assert_equals "211PNG" "$(printf '%s' "$magic" | sed 's/\\//')" "-f png to a pipe writes PNG bytes"
+}
+
+test_dash_reads_stdin() {
+    require_imagemagick || return 0
+    assert_exit_code 0 "cat '$TEST_IMG' | $GUMMYWORM -q -w 20 -" "- reads standard input"
+}
+
+test_unwritable_output_path_is_a_clear_error() {
+    require_imagemagick || return 0
+    local err
+    err=$($GUMMYWORM -q -w 20 -o /nonexistent/dir/x.txt "$TEST_IMG" 2>&1 >/dev/null || true)
+    assert_contains "$err" "directory /nonexistent/dir does not exist" "the message names the problem"
+    assert_not_contains "$err" "line " "no library line number leaks through"
+}
+
+test_mistyped_palette_name_warns() {
+    require_imagemagick || return 0
+    assert_contains "$($GUMMYWORM -w 20 -p blokcs "$TEST_IMG" 2>&1 >/dev/null)" "not a palette name" "a plain word that names no palette warns"
+    assert_equals "" "$($GUMMYWORM -q -w 20 -p ' .oO@' "$TEST_IMG" 2>&1 >/dev/null)" "a character ramp does not warn"
 }
 
 # ============================================================================

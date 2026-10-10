@@ -4,7 +4,7 @@ uid: 36db627e-25ea-4156-a6c4-a10d73d3b983
 title: Library functions exit the process instead of returning errors
 type: chore
 status: backlog
-milestone: v2.5.0
+milestone: v2.6.0
 depends_on:
 - 26
 - 27

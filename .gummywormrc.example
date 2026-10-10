@@ -40,6 +40,18 @@
 #   2.2   loose line spacing
 # char_aspect=2.0             # Range: 0.5 to 5.0
 
+# Classic rendering
+# One switch for the look before 2.4: enhance=off and color_engine=plain.
+# An explicit enhance or color_engine below still wins.
+# classic=false               # Options: true, false
+
+# Colour engine
+# A character inks only part of its cell, so a colour reaches the eye dimmer
+# than it was given. optical picks the character and its colour together to
+# make up for that, assuming the background below. plain paints each character
+# in the pixel's own colour.
+# color_engine=optical        # Options: plain, optical
+
 # Tone enhancement before mapping to characters
 # Photos rarely use the full light-to-dark range, so they land on a few
 # characters. This spreads the tones out first.

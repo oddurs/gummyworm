@@ -132,6 +132,7 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | Option | Description |
 |--------|-------------|
 | `-w, --width <N>` | Output width (default: 80) |
+| `-H, --height <N>` | Output height in lines (`-h` shows help) |
 | `-p, --palette <name>` | Palette: standard, blocks, emoji, etc. |
 | `-c, --color` | Enable 256-color output |
 | `--truecolor` | Enable true color (24-bit RGB) |
@@ -139,6 +140,8 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | `--brightness <N>` | Adjust brightness (-100 to 100) |
 | `--contrast <N>` | Adjust contrast (-100 to 100) |
 | `--gamma <N>` | Adjust gamma (e.g., 0.5, 1.0, 2.2) |
+| `--classic` | Render as before 2.4 (enhance off, plain colour engine) |
+| `--color-engine <e>` | How colour is chosen: plain, optical (default: optical) |
 | `--enhance <mode>` | Spread tones across the palette: off, stretch, full (default: full) |
 | `--char-aspect <N>` | Terminal cell height:width (default: 2.0) |
 | `-a, --animate` | Enable animation processing |
