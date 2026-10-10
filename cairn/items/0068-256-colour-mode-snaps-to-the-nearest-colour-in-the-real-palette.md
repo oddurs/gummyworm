@@ -4,7 +4,7 @@ uid: f4cea187-d616-4110-a78d-17cc82b9f09e
 title: 256-colour mode snaps to the nearest colour in the real palette
 type: bug
 status: done
-milestone: color-engine
+milestone: v2.5.0
 depends_on:
 - 66
 created: 2026-10-09

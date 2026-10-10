@@ -4,7 +4,7 @@ uid: 093f9c85-0124-4fae-ba83-318ad9a9135d
 title: -f svg, html, png and gif without -o silently print plain text
 type: bug
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

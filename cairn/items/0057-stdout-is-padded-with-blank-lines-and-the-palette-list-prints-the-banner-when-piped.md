@@ -4,7 +4,7 @@ uid: 9e78b1d9-6ab9-4aca-933c-acee77d1685b
 title: stdout is padded with blank lines and the palette list prints the banner when piped
 type: bug
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

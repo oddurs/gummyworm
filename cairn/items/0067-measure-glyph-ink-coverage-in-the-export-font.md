@@ -4,7 +4,7 @@ uid: 6bdd74bd-1a05-40fb-b72b-602c885e1be4
 title: Measure glyph ink coverage in the export font
 type: feature
 status: done
-milestone: color-engine
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

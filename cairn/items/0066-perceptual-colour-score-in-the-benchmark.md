@@ -4,7 +4,7 @@ uid: c78f568d-834e-4e63-9f66-eb126d246d26
 title: Perceptual colour score in the benchmark
 type: feature
 status: done
-milestone: color-engine
+milestone: v2.5.0
 assignee: Oddur Sigurdsson
 created: 2026-10-09
 updated: 2026-10-09

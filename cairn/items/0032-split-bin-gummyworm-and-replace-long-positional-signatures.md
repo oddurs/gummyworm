@@ -4,7 +4,7 @@ uid: aa2ba436-c0e1-480f-9e1f-430dc105e9c4
 title: Split bin/gummyworm and replace long positional signatures
 type: chore
 status: backlog
-milestone: v2.5.0
+milestone: v2.6.0
 depends_on:
 - 31
 created: 2026-09-22

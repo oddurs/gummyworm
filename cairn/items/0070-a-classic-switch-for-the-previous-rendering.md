@@ -4,7 +4,7 @@ uid: 2eb6e3ce-e551-4148-9820-4b351a1c0c69
 title: A --classic switch for the previous rendering
 type: feature
 status: done
-milestone: color-engine
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

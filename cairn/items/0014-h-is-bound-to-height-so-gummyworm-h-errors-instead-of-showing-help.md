@@ -4,7 +4,7 @@ uid: d5731291-5a13-4df5-8b60-0827aa325bc9
 title: -h is bound to --height, so 'gummyworm -h' errors instead of showing help
 type: bug
 status: done
-milestone: later
+milestone: v2.5.0
 created: 2026-09-20
 updated: 2026-10-09
 closed_at: 2026-10-09

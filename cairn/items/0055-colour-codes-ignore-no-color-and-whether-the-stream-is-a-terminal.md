@@ -4,7 +4,7 @@ uid: e7055c93-1fcf-47bb-a54a-7a266864fa9c
 title: Colour codes ignore NO_COLOR and whether the stream is a terminal
 type: bug
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

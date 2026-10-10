@@ -7,9 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-The command now behaves the way command-line tools are expected to when piped,
-scripted or run without a terminal. **Several behaviours change**; each is
-listed under Changed.
+## [2.5.0] - 2026-10-09
+
+Two things: the command now behaves the way command-line tools are expected to
+when piped, scripted or run without a terminal, and colour output compensates
+for a character covering only part of its cell. **Several behaviours change**:
+standard output, exit statuses, `-h`, and the colour of every coloured render.
+If a script parses gummyworm's output or checks its exit status, read Changed
+first. `--classic` restores the previous rendering in one switch.
 
 ### Changed
 - **`-h` shows help; the height flag is now `-H`** (`--height` is unchanged).
@@ -341,6 +346,7 @@ The suite now runs 10 files and 346 tests, all enforced.
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 2.5.0 | 2026-10-09 | Pipe-safe output and exit statuses, `-h` is help, optical colour engine, `--classic`, 256-colour fix |
 | 2.4.0 | 2026-10-09 | `--enhance` tone enhancement (default changes output for photos), `bench/` fidelity benchmark, `--` support, CI |
 | 2.3.1 | 2026-09-22 | Security: config command injection, background escaping; palette, batch and test runner fixes |
 | 2.3.0 | 2026-09-20 | Correct output proportions, `--char-aspect`, PNG/GIF export fixes |
@@ -349,7 +355,8 @@ The suite now runs 10 files and 346 tests, all enforced.
 | 2.0.0 | 2024-12-01 | Multi-format export, batch processing, modular rewrite |
 | 1.0.0 | 2024-06-01 | Initial release |
 
-[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/oddurs/gummyworm/compare/v2.4.0...v2.5.0
 [2.4.0]: https://github.com/oddurs/gummyworm/compare/v2.3.1...v2.4.0
 [2.3.1]: https://github.com/oddurs/gummyworm/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/oddurs/gummyworm/compare/v2.2.0...v2.3.0

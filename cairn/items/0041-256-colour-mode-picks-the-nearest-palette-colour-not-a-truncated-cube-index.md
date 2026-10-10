@@ -4,7 +4,7 @@ uid: 7b091591-4383-4030-b810-9199688c1d16
 title: 256-colour mode picks the nearest palette colour, not a truncated cube index
 type: bug
 status: done
-milestone: fidelity
+milestone: v2.5.0
 depends_on:
 - 38
 created: 2026-10-09

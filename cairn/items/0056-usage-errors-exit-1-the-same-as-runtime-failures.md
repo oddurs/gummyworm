@@ -4,7 +4,7 @@ uid: ffb1ba75-6fcb-4818-8097-72c7ad93c986
 title: Usage errors exit 1, the same as runtime failures
 type: chore
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

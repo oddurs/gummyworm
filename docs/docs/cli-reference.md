@@ -684,7 +684,7 @@ Display version information.
 
 ```bash
 gummyworm --version
-# Output: gummyworm version 2.4.0
+# Output: gummyworm version 2.5.0
 ```
 
 ## Streams, Colour and Exit Status

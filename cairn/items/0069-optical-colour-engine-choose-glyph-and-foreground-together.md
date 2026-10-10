@@ -4,7 +4,7 @@ uid: 2a0d7191-7ef7-45e1-a682-255252bce37e
 title: 'Optical colour engine: choose glyph and foreground together'
 type: feature
 status: done
-milestone: color-engine
+milestone: v2.5.0
 depends_on:
 - 66
 - 67

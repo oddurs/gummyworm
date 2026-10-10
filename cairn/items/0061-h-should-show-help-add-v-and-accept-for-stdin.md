@@ -4,7 +4,7 @@ uid: 97b5b9a2-2786-4261-884b-0ea24612a6df
 title: -h should show help; add -V and accept - for stdin
 type: feature
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

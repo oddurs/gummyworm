@@ -4,7 +4,7 @@ uid: ed780800-2894-485f-aec5-7f8e205d24bc
 title: Warn when --palette looks like a mistyped palette name
 type: feature
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09

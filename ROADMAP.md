@@ -49,9 +49,33 @@ The first release with a way to measure rendering fidelity (bench/), and the fir
 - [x] [`0039`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0039-before-after-comparison-of-renders-across-the-whole-corpus.md) Before/after comparison of renders across the whole corpus <sup>feature · p1</sup>
 - [x] [`0044`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0044-local-contrast-enhancement-before-quantizing.md) Local contrast enhancement before quantizing <sup>feature · p2</sup>
 
+## v2.5.0 — Conventions and colour
+
+`##########` 100% · 15 of 15 done · due 2026-10-09
+
+The command behaves the way command-line tools are expected to when piped and scripted, and colour output compensates for glyphs covering only part of their cell. Includes the rendering classic switch.
+
+### done
+
+- [x] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
+- [x] [`0041`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0041-256-colour-mode-picks-the-nearest-palette-colour-not-a-truncated-cube-index.md) 256-colour mode picks the nearest palette colour, not a truncated cube index <sup>bug · p2</sup>
+- [x] [`0054`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0054-info-success-and-warning-messages-go-to-stdout-so-pipelines-carry-them.md) Info, success and warning messages go to stdout, so pipelines carry them <sup>bug · p1</sup>
+- [x] [`0055`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0055-colour-codes-ignore-no-color-and-whether-the-stream-is-a-terminal.md) Colour codes ignore NO_COLOR and whether the stream is a terminal <sup>bug · p1</sup>
+- [x] [`0056`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0056-usage-errors-exit-1-the-same-as-runtime-failures.md) Usage errors exit 1, the same as runtime failures <sup>chore · p2</sup>
+- [x] [`0057`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0057-stdout-is-padded-with-blank-lines-and-the-palette-list-prints-the-banner-when-piped.md) stdout is padded with blank lines and the palette list prints the banner when piped <sup>bug · p2</sup>
+- [x] [`0058`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0058-an-unwritable-o-path-shows-a-raw-bash-error-with-a-library-line-number.md) An unwritable -o path shows a raw bash error with a library line number <sup>bug · p2</sup>
+- [x] [`0059`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0059-warn-when-palette-looks-like-a-mistyped-palette-name.md) Warn when --palette looks like a mistyped palette name <sup>feature · p3</sup>
+- [x] [`0060`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0060-f-svg-html-png-and-gif-without-o-silently-print-plain-text.md) -f svg, html, png and gif without -o silently print plain text <sup>bug · p1</sup>
+- [x] [`0061`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0061-h-should-show-help-add-v-and-accept-for-stdin.md) -h should show help; add -V and accept - for stdin <sup>feature · p1</sup>
+- [x] [`0066`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0066-perceptual-colour-score-in-the-benchmark.md) Perceptual colour score in the benchmark <sup>feature · p1</sup>
+- [x] [`0067`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0067-measure-glyph-ink-coverage-in-the-export-font.md) Measure glyph ink coverage in the export font <sup>feature · p1</sup>
+- [x] [`0068`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0068-256-colour-mode-snaps-to-the-nearest-colour-in-the-real-palette.md) 256-colour mode snaps to the nearest colour in the real palette <sup>bug · p2</sup>
+- [x] [`0069`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0069-optical-colour-engine-choose-glyph-and-foreground-together.md) Optical colour engine: choose glyph and foreground together <sup>feature · p1</sup>
+- [x] [`0070`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0070-a-classic-switch-for-the-previous-rendering.md) A --classic switch for the previous rendering <sup>feature · p1</sup>
+
 ## later — Someday
 
-`####······` 33% · 1 of 3 done
+`··········` 0% · 0 of 2 done
 
 Good ideas without a date yet.
 
@@ -59,10 +83,6 @@ Good ideas without a date yet.
 
 - [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
 - [ ] [`0034`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0034-multi-byte-palettes-emit-ragged-rows-and-invalid-utf-8-under-a-c-or-posix-locale.md) Multi-byte palettes emit ragged rows and invalid UTF-8 under a C or POSIX locale <sup>bug · p2</sup>
-
-### done
-
-- [x] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
 
 ## foundations — Foundations
 
@@ -82,7 +102,7 @@ Fix the connective tissue between modules, and put a safety net under it.
 - [x] [`0026`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0026-run-the-test-suite-and-shellcheck-in-ci-on-every-push-and-pull-request.md) Run the test suite and shellcheck in CI on every push and pull request <sup>chore · p1</sup>
 - [x] [`0027`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0027-libraries-declare-their-dependencies-but-never-load-them-load-order-is-hand-maintained.md) Libraries declare their dependencies but never load them; load order is hand-maintained <sup>chore · p1</sup>
 
-## v2.5.0 — Library boundaries
+## v2.6.0 — Library boundaries
 
 `··········` 0% · 0 of 3 done
 
@@ -96,7 +116,7 @@ Make `lib/` a library: functions that return errors, take their inputs
 
 ## fidelity — Rendering fidelity
 
-`#·········` 8% · 1 of 13 done
+`··········` 0% · 0 of 12 done
 
 Make gummyworm's output the most faithfully comprehensible rendering of a real image that a terminal can show. Measure first, then improve against the measurement.
 
@@ -118,13 +138,9 @@ Make gummyworm's output the most faithfully comprehensible rendering of a real i
 
 - [ ] [`0040`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0040-tone-mapping-in-linear-light-and-lab-l-not-gamma-encoded-srgb.md) Tone mapping in linear light and Lab L*, not gamma-encoded sRGB <sup>feature · p1</sup>
 
-### done
-
-- [x] [`0041`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0041-256-colour-mode-picks-the-nearest-palette-colour-not-a-truncated-cube-index.md) 256-colour mode picks the nearest palette colour, not a truncated cube index <sup>bug · p2</sup>
-
 ## cli-polish — CLI polish
 
-`########··` 80% · 8 of 10 done
+`··········` 0% · 0 of 2 done
 
 Make the command behave the way command-line tools are expected to: output on the right streams, honest exit codes, standard flags, no surprises when piped.
 
@@ -132,29 +148,4 @@ Make the command behave the way command-line tools are expected to: output on th
 
 - [ ] [`0062`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0062-decide-whether-the-default-width-should-follow-the-terminal.md) Decide whether the default width should follow the terminal <sup>feature · p3</sup>
 - [ ] [`0063`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0063-ship-a-man-page.md) Ship a man page <sup>docs · p3</sup>
-
-### done
-
-- [x] [`0054`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0054-info-success-and-warning-messages-go-to-stdout-so-pipelines-carry-them.md) Info, success and warning messages go to stdout, so pipelines carry them <sup>bug · p1</sup>
-- [x] [`0055`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0055-colour-codes-ignore-no-color-and-whether-the-stream-is-a-terminal.md) Colour codes ignore NO_COLOR and whether the stream is a terminal <sup>bug · p1</sup>
-- [x] [`0056`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0056-usage-errors-exit-1-the-same-as-runtime-failures.md) Usage errors exit 1, the same as runtime failures <sup>chore · p2</sup>
-- [x] [`0057`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0057-stdout-is-padded-with-blank-lines-and-the-palette-list-prints-the-banner-when-piped.md) stdout is padded with blank lines and the palette list prints the banner when piped <sup>bug · p2</sup>
-- [x] [`0058`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0058-an-unwritable-o-path-shows-a-raw-bash-error-with-a-library-line-number.md) An unwritable -o path shows a raw bash error with a library line number <sup>bug · p2</sup>
-- [x] [`0059`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0059-warn-when-palette-looks-like-a-mistyped-palette-name.md) Warn when --palette looks like a mistyped palette name <sup>feature · p3</sup>
-- [x] [`0060`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0060-f-svg-html-png-and-gif-without-o-silently-print-plain-text.md) -f svg, html, png and gif without -o silently print plain text <sup>bug · p1</sup>
-- [x] [`0061`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0061-h-should-show-help-add-v-and-accept-for-stdin.md) -h should show help; add -V and accept - for stdin <sup>feature · p1</sup>
-
-## color-engine — Colour engine
-
-`##########` 100% · 5 of 5 done
-
-Make colour output show the colour the image has, given that a glyph covers only part of its cell and is drawn on a dark background. Choose glyph and foreground together so that coverage times foreground, mixed with the background, lands on the target. Judged by a perceptual colour score in the benchmark.
-
-### done
-
-- [x] [`0066`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0066-perceptual-colour-score-in-the-benchmark.md) Perceptual colour score in the benchmark <sup>feature · p1</sup>
-- [x] [`0067`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0067-measure-glyph-ink-coverage-in-the-export-font.md) Measure glyph ink coverage in the export font <sup>feature · p1</sup>
-- [x] [`0068`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0068-256-colour-mode-snaps-to-the-nearest-colour-in-the-real-palette.md) 256-colour mode snaps to the nearest colour in the real palette <sup>bug · p2</sup>
-- [x] [`0069`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0069-optical-colour-engine-choose-glyph-and-foreground-together.md) Optical colour engine: choose glyph and foreground together <sup>feature · p1</sup>
-- [x] [`0070`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0070-a-classic-switch-for-the-previous-rendering.md) A --classic switch for the previous rendering <sup>feature · p1</sup>
 

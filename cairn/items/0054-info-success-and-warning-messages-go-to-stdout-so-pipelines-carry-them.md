@@ -4,7 +4,7 @@ uid: ffe2a18d-88c4-4cf6-bc81-c69a42b5778a
 title: Info, success and warning messages go to stdout, so pipelines carry them
 type: bug
 status: done
-milestone: cli-polish
+milestone: v2.5.0
 created: 2026-10-09
 updated: 2026-10-09
 closed_at: 2026-10-09
