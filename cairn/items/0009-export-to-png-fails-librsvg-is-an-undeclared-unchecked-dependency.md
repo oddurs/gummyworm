@@ -1,11 +1,13 @@
 ---
 id: 9
+uid: 3990a4a4-2b7b-4a47-a83b-322acec79c30
 title: 'Export to PNG fails: librsvg is an undeclared, unchecked dependency'
 type: bug
 status: done
+milestone: v2.3.0
 assignee: Oddur Sigurdsson
 created: 2026-09-19
-updated: 2026-09-19
+updated: 2026-09-22
 priority: p2
 effort: s
 area: export

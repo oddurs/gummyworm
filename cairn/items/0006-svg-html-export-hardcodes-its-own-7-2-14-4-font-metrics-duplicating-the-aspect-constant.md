@@ -1,5 +1,6 @@
 ---
 id: 6
+uid: 383441a6-16ac-4113-af07-d69c8efb34db
 title: SVG/HTML export hardcodes its own 7.2/14.4 font metrics, duplicating the aspect constant
 type: bug
 status: done

@@ -1,5 +1,6 @@
 ---
 id: 12
+uid: f9432190-c5fc-4bf1-9fca-6691963f2b80
 title: CHANGELOG version history table missing the 2.3.0 row
 type: docs
 status: done

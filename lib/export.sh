@@ -3,12 +3,33 @@
 # gummyworm/lib/export.sh - Multi-format export functions
 # ============================================================================
 # Provides export capabilities for HTML, SVG, and PNG output formats.
-# Requires: lib/config.sh, lib/utils.sh
+# Requires: lib/config.sh, lib/utils.sh, lib/image.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_EXPORT_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_EXPORT_LOADED=1
+_GUMMYWORM_EXPORT_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_LIB_DIR}/utils.sh"
+# shellcheck source=lib/image.sh
+source "${GUMMYWORM_LIB_DIR}/image.sh"
 
 # ============================================================================
 # Format Detection
@@ -162,7 +183,7 @@ export_html() {
             box-sizing: border-box;
         }
         body {
-            background-color: ${bg_color};
+            background-color: $(escape_markup "$bg_color");
             display: flex;
             justify-content: center;
             align-items: center;
@@ -208,7 +229,7 @@ _ansi_to_html() {
     
     # Process the content character by character, handling escape sequences
     # Using awk for more reliable ANSI parsing
-    echo -e "$content" | awk "
+    printf '%s\n' "$content" | awk "
     $AWK_ANSI256_TO_RGB
     BEGIN {
         in_span = 0
@@ -311,12 +332,12 @@ export_svg() {
     # Strip ANSI for dimension calculation and store lines
     while IFS= read -r line; do
         local clean_line
-        clean_line=$(echo -e "$line" | sed 's/\x1b\[[0-9;]*m//g')
+        clean_line=$(printf '%s\n' "$line" | sed 's/\x1b\[[0-9;]*m//g')
         lines+=("$line")
         local len=${#clean_line}
         [[ $len -gt $max_width ]] && max_width=$len
         line_count=$((line_count + 1))
-    done < <(echo -e "$content")
+    done < <(printf '%s\n' "$content")
     
     # Calculate SVG dimensions using awk for floating-point (faster than bc)
     local svg_width svg_height
@@ -339,7 +360,7 @@ export_svg() {
       }
     </style>
   </defs>
-  <rect width="100%" height="100%" fill="${bg_color}"/>
+  <rect width="100%" height="100%" fill="$(escape_markup "$bg_color")"/>
   <g class="ascii-text">
 EOF
 
@@ -367,7 +388,7 @@ _svg_render_line() {
     local char_width="$4"
     
     # Parse ANSI codes and output SVG text elements
-    echo -e "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" "
+    printf '%s\n' "$line" | awk -v x_start="$x_start" -v y="$y" -v cw="$char_width" "
     $AWK_ANSI256_TO_RGB
     BEGIN {
         current_color = \"#ffffff\"  # Default white
@@ -635,11 +656,11 @@ export_content() {
     case "$format" in
         text)
             # Plain text - strip ANSI codes
-            echo -e "$content" | sed 's/\x1b\[[0-9;]*m//g' > "$output_file"
+            printf '%s\n' "$content" | sed 's/\x1b\[[0-9;]*m//g' > "$output_file"
             ;;
         ansi)
             # ANSI - preserve escape codes
-            echo -e "$content" > "$output_file"
+            printf '%s\n' "$content" > "$output_file"
             ;;
         html)
             export_html "$content" "$bg_color" "$padding" > "$output_file"

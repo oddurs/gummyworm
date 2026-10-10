@@ -89,17 +89,19 @@ REGISTERED_TESTS=()
 # ============================================================================
 
 # Load gummyworm libraries for unit testing
-load_gummyworm_libs() {
-    # Source in dependency order
-    source "$PROJECT_ROOT/lib/config.sh"
-    source "$PROJECT_ROOT/lib/utils.sh"
-    source "$PROJECT_ROOT/lib/palettes.sh"
-    source "$PROJECT_ROOT/lib/image.sh"
-    source "$PROJECT_ROOT/lib/converter.sh"
-    source "$PROJECT_ROOT/lib/export.sh"
-    source "$PROJECT_ROOT/lib/cli.sh"
-    
-    # Initialize ImageMagick wrappers (if available) 
+# Test files load the modules themselves, with a top-level
+#
+#     source "$PROJECT_ROOT/lib/all.sh"
+#
+# rather than through a function here. Sourcing inside a function makes any
+# `declare`d variable local in every shell, and a readonly one local under zsh
+# unless POSIX_BUILTINS is set. This used to be a function that sourced every
+# module in a hand-kept order -- a second copy of bin/gummyworm's -- and it only
+# worked because config.sh happened to enable POSIX_BUILTINS first.
+
+# Initialise the ImageMagick command wrappers, if ImageMagick is installed.
+# Call after sourcing lib/all.sh.
+init_image_deps() {
     if command_exists magick || command_exists convert; then
         image_check_deps 2>/dev/null || true
     fi
@@ -274,6 +276,10 @@ restore_mocks() {
 # Assertions
 # ============================================================================
 
+# Incremented by every assertion that fails. Reset per test by run_test, which
+# reads it to decide PASS or FAIL.
+_TEST_ASSERT_FAILURES=0
+
 # Assert that two values are equal
 # Usage: assert_equals <expected> <actual> [message]
 assert_equals() {
@@ -284,6 +290,7 @@ assert_equals() {
     if [[ "$expected" == "$actual" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Expected: ${CYAN}$expected${NC}" >&2
         echo -e "      Actual:   ${CYAN}$actual${NC}" >&2
@@ -301,6 +308,7 @@ assert_not_equals() {
     if [[ "$unexpected" != "$actual" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Unexpected: ${CYAN}$unexpected${NC}" >&2
         echo -e "      Actual:     ${CYAN}$actual${NC}" >&2
@@ -317,6 +325,7 @@ assert_true() {
     if eval "$cmd" >/dev/null 2>&1; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Command: ${DIM}$cmd${NC}" >&2
         return 1
@@ -332,6 +341,7 @@ assert_false() {
     if ! eval "$cmd" >/dev/null 2>&1; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Command should have failed: ${DIM}$cmd${NC}" >&2
         return 1
@@ -348,6 +358,7 @@ assert_contains() {
     if [[ "$haystack" == *"$needle"* ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      String:    ${DIM}${haystack:0:100}...${NC}" >&2
         echo -e "      Expected:  ${CYAN}$needle${NC}" >&2
@@ -365,6 +376,7 @@ assert_not_contains() {
     if [[ "$haystack" != *"$needle"* ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      String contains:  ${CYAN}$needle${NC}" >&2
         return 1
@@ -381,6 +393,7 @@ assert_matches() {
     if [[ "$string" =~ $pattern ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      String:  ${DIM}${string:0:100}${NC}" >&2
         echo -e "      Pattern: ${CYAN}$pattern${NC}" >&2
@@ -397,6 +410,7 @@ assert_file_exists() {
     if [[ -f "$filepath" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         return 1
     fi
@@ -411,6 +425,7 @@ assert_file_not_exists() {
     if [[ ! -f "$filepath" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         return 1
     fi
@@ -425,6 +440,7 @@ assert_dir_exists() {
     if [[ -d "$dirpath" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         return 1
     fi
@@ -439,6 +455,7 @@ assert_file_not_empty() {
     if [[ -s "$filepath" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         return 1
     fi
@@ -460,6 +477,7 @@ assert_exit_code() {
     if [[ "$actual" -eq "$expected" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Expected exit code: ${CYAN}$expected${NC}" >&2
         echo -e "      Actual exit code:   ${CYAN}$actual${NC}" >&2
@@ -480,6 +498,7 @@ assert_output() {
     if [[ "$actual" == "$expected" ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Expected: ${CYAN}$expected${NC}" >&2
         echo -e "      Actual:   ${CYAN}$actual${NC}" >&2
@@ -500,6 +519,7 @@ assert_output_contains() {
     if [[ "$actual" == *"$expected"* ]]; then
         return 0
     else
+        _TEST_ASSERT_FAILURES=$((_TEST_ASSERT_FAILURES + 1))
         echo -e "    ${RED}✗ ASSERTION FAILED:${NC} $message" >&2
         echo -e "      Expected to contain: ${CYAN}$expected${NC}" >&2
         echo -e "      Actual output:       ${DIM}${actual:0:200}${NC}" >&2
@@ -557,11 +577,25 @@ run_test() {
     printf "  %s%s " "$display_name" "$dots"
     
     # Run the test function, capturing any failures
+    # Run the test in a subshell so it cannot pollute the suite, and judge it
+    # by the assertion counter rather than by errexit.
+    #
+    # errexit cannot be relied on here: run_test_suite calls this function as
+    # `run_test ... || true`, and bash suppresses errexit for the whole dynamic
+    # extent of a command in an && / || list -- including subshells created
+    # inside it. A `set -e` in the subshell below is silently ignored, so a
+    # failing assertion that was not the test's last line used to be discarded
+    # and the test reported PASS.
     local result=0
     set +e
     (
-        set -e
+        _TEST_ASSERT_FAILURES=0
         "$func"
+        func_status=$?
+        if [[ $_TEST_ASSERT_FAILURES -gt 0 ]] || [[ $func_status -ne 0 ]]; then
+            exit 1
+        fi
+        exit 0
     )
     result=$?
     set -e

@@ -7,6 +7,129 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-10-09
+
+Adds a way to measure how faithfully gummyworm renders an image, and the first
+change made against that measurement. **Default output changes** for photos:
+see `--enhance`. Also the first release to include the work after 2.3.1 that
+had not been pushed: CI, `--` support and the module-loading rework below.
+
+### Added
+- **`--enhance <off|stretch|full>` and the `enhance` config key.** Before
+  characters are chosen, the image's tones are now spread across the palette.
+  Photos rarely use the full light-to-dark range, so they used to land on two
+  or three characters. `full` (the default) stretches the range and then applies
+  adaptive local contrast; `stretch` skips the local contrast; `off` restores
+  the previous behaviour. Measured by the new `bench/` suite, `full` raises mean
+  SSIM over the corpus from 0.5745 to 0.5792. It is not a win everywhere: flat
+  graphics and thin line art can come out slightly worse, so use `--enhance off`
+  for those. **Output for existing invocations changes** unless you set
+  `enhance=off`.
+- **`bench/`**, a rendering fidelity benchmark: a fixed 14-image corpus, an SSIM
+  score per render, and a before/after comparison page.
+- `--` ends option parsing, so a file named `-cover.png` can be passed. Everything
+  after it is an input.
+- CI runs the suite and shellcheck on every push to main and every pull request,
+  on Ubuntu (ImageMagick 6) and macOS (the system bash 3.2).
+
+### Fixed
+- `calc_dimensions` no longer dies with a raw `division by 0` when ImageMagick
+  reports an empty or zero source size. It reports the problem and returns, and
+  `convert_to_ascii` passes that on. Not reachable from the CLI today, which
+  validates images first.
+
+### Changed
+- Every module now loads its own dependencies, so any one of them can be sourced
+  alone in a fresh shell, and sourcing `lib/config.sh` no longer reads the
+  user's config files. `bin/gummyworm` and the tests share `lib/all.sh`. No
+  change for people running the command.
+
+## [2.3.1] - 2026-09-22
+
+A security and correctness release. **Upgrade if you run gummyworm inside
+directories you did not create** — see Security. Nothing here changes an
+interface; every entry is a fix or a test.
+
+### Security
+- **A project `.gummywormrc` could execute arbitrary commands.** Config files
+  are read from the current directory, and every value except `background` was
+  used without validation. Numeric values reach shell arithmetic, where bash
+  evaluates a variable's value as an expression — including array subscripts,
+  which undergo command substitution. Running gummyworm inside a cloned
+  repository or unpacked archive whose `.gummywormrc` contained, for example,
+  `width=HOME[$(command)]` ran `command`. Exploitable through `width`,
+  `height`, `padding`, `frame_delay` and `max_frames`; affects 2.2.0 through
+  2.3.0. Every config value is now validated against the same rule as its
+  command-line flag, and an invalid value is ignored with a warning.
+- **`--background` could inject markup into exported HTML and SVG**, including
+  from a config file. See Fixed.
+
+### Fixed
+- **Palette characters `|` and `\` no longer corrupt the output.** The palette
+  was handed to awk as a `|`-joined string that awk split back on `|`, so a `|`
+  in the palette was indistinguishable from a separator; `awk -v` also
+  processes escape sequences, so a backslash was eaten before awk saw it. On
+  top of that, the rendered art was printed with `echo -e`, which reinterpreted
+  any backslash that did survive. The shipped `detailed` palette contains both
+  characters, so `-p detailed` produced ragged rows — 19 and 20 characters wide
+  where every row should have been 20 — and silently dropped three brightness
+  bands. The palette now reaches awk as a file, one character per line, and the
+  eleven `echo -e` calls that carried rendered art use `printf` instead.
+- **Batch output no longer overwrites itself.** Output was named from the input
+  basename alone, so two images called `image.png` in different directories
+  both wrote to `out/image.ascii.html`. The run reported "2 images processed
+  successfully" and exited 0 with one file on disk. A recursive batch now
+  mirrors the input tree under `--output-dir`, and any remaining collision —
+  two files named directly from different directories, say — is reported and
+  written as `image-2.ascii.html` rather than silently replacing the first.
+  A directory walked non-recursively still lands flat, as before.
+- **`--background` is validated and escaped.** Any string was previously
+  accepted and interpolated straight into the generated SVG and HTML. A value
+  carrying markup ended up in the exported file verbatim. The value now has to
+  be a hex colour (`#RGB` or `#RRGGBB`) or a known colour name, and both
+  exporters escape it regardless — so a caller that skips validation cannot
+  reintroduce the problem. This also applies to the `background=` key in a
+  config file, which matters more: `./.gummywormrc` travels with a cloned
+  repository, so that value does not come from the person running the command.
+- **The test runner discarded most failing assertions.** A test was judged by
+  errexit inside a subshell, but the suite calls each test as
+  `run_test ... || true`, and bash suppresses errexit for everything inside an
+  `&&`/`||` list. A failing assertion that was not the last line of its test
+  printed `ASSERTION FAILED` and the test still reported PASS. 154 of the
+  suite's 384 assertions — 40% — were never enforced. Assertions now record
+  failures in a counter the runner reads, which does not depend on the call
+  site. Turning enforcement on surfaced exactly one real failure, fixed below.
+- `is_valid_hex_color` was called by the zsh compatibility suite but defined
+  nowhere in `lib/` or `bin/`. It now exists, alongside `is_valid_color`.
+- **An input that yields no images is reported as such.** A directory argument
+  containing no images fell through to the stdin path and failed with
+  "Stdin does not contain valid image data". It now fails with "No images
+  found in the given input". Stdin is used only when no input is named.
+- **`scripts/release.sh` hashes the file the formula actually downloads.** It
+  built its own tarball from the working tree and hashed that, then wrote the
+  hash beside GitHub's archive URL — so the formula it produced could never
+  pass Homebrew's checksum. It now requires the tag to be pushed, hashes
+  GitHub's archive for it, and refuses rather than guessing.
+- **The Homebrew formula is current.** It was still pinned to v2.2.0, so
+  `brew install` did not deliver v2.3.0. It now points at v2.3.0; run
+  `scripts/release.sh 2.3.1` once this release's tag is pushed.
+
+### Added
+- `tests/test_cli.sh`: 21 tests covering `parse_args` directly — per-flag
+  validation, inclusive range boundaries at both ends, missing arguments,
+  unknown options, config/CLI precedence, and positional collection. The
+  425-line parser previously had no dedicated tests.
+- Background colour validation and escaping tests in the config and export
+  suites.
+- 12 regression tests covering palette character preservation (by character,
+  not byte — several palettes are multi-byte UTF-8) and batch output naming.
+- `tests/test_release.sh`: offline tests for every case `release.sh` must
+  refuse.
+- Config validation tests for every key, including an end-to-end test that
+  runs the binary against a malicious `.gummywormrc`.
+
+The suite now runs 10 files and 346 tests, all enforced.
+
 ## [2.3.0] - 2026-09-20
 
 ### Fixed
@@ -159,13 +282,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Date | Highlights |
 |---------|------|------------|
+| 2.4.0 | 2026-10-09 | `--enhance` tone enhancement (default changes output for photos), `bench/` fidelity benchmark, `--` support, CI |
+| 2.3.1 | 2026-09-22 | Security: config command injection, background escaping; palette, batch and test runner fixes |
 | 2.3.0 | 2026-09-20 | Correct output proportions, `--char-aspect`, PNG/GIF export fixes |
 | 2.2.0 | 2026-01-11 | Configuration files, shell completions, Docsify docs |
 | 2.1.0 | 2026-01-11 | Animation, true color, zsh support, preprocessing, modular palettes |
 | 2.0.0 | 2024-12-01 | Multi-format export, batch processing, modular rewrite |
 | 1.0.0 | 2024-06-01 | Initial release |
 
-[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/oddurs/gummyworm/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/oddurs/gummyworm/compare/v2.3.1...v2.4.0
+[2.3.1]: https://github.com/oddurs/gummyworm/compare/v2.3.0...v2.3.1
 [2.3.0]: https://github.com/oddurs/gummyworm/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/oddurs/gummyworm/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/oddurs/gummyworm/compare/v2.0.0...v2.1.0

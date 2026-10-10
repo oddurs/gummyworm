@@ -1,0 +1,94 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      # Excluded on purpose, not to hide findings:
+      #   SC2296  zsh-only ${(%):-%x} expansions inside zsh-guarded branches
+      #   SC1087  "$image[0]" in lib/image.sh is ImageMagick frame syntax
+      # test_zsh_compat.sh is zsh, which shellcheck does not parse.
+      - name: shellcheck
+        run: |
+          shellcheck --version
+          shellcheck -S error -e SC2296,SC1087 \
+            lib/*.sh bin/gummyworm gummyworm scripts/*.sh \
+            $(ls tests/*.sh | grep -v test_zsh_compat)
+
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    # Pin a UTF-8 locale so the suite tests what an interactive user has.
+    # Multi-byte palettes currently break under C/POSIX -- tracked in cairn
+    # item 0034, which should add a C-locale job here once fixed.
+    env:
+      LC_ALL: ${{ matrix.os == 'ubuntu-latest' && 'C.UTF-8' || 'en_US.UTF-8' }}
+      LANG: ${{ matrix.os == 'ubuntu-latest' && 'C.UTF-8' || 'en_US.UTF-8' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          # imagemagick here is ImageMagick 6 (convert/identify, no magick),
+          # which exercises the IM6 branch of image_check_deps.
+          sudo apt-get install -y imagemagick librsvg2-bin zsh fonts-dejavu-core
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install imagemagick librsvg
+
+      # macOS still ships bash 3.2 as /bin/bash, and that is the oldest shell
+      # this project supports. Every script here starts with
+      # `#!/usr/bin/env bash`, so whichever bash is first on PATH is the one
+      # tested -- and a runner image with a newer bash ahead of /bin would make
+      # "macOS" quietly mean bash 5. Pin it with a shim, and assert it below.
+      - name: Use the system bash 3.2 (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p "$RUNNER_TEMP/bash32"
+          ln -sf /bin/bash "$RUNNER_TEMP/bash32/bash"
+          echo "$RUNNER_TEMP/bash32" >> "$GITHUB_PATH"
+
+      - name: Show toolchain
+        run: |
+          echo "bash:  $(bash -c 'echo $BASH_VERSION')"
+          echo "zsh:   $(zsh --version 2>/dev/null || echo missing)"
+          (command -v magick >/dev/null && magick -version || convert -version) | head -1
+          rsvg-convert --version
+          locale 2>/dev/null | head -2 || true
+
+      - name: Assert bash 3.2 on macOS
+        if: runner.os == 'macOS'
+        run: |
+          v=$(bash -c 'echo ${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}')
+          echo "bash on PATH is $v"
+          [ "$v" = "3.2" ]
+
+      - name: Run test suite
+        run: bash tests/run_all.sh

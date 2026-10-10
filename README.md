@@ -11,6 +11,8 @@
 
 **Transform images into glorious ASCII art!** 🐛
 
+[![Tests](https://github.com/oddurs/gummyworm/actions/workflows/test.yml/badge.svg)](https://github.com/oddurs/gummyworm/actions/workflows/test.yml)
+
 A playful, feature-rich command-line tool for converting images to ASCII art with 256-color support, multiple export formats, and 12+ built-in palettes.
 
 ## Platform Support
@@ -40,7 +42,7 @@ A playful, feature-rich command-line tool for converting images to ASCII art wit
 - 🎬 **Animated GIFs** — Process and export animated ASCII art
 - 🎨 **256-color output** — Full color mode for terminals
 - 🌈 **True color (24-bit)** — Full RGB color support
-- 🔆 **Image preprocessing** — Brightness, contrast, gamma adjustment
+- 🔆 **Image preprocessing** — Brightness, contrast, gamma adjustment, and tone enhancement you can turn off
 - 🎭 **12+ palettes** — Standard, blocks, emoji, braille, and more
 - 🌍 **Export anywhere** — HTML, SVG, PNG, GIF, ANSI, plain text
 - 📁 **Batch processing** — Multiple files, recursive directories
@@ -137,6 +139,7 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | `--brightness <N>` | Adjust brightness (-100 to 100) |
 | `--contrast <N>` | Adjust contrast (-100 to 100) |
 | `--gamma <N>` | Adjust gamma (e.g., 0.5, 1.0, 2.2) |
+| `--enhance <mode>` | Spread tones across the palette: off, stretch, full (default: full) |
 | `--char-aspect <N>` | Terminal cell height:width (default: 2.0) |
 | `-a, --animate` | Enable animation processing |
 | `-f, --format <type>` | Output: text, html, svg, png, gif |

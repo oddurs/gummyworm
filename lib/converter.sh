@@ -3,12 +3,35 @@
 # gummyworm/lib/converter.sh - Core ASCII art conversion
 # ============================================================================
 # The main conversion engine that transforms images into ASCII art.
-# Requires: lib/config.sh, lib/utils.sh, lib/palettes.sh, lib/image.sh
+# Requires: lib/config.sh, lib/utils.sh, lib/palettes.sh, lib/image.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_CONVERTER_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_CONVERTER_LOADED=1
+_GUMMYWORM_CONVERTER_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_LIB_DIR}/utils.sh"
+# shellcheck source=lib/palettes.sh
+source "${GUMMYWORM_LIB_DIR}/palettes.sh"
+# shellcheck source=lib/image.sh
+source "${GUMMYWORM_LIB_DIR}/image.sh"
 
 # ============================================================================
 # Color Functions
@@ -83,7 +106,7 @@ convert_to_ascii() {
     
     # Calculate output dimensions using visual width (for correct aspect ratio)
     local out_dims out_w out_h
-    out_dims=$(calc_dimensions "$orig_w" "$orig_h" "$width" "$height" "$preserve_aspect")
+    out_dims=$(calc_dimensions "$orig_w" "$orig_h" "$width" "$height" "$preserve_aspect") || return 1
     read -r out_w out_h <<< "$out_dims"
     
     # Adjust pixel extraction width for wide-char palettes
@@ -95,43 +118,66 @@ convert_to_ascii() {
     
     log_debug "Original: ${orig_w}x${orig_h}, Output: ${out_w}x${out_h}"
     
-    # Create temp file for pixel data
-    local tmpfile
+    # Create temp files for pixel and palette data
+    local tmpfile palette_file
     tmpfile=$(mktemp)
-    trap "rm -f '$tmpfile'" RETURN
+    palette_file=$(mktemp)
+    trap "rm -f '$tmpfile' '$palette_file'" RETURN
     
     # Extract pixels with preprocessing
     image_extract_pixels "$image" "$out_w" "$out_h" "$tmpfile" "$brightness" "$contrast" "$gamma"
     
-    # Parse palette into array for awk
-    # Build a comma-separated list of palette characters
-    local palette_chars_str=""
+    # Parse palette into an array
     palette_to_array "$palette" _PALETTE_CHARS
     local palette_len=${#_PALETTE_CHARS[@]}
     
-    # Build palette string for awk (handle special chars)
+    # Hand the palette to awk as a file, one character per line, rather than as
+    # a delimiter-joined string passed with -v. Both of the obvious shortcuts
+    # corrupt real palettes:
+    #
+    #   - joining on a separator makes that character ambiguous when the
+    #     palette itself contains it, and --palette accepts any string. The
+    #     shipped "detailed" palette contains a literal |.
+    #   - awk -v processes escape sequences in the value, so a backslash in the
+    #     palette is consumed before awk ever sees it. "detailed" has one of
+    #     those too.
+    #
+    # A palette character can never be a newline, so one per line is
+    # unambiguous for every possible palette.
     local i
     for ((i=0; i<palette_len; i++)); do
-        if [[ $i -gt 0 ]]; then
-            palette_chars_str+="|"
-        fi
-        palette_chars_str+="${_PALETTE_CHARS[$i]}"
-    done
+        printf '%s\n' "${_PALETTE_CHARS[$i]}"
+    done > "$palette_file"
     
     log_debug "Palette length: $palette_len"
     
     # Process pixels using awk for performance
     # This is 10-100x faster than bash while-read loop
     # Uses portable awk syntax (BSD/GNU compatible)
-    awk -v palette_str="$palette_chars_str" \
-        -v palette_len="$palette_len" \
+    awk -v palette_file="$palette_file" \
+        -v declared_len="$palette_len" \
         -v invert="$invert" \
         -v use_color="$use_color" \
         -v use_truecolor="$use_truecolor" \
         '
     BEGIN {
-        # Split palette into array
-        n = split(palette_str, palette_arr, "|")
+        # Read the palette back, one character per line. n is the count awk
+        # actually has; every index below uses it rather than the count bash
+        # reported, so the two can never drift apart mid-render.
+        n = 0
+        while ((getline pline < palette_file) > 0) {
+            n++
+            palette_arr[n] = pline
+        }
+        close(palette_file)
+        if (n < 1) {
+            print "gummyworm: palette is empty" > "/dev/stderr"
+            exit 1
+        }
+        if (n != declared_len) {
+            printf "gummyworm: palette count mismatch (%d vs %d)\n", n, declared_len > "/dev/stderr"
+            exit 1
+        }
         current_y = -1
     }
     
@@ -175,10 +221,10 @@ convert_to_ascii() {
         }
         
         # Map brightness to character index
-        char_index = int((brightness * (palette_len - 1)) / 255) + 1
+        char_index = int((brightness * (n - 1)) / 255) + 1
         
         # Bounds check
-        if (char_index > palette_len) char_index = palette_len
+        if (char_index > n) char_index = n
         if (char_index < 1) char_index = 1
         
         char = palette_arr[char_index]

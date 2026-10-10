@@ -24,7 +24,48 @@ fi
 source "$SCRIPT_DIR/test_runner.sh"
 
 # Load gummyworm libraries for unit testing
-load_gummyworm_libs
+# shellcheck source=lib/all.sh
+source "$PROJECT_ROOT/lib/all.sh"
+init_image_deps
+
+# ============================================================================
+# Tests: tone enhancement
+# ============================================================================
+
+# Spread of the red channel (max - min) across the extracted pixels
+_enhance_spread() {
+    local img="$1" mode="$2" out
+    out=$(mktemp)
+    CONFIG_ENHANCE="$mode" image_extract_pixels "$img" 16 2 "$out"
+    sed -n 's/^[0-9]*,[0-9]*: *(\([0-9]*\),.*/\1/p' "$out" | sort -n \
+        | awk 'NR==1 { lo=$1 } { hi=$1 } END { print hi - lo }'
+    rm -f "$out"
+}
+
+test_enhance_stretch_widens_a_low_contrast_image() {
+    local img spread_off spread_stretch
+    img=$(mktemp "${TMPDIR:-/tmp}/gw-enhance.XXXXXX")
+    # A horizontal ramp squeezed into the middle third of the range
+    $_MAGICK_CONVERT -size 64x8 gradient:gray40-gray60 "png:$img"
+    spread_off=$(_enhance_spread "$img" off)
+    spread_stretch=$(_enhance_spread "$img" stretch)
+    rm -f "$img"
+    assert_true "[[ $spread_stretch -gt $((spread_off * 3)) ]]" \
+        "stretch widens the tonal range (off=$spread_off, stretch=$spread_stretch)"
+}
+
+test_enhance_off_leaves_tones_alone() {
+    local img spread_off
+    img=$(mktemp "${TMPDIR:-/tmp}/gw-enhance.XXXXXX")
+    $_MAGICK_CONVERT -size 64x8 gradient:gray40-gray60 "png:$img"
+    spread_off=$(_enhance_spread "$img" off)
+    rm -f "$img"
+    assert_true "[[ $spread_off -lt 60 ]]" "off keeps a narrow range narrow (spread=$spread_off)"
+}
+
+test_enhance_default_is_full() {
+    assert_equals "full" "$DEFAULT_ENHANCE" "default enhance mode is full"
+}
 
 # ============================================================================
 # Tests: is_url()
@@ -116,6 +157,28 @@ test_calc_brightness_yellow() {
 # checked that the height was positive — which a wrong divisor satisfies just as
 # well as a right one. Exact values are what make the constant a tested value
 # rather than an assumption. At the 2.0 default: height = width * (orig_h/orig_w) / 2.
+
+test_calc_dimensions_rejects_zero_source() {
+    # Used to die with a shell "division by 0" from deep in the arithmetic.
+    local out
+    assert_false 'calc_dimensions 0 0 80 0 true >/dev/null 2>&1' "zero source dimensions fail"
+    out=$( (calc_dimensions 0 100 80 0 true) 2>&1 || true)
+    assert_contains "$out" "source dimensions" "the message names the source dimensions"
+    assert_not_contains "$out" "division by 0" "no raw shell arithmetic error"
+}
+
+test_calc_dimensions_rejects_empty_source() {
+    # identify yields nothing on failure; bash reads an empty operand as 0.
+    local out
+    assert_false 'calc_dimensions "" "" 80 0 true >/dev/null 2>&1' "empty source dimensions fail"
+    out=$( (calc_dimensions "" "" 80 0 true) 2>&1 || true)
+    assert_not_contains "$out" "division by 0" "no raw shell arithmetic error"
+}
+
+test_calc_dimensions_rejects_non_numeric_source() {
+    assert_false 'calc_dimensions abc 100 80 0 true >/dev/null 2>&1' "non-numeric width fails"
+    assert_false 'calc_dimensions 100 -5 80 0 true >/dev/null 2>&1' "negative height fails"
+}
 
 test_calc_dimensions_basic() {
     local dims

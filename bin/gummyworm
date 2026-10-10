@@ -66,26 +66,13 @@ export GUMMYWORM_ROOT
 # Load Modules
 # ============================================================================
 
-# shellcheck source=lib/config.sh
-source "${GUMMYWORM_ROOT}/lib/config.sh"
+# Each module loads its own dependencies; all.sh just names them all.
+# shellcheck source=lib/all.sh
+source "${GUMMYWORM_ROOT}/lib/all.sh"
 
-# shellcheck source=lib/utils.sh
-source "${GUMMYWORM_ROOT}/lib/utils.sh"
-
-# shellcheck source=lib/palettes.sh
-source "${GUMMYWORM_ROOT}/lib/palettes.sh"
-
-# shellcheck source=lib/image.sh
-source "${GUMMYWORM_ROOT}/lib/image.sh"
-
-# shellcheck source=lib/converter.sh
-source "${GUMMYWORM_ROOT}/lib/converter.sh"
-
-# shellcheck source=lib/cli.sh
-source "${GUMMYWORM_ROOT}/lib/cli.sh"
-
-# shellcheck source=lib/export.sh
-source "${GUMMYWORM_ROOT}/lib/export.sh"
+# Read the user's config files. Explicit rather than a side effect of sourcing
+# config.sh, and it must precede parse_args, which seeds ARG_* from CONFIG_*.
+config_load_files
 
 # ============================================================================
 # Cleanup
@@ -114,6 +101,69 @@ trap handle_interrupt INT
 # Helper Functions
 # ============================================================================
 
+# Directory part of an image's path relative to the directory argument it was
+# expanded from, or "" when it was named directly or sits at the root.
+# Usage: _relative_output_dir <image_path> <input_root>
+_relative_output_dir() {
+    local image="$1"
+    local root="$2"
+
+    [[ -n "$root" ]] || return 0
+
+    # Directory containing the image. No slash means it is already at the root.
+    local dir="${image%/*}"
+    [[ "$dir" != "$image" ]] || return 0
+
+    # Only strip a root the path actually starts with.
+    case "$dir" in
+        "$root") return 0 ;;
+        "$root"/*) printf '%s' "${dir#"$root"/}" ;;
+        *) return 0 ;;
+    esac
+}
+
+# An output path that has not already been written during this run. Mirroring
+# the input tree removes most collisions, but two files named directly from
+# different directories still land on the same name, so the last writer used to
+# win silently. Appends -2, -3, ... before the extension and says so.
+#
+# The result comes back in _UNIQUE_OUTPUT_PATH rather than on stdout: this has
+# to append to the caller's `written_outputs`, and a command substitution would
+# run it in a subshell where that append is discarded.
+# Usage: _unique_output_path <desired_path>; read _UNIQUE_OUTPUT_PATH
+_unique_output_path() {
+    local desired="$1"
+    local candidate="$desired"
+    local taken existing n=1
+
+    while :; do
+        taken="false"
+        for existing in ${written_outputs[@]+"${written_outputs[@]}"}; do
+            if [[ "$existing" == "$candidate" ]]; then
+                taken="true"
+                break
+            fi
+        done
+        [[ "$taken" == "true" ]] || break
+        n=$((n + 1))
+        # Insert the counter before the compound ".ascii.<ext>" suffix when it
+        # is there, so out.ascii.html becomes out-2.ascii.html.
+        local stem="${desired%.ascii.*}"
+        local suffix="${desired#"$stem"}"
+        if [[ "$stem" != "$desired" ]]; then
+            candidate="${stem}-${n}${suffix}"
+        else
+            candidate="${desired}-${n}"
+        fi
+    done
+
+    if [[ "$candidate" != "$desired" ]]; then
+        log_warn "Output name already used, writing $(basename "$candidate") instead of $(basename "$desired")"
+    fi
+    written_outputs+=("$candidate")
+    _UNIQUE_OUTPUT_PATH="$candidate"
+}
+
 # Get content for export, re-converting with color if needed for graphical formats
 # Usage: get_export_content <format> <plain_result> <image> <width> <height> <palette> <invert> <color> <preserve_aspect> [truecolor] [brightness] [contrast] [gamma]
 # Output: Content suitable for the export format
@@ -137,7 +187,7 @@ get_export_content() {
     if [[ "$format" =~ $RE_GRAPHICAL_FORMAT && "$color" != "true" ]]; then
         convert_to_ascii "$image" "$width" "$height" "$palette" "$invert" "true" "$preserve_aspect" "true" "$brightness" "$contrast" "$gamma"
     else
-        echo -e "$plain_result"
+        printf '%s\n' "$plain_result"
     fi
 }
 
@@ -193,7 +243,7 @@ play_animation() {
     # Get the height of first frame to know how many lines to clear
     # Use awk to count lines reliably (wc -l has whitespace issues on some systems)
     local frame_lines
-    frame_lines=$(echo -e "${frames[0]}" | awk 'END {print NR}')
+    frame_lines=$(printf '%s\n' "${frames[0]}" | awk 'END {print NR}')
     
     # Reset stop flag
     _stop_playback=false
@@ -337,6 +387,12 @@ main() {
     local processed=0
     local failed=0
     local failed_files=()
+
+    # Output paths already written during this run. Two inputs that would land
+    # on the same path used to overwrite each other silently while both were
+    # counted as successes; see _unique_output_path below.
+    local written_outputs=()
+    local image_index=0
     
     # Show batch info
     if [[ "$ARG_QUIET" != "true" && $total_images -gt 1 ]]; then
@@ -345,6 +401,9 @@ main() {
     
     # Process each image
     for image in "${ARG_IMAGES[@]}"; do
+        # The directory argument this image was expanded from, if any.
+        local image_root="${ARG_IMAGE_ROOTS[$image_index]:-}"
+        image_index=$((image_index + 1))
         processed=$((processed + 1))
         
         # Resolve the actual file (download URL if needed)
@@ -556,7 +615,24 @@ main() {
                 local ext
                 ext=$(export_get_extension "$output_format")
                 base_name="${base_name%.*}.ascii.${ext}"
-                local out_file="$ARG_OUTPUT_DIR/$base_name"
+
+                # Mirror the input tree under the output directory, so
+                # one/image.png and two/image.png stay distinct. Only a
+                # recursive expansion produces a relative path here; a directory
+                # walked non-recursively, or a file named directly, still lands
+                # flat in the output directory as before.
+                local rel_dir
+                rel_dir=$(_relative_output_dir "$image" "$image_root")
+                local out_file
+                if [[ -n "$rel_dir" ]]; then
+                    mkdir -p "$ARG_OUTPUT_DIR/$rel_dir" 2>/dev/null \
+                        || die "Cannot create output directory: $ARG_OUTPUT_DIR/$rel_dir"
+                    out_file="$ARG_OUTPUT_DIR/$rel_dir/$base_name"
+                else
+                    out_file="$ARG_OUTPUT_DIR/$base_name"
+                fi
+                _unique_output_path "$out_file"
+                out_file="$_UNIQUE_OUTPUT_PATH"
                 
                 # Get content for export (re-converts with color if needed)
                 local export_content_arg
@@ -593,9 +669,9 @@ main() {
                             echo "# ============ $(basename "$image") ============"
                             echo ""
                             if [[ "$output_format" == "text" ]]; then
-                                echo -e "$export_content_arg" | sed 's/\x1b\[[0-9;]*m//g'
+                                printf '%s\n' "$export_content_arg" | sed 's/\x1b\[[0-9;]*m//g'
                             else
-                                echo -e "$export_content_arg"
+                                printf '%s\n' "$export_content_arg"
                             fi
                         } >> "$ARG_OUTPUT"
                     else
@@ -616,7 +692,7 @@ main() {
                     echo "# ============ $(basename "$image") ============"
                 fi
                 echo ""
-                echo -e "$result"
+                printf '%s\n' "$result"
                 echo ""
             fi
         fi

@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 # ============================================================================
-# release.sh - Helper script for creating gummyworm releases
+# release.sh - Point the Homebrew formula at a published gummyworm release
 # ============================================================================
 # Usage: ./scripts/release.sh <version>
-# Example: ./scripts/release.sh 1.0.0
+# Example: ./scripts/release.sh 2.3.1
 #
-# This script:
-# 1. Creates a release tarball
-# 2. Calculates the SHA256 hash
-# 3. Updates the Formula with the new version and hash
+# Run this AFTER the tag is pushed. It:
+# 1. Checks that tag v<version> exists locally and on origin
+# 2. Downloads GitHub's archive for that tag and hashes it
+# 3. Writes the url, version and sha256 into Formula/gummyworm.rb
+#
+# The hash has to come from GitHub's archive, because that is the file the
+# formula's url serves and the file brew verifies. An earlier version of this
+# script built its own tarball from the working tree and hashed that instead:
+# different top-level directory, different contents, uncommitted changes
+# included -- so the hash it wrote could never match the url beside it.
+#
+# Environment:
+#   GUMMYWORM_FORMULA   formula to update (default: Formula/gummyworm.rb)
+#   GUMMYWORM_REMOTE    git remote holding the tag (default: origin)
 #
 # Compatibility: macOS, Linux, FreeBSD
 # ============================================================================
@@ -17,6 +27,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+REPO_URL="https://github.com/oddurs/gummyworm"
+FORMULA_PATH="${GUMMYWORM_FORMULA:-$PROJECT_ROOT/Formula/gummyworm.rb}"
+REMOTE="${GUMMYWORM_REMOTE:-origin}"
 
 # Detect platform for portable commands
 PLATFORM="unknown"
@@ -35,7 +49,8 @@ NC='\033[0m' # No Color
 
 log_info() { echo -e "${GREEN}[INFO]${NC} $*"; }
 log_warn() { echo -e "${YELLOW}[WARN]${NC} $*"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $*"; }
+log_error() { echo -e "${RED}[ERROR]${NC} $*" >&2; }
+die() { log_error "$*"; exit 1; }
 
 # Portable sed in-place editing
 sed_inplace() {
@@ -46,9 +61,20 @@ sed_inplace() {
     fi
 }
 
+# Portable SHA256 of stdin
+sha256_stdin() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 | awk '{print $1}'
+    else
+        sha256sum | awk '{print $1}'
+    fi
+}
+
 usage() {
     echo "Usage: $0 <version>"
-    echo "Example: $0 1.0.0"
+    echo "Example: $0 2.3.1"
+    echo ""
+    echo "Tag and push v<version> first; this script hashes the published archive."
     exit 1
 }
 
@@ -58,75 +84,74 @@ if [[ $# -ne 1 ]]; then
 fi
 
 VERSION="$1"
+TAG="v${VERSION}"
 
 # Validate version format (basic semver)
 # Store regex in variable for Bash 3.2 compatibility
 re_version='^[0-9]+\.[0-9]+\.[0-9]+$'
 if [[ ! "$VERSION" =~ $re_version ]]; then
-    log_error "Invalid version format. Use semver: X.Y.Z"
-    exit 1
+    die "Invalid version format. Use semver: X.Y.Z"
 fi
 
 cd "$PROJECT_ROOT"
 
-log_info "Creating release v${VERSION}..."
+[[ -f "$FORMULA_PATH" ]] || die "Formula not found at $FORMULA_PATH"
 
-# Create release directory
-RELEASE_DIR="$PROJECT_ROOT/releases"
-mkdir -p "$RELEASE_DIR"
+# The tag must exist here...
+if ! git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+    die "Tag ${TAG} does not exist locally. Tag the release first: git tag -a ${TAG}"
+fi
 
-# Create tarball
-TARBALL="gummyworm-${VERSION}.tar.gz"
-TARBALL_PATH="$RELEASE_DIR/$TARBALL"
+# ...and be published, or GitHub has no archive to hash.
+if ! git ls-remote --exit-code --tags "$REMOTE" "refs/tags/${TAG}" >/dev/null 2>&1; then
+    die "Tag ${TAG} is not on ${REMOTE}. Push it first: git push ${REMOTE} ${TAG}"
+fi
 
-log_info "Creating tarball: $TARBALL"
+# The published tag must be the one we have, or we would hash something else.
+local_sha=$(git rev-parse "${TAG}^{commit}")
+remote_sha=$(git ls-remote --tags "$REMOTE" "refs/tags/${TAG}^{}" | awk '{print $1}')
+if [[ -z "$remote_sha" ]]; then
+    # Lightweight tag: no peeled entry, the ref itself names the commit
+    remote_sha=$(git ls-remote --tags "$REMOTE" "refs/tags/${TAG}" | awk '{print $1}')
+fi
+if [[ "$local_sha" != "$remote_sha" ]]; then
+    die "Local ${TAG} (${local_sha}) differs from ${REMOTE} (${remote_sha}). Refusing to hash a tag that is not the one published."
+fi
 
-# Create tarball excluding unnecessary files
-tar --exclude='.git' \
-    --exclude='.gitignore' \
-    --exclude='.DS_Store' \
-    --exclude='releases' \
-    --exclude='scripts' \
-    --exclude='*.tar.gz' \
-    -czf "$TARBALL_PATH" \
-    -C "$PROJECT_ROOT/.." \
-    "$(basename "$PROJECT_ROOT")"
+URL="${REPO_URL}/archive/refs/tags/${TAG}.tar.gz"
+log_info "Hashing published archive: $URL"
 
-# Calculate SHA256
-SHA256=$(shasum -a 256 "$TARBALL_PATH" | awk '{print $1}')
+command -v curl >/dev/null 2>&1 || die "curl is required"
+SHA256=$(curl -fsSL "$URL" | sha256_stdin) || die "Failed to download $URL"
+
+# An empty download hashes to this; never write it into a formula
+readonly EMPTY_SHA256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+if [[ -z "$SHA256" || "$SHA256" == "$EMPTY_SHA256" ]]; then
+    die "Downloaded archive was empty; not updating the formula"
+fi
 
 log_info "SHA256: $SHA256"
+log_info "Updating $(basename "$FORMULA_PATH")..."
 
-# Update Formula
-FORMULA_PATH="$PROJECT_ROOT/Formula/gummyworm.rb"
+sed_inplace -E "s|^([[:space:]]*url \")[^\"]*(\")|\\1${URL}\\2|" "$FORMULA_PATH"
+sed_inplace -E "s|^([[:space:]]*sha256 \")[^\"]*(\")|\\1${SHA256}\\2|" "$FORMULA_PATH"
+sed_inplace -E "s|^([[:space:]]*version \")[^\"]*(\")|\\1${VERSION}\\2|" "$FORMULA_PATH"
 
-if [[ -f "$FORMULA_PATH" ]]; then
-    log_info "Updating Formula/gummyworm.rb..."
-    
-    # Update version in URL
-    sed_inplace "s|/v[0-9]*\\.[0-9]*\\.[0-9]*\\.tar\\.gz|/v${VERSION}.tar.gz|g" "$FORMULA_PATH"
-    
-    # Update SHA256
-    sed_inplace "s|sha256 \\\".*\\\"|sha256 \\\"${SHA256}\\\"|g" "$FORMULA_PATH"
-    
-    log_info "Formula updated with version ${VERSION}"
-else
-    log_warn "Formula not found at $FORMULA_PATH"
+# Confirm every field landed, rather than trusting three seds silently
+grep -q "url \"${URL}\"" "$FORMULA_PATH"        || die "url was not updated"
+grep -q "sha256 \"${SHA256}\"" "$FORMULA_PATH"  || die "sha256 was not updated"
+if grep -q '^[[:space:]]*version "' "$FORMULA_PATH"; then
+    grep -q "version \"${VERSION}\"" "$FORMULA_PATH" || die "version was not updated"
 fi
 
 echo ""
-log_info "Release v${VERSION} prepared!"
+log_info "Formula now points at ${TAG}."
 echo ""
 echo "Next steps:"
-echo "  1. Review changes: git diff"
-echo "  2. Commit: git add -A && git commit -m 'Release v${VERSION}'"
-echo "  3. Tag: git tag v${VERSION}"
-echo "  4. Push: git push origin main --tags"
-echo "  5. Create GitHub release and upload: $TARBALL_PATH"
+echo "  1. Review:  git diff -- $(basename "$(dirname "$FORMULA_PATH")")/$(basename "$FORMULA_PATH")"
+echo "  2. Commit:  git commit -am 'Point formula at ${TAG}'"
+echo "  3. Push:    git push ${REMOTE} main"
+echo "  4. Release: gh release create ${TAG} --notes-file <notes>"
 echo ""
-echo "For Homebrew tap setup, copy Formula/gummyworm.rb to your tap repository:"
+echo "If you publish through a separate tap, copy the formula there as well:"
 echo "  homebrew-gummyworm/Formula/gummyworm.rb"
-echo ""
-echo "Formula values:"
-echo "  URL: https://github.com/oddurs/gummyworm/archive/refs/tags/v${VERSION}.tar.gz"
-echo "  SHA256: ${SHA256}"

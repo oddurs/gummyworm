@@ -3,12 +3,31 @@
 # gummyworm/lib/image.sh - Image processing functions
 # ============================================================================
 # Handles image validation, dimension calculation, and pixel extraction.
-# Requires: lib/config.sh, lib/utils.sh
+# Requires: lib/config.sh, lib/utils.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_IMAGE_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_IMAGE_LOADED=1
+_GUMMYWORM_IMAGE_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_LIB_DIR}/utils.sh"
 
 # ============================================================================
 # Dependencies
@@ -240,6 +259,17 @@ calc_dimensions() {
     local out_w="$target_w"
     local out_h="$target_h"
 
+    # The source dimensions divide the row count below. They come from
+    # identify, which yields nothing on failure -- and bash evaluates an empty
+    # operand as 0, so a bad value surfaces as "division by 0" from deep in the
+    # arithmetic. Reject it here with a message that says what was wrong.
+    # Returns rather than exits: callers decide whether a failure is fatal.
+    if ! [[ "$orig_w" =~ ^[0-9]+$ && "$orig_h" =~ ^[0-9]+$ ]] \
+        || [[ "$orig_w" -eq 0 || "$orig_h" -eq 0 ]]; then
+        log_error "Cannot size output: source dimensions are '${orig_w}x${orig_h}'"
+        return 1
+    fi
+
     if [[ "$target_h" -eq 0 ]]; then
         local aspect_x100
         aspect_x100=$(char_aspect_hundredths "$char_aspect")
@@ -289,9 +319,35 @@ image_extract_pixels() {
         preprocess_opts+="-gamma $gamma "
     fi
     
-    # Note: preprocess_opts is intentionally unquoted to allow word splitting
+    # Spread the image's tones across the whole palette before the user's own
+    # adjustments. A photo rarely uses the full range, and a palette has ten
+    # to seventy steps to spend, so an unstretched midtone-heavy image lands on
+    # two or three characters. The default mode (full) is stretch plus CLAHE;
+    # bench/ measures it as raising mean SSIM over the corpus from 0.5745 to
+    # 0.5792. It is a choice because it is not a win on every image: flat
+    # graphics and some line art come out slightly worse. -clahe needs
+    # ImageMagick 7.0.8 or newer, so full falls back to stretch without it.
+    local enhance="${CONFIG_ENHANCE:-$DEFAULT_ENHANCE}"
+    local enhance_opts=""
+    case "$enhance" in
+        stretch|full) enhance_opts="-contrast-stretch 1%x1% " ;;
+    esac
+    if [[ "$enhance" == full ]]; then
+        if [[ -z "${_MAGICK_HAS_CLAHE:-}" ]]; then
+            if $_MAGICK_CONVERT -help 2>&1 | grep -q -- '-clahe'; then
+                _MAGICK_HAS_CLAHE=yes
+            else
+                _MAGICK_HAS_CLAHE=no
+            fi
+        fi
+        [[ "$_MAGICK_HAS_CLAHE" == yes ]] && enhance_opts+="-clahe 12x12%+128+3 "
+    fi
+
+    # Note: enhance_opts and preprocess_opts are intentionally unquoted to
+    # allow word splitting
     # shellcheck disable=SC2086
     $_MAGICK_CONVERT "$image" \
+        $enhance_opts \
         $preprocess_opts \
         -resize "${width}x${height}!" \
         -depth 8 \

@@ -3,10 +3,19 @@
 # gummyworm/lib/config.sh - Configuration and constants
 # ============================================================================
 # This module defines all default settings, constants, and global configuration
-# for gummyworm. Source this first before other modules.
+# for gummyworm. Every other module sources it as a dependency, so nothing
+# needs to load it first.
 #
 # Compatibility: Bash 3.2+, zsh 5.0+ (macOS default), GNU/Linux, BSD
 # ============================================================================
+
+# Guard against multiple inclusion. Every other module sources this one, so it
+# is routinely reached more than once, and re-running it would try to redefine
+# its readonly constants. A plain assignment rather than readonly on purpose:
+# this line runs before POSIX_BUILTINS is set below, and under zsh a readonly
+# created while being sourced from inside a function is local to that function.
+[[ -n "${_GUMMYWORM_CONFIG_LOADED:-}" ]] && return 0
+_GUMMYWORM_CONFIG_LOADED=1
 
 # ============================================================================
 # Shell Detection & Compatibility Layer
@@ -103,7 +112,7 @@ esac
 export GUMMYWORM_PLATFORM
 
 # Version info
-readonly GUMMYWORM_VERSION="2.3.0"
+readonly GUMMYWORM_VERSION="2.4.0"
 readonly GUMMYWORM_NAME="gummyworm"
 
 # Determine the root directory of the project (portable across bash/zsh)
@@ -136,6 +145,10 @@ readonly DEFAULT_PRESERVE_ASPECT=true
 # which is both the common case and what the HTML/SVG exporter renders at.
 # Tighter line spacing (iTerm2 at line-height 1.0) is nearer 1.67; looser, 2.2+.
 readonly DEFAULT_CHAR_ASPECT="2.0"
+# How far to stretch the image's tones across the palette before mapping them:
+# off (use the image as it is), stretch (spread the tonal range), or full
+# (stretch, then adaptive local contrast). See docs/docs/cli-reference.md.
+readonly DEFAULT_ENHANCE="full"
 readonly DEFAULT_FORMAT="text"
 readonly DEFAULT_BACKGROUND="#1e1e1e"
 readonly DEFAULT_PADDING=0
@@ -184,6 +197,87 @@ CONFIG_LOOPS="$DEFAULT_LOOPS"
 CONFIG_QUIET="$DEFAULT_QUIET"
 CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
 CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
+CONFIG_ENHANCE="$DEFAULT_ENHANCE"
+
+# Colour patterns for background validation. Hex is #RGB or #RRGGBB; the named
+# set is the conservative intersection of CSS named colours and the names
+# ImageMagick accepts, so a value that validates here works in every export.
+readonly RE_HEX_COLOR='^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$'
+readonly RE_NAMED_COLOR='^(transparent|none|black|white|red|green|blue|cyan|magenta|yellow|gray|grey|silver|maroon|olive|lime|teal|navy|purple|fuchsia|aqua|orange|pink|brown|gold|beige)$'
+
+# Config value patterns. No leading zeros: bash reads 08 as invalid octal.
+readonly RE_CFG_POSITIVE_INT='^[1-9][0-9]*$'
+readonly RE_CFG_NON_NEGATIVE_INT='^(0|[1-9][0-9]*)$'
+readonly RE_CFG_SIGNED_INT='^-?(0|[1-9][0-9]*)$'
+readonly RE_CFG_DECIMAL='^[0-9]*[.]?[0-9]+$'
+readonly RE_CFG_BOOL='^(true|false)$'
+readonly RE_CFG_ENHANCE='^(off|stretch|full)$'
+readonly RE_CFG_FORMAT='^(text|ansi|html|svg|png|gif)$'
+
+# Colour validators live here rather than in utils.sh: config.sh is sourced
+# first and parses the config file at source time, so anything it validates
+# with must already be defined.
+
+# Validate one config-file value against the same rule its CLI flag enforces.
+#
+# This is a security boundary, not tidiness. Every numeric value ends up in
+# shell arithmetic, and bash evaluates a variable's *value* as an arithmetic
+# expression -- array subscripts included, and a subscript undergoes command
+# substitution. An unvalidated `width=HOME[$(cmd)]` in ./.gummywormrc, which
+# travels with any cloned repository, therefore ran cmd. Nothing reaches a
+# CONFIG_* variable without passing this.
+#
+# Returns 0 if valid, 1 if invalid, 2 for a key this function does not know.
+# Usage: _config_value_valid <key> <value>
+_config_value_valid() {
+    local key="$1"
+    local value="$2"
+    case "$key" in
+        width|frame_delay)
+            [[ "$value" =~ $RE_CFG_POSITIVE_INT ]] ;;
+        height|padding|max_frames|loops)
+            [[ "$value" =~ $RE_CFG_NON_NEGATIVE_INT ]] ;;
+        brightness|contrast)
+            # The regex runs first, so the comparison only ever sees an integer
+            [[ "$value" =~ $RE_CFG_SIGNED_INT ]] && \
+                [[ "$value" -ge -100 && "$value" -le 100 ]] ;;
+        gamma)
+            [[ "$value" =~ $RE_CFG_DECIMAL ]] && \
+                awk -v v="$value" 'BEGIN { exit !(v >= 0.1 && v <= 10.0) }' ;;
+        char_aspect)
+            [[ "$value" =~ $RE_CFG_DECIMAL ]] && \
+                awk -v v="$value" 'BEGIN { exit !(v >= 0.5 && v <= 5.0) }' ;;
+        invert|color|truecolor|animate|quiet|preserve_aspect)
+            [[ "$value" =~ $RE_CFG_BOOL ]] ;;
+        format)
+            [[ "$value" =~ $RE_CFG_FORMAT ]] ;;
+        enhance)
+            [[ "$value" =~ $RE_CFG_ENHANCE ]] ;;
+        background)
+            is_valid_color "$value" ;;
+        palette)
+            # A name or a literal set of characters; never used in arithmetic
+            [[ -n "$value" ]] ;;
+        *)
+            return 2 ;;
+    esac
+}
+
+# Check if a value is a valid hex colour (#RGB or #RRGGBB)
+# Usage: is_valid_hex_color <value>
+is_valid_hex_color() {
+    [[ "$1" =~ $RE_HEX_COLOR ]]
+}
+
+# Check if a value is usable as a background colour: hex, or one of the named
+# colours both CSS and ImageMagick understand. Validates --background and the
+# config file's background= key before either reaches an exporter.
+# Usage: is_valid_color <value>
+is_valid_color() {
+    local value
+    value="$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')"
+    [[ "$1" =~ $RE_HEX_COLOR ]] || [[ "$value" =~ $RE_NAMED_COLOR ]]
+}
 
 # Load a config file if it exists
 # Usage: _load_config_file "/path/to/config"
@@ -207,6 +301,18 @@ _load_config_file() {
             value="${value#\'}"
             value="${value%\'}"
 
+            # Validate before assigning anything. The value is not echoed back:
+            # it came from a file that may not be the user's, and could carry
+            # terminal escape sequences.
+            local valid_rc=0
+            _config_value_valid "$key" "$value" || valid_rc=$?
+            if [[ $valid_rc -eq 2 ]]; then
+                continue  # unknown key: ignored, as before
+            elif [[ $valid_rc -ne 0 ]]; then
+                echo "Warning: ignoring invalid value for '$key' in $config_file" >&2
+                continue
+            fi
+
             # Map config keys to CONFIG_* variables
             case "$key" in
                 width)           CONFIG_WIDTH="$value" ;;
@@ -228,22 +334,33 @@ _load_config_file() {
                 quiet)           CONFIG_QUIET="$value" ;;
                 preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
                 char_aspect)     CONFIG_CHAR_ASPECT="$value" ;;
+                enhance)         CONFIG_ENHANCE="$value" ;;
             esac
         fi
     done < "$config_file"
 }
 
-# Load config files in order (later overrides earlier)
-_load_config_file "${XDG_CONFIG_HOME:-$HOME/.config}/gummyworm/config"
-_load_config_file "$HOME/.gummywormrc"
-_load_config_file ".gummywormrc"
+# Load the user's config files, later ones overriding earlier ones.
+#
+# An explicit call, made once by bin/gummyworm, rather than something that
+# happens when this file is sourced. Sourcing a module should define things,
+# not read the user's home directory: it keeps the other modules free to
+# source this one as a dependency, and it keeps the test suite independent of
+# whatever ~/.gummywormrc the person running it happens to have.
+# Usage: config_load_files
+config_load_files() {
+    _load_config_file "${XDG_CONFIG_HOME:-$HOME/.config}/gummyworm/config"
+    _load_config_file "$HOME/.gummywormrc"
+    _load_config_file ".gummywormrc"
 
-# Export config values for use by other modules
-export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
-export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
-export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
-export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
-export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
+    # Export config values for use by other modules
+    export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
+    export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
+    export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
+    export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
+    export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
+    export CONFIG_ENHANCE
+}
 
 # ============================================================================
 # Shared Regex Patterns (Bash 3.2 compatible - stored in variables)

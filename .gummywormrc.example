@@ -40,6 +40,16 @@
 #   2.2   loose line spacing
 # char_aspect=2.0             # Range: 0.5 to 5.0
 
+# Tone enhancement before mapping to characters
+# Photos rarely use the full light-to-dark range, so they land on a few
+# characters. This spreads the tones out first.
+#   off      use the image as it is
+#   stretch  spread the tonal range
+#   full     stretch, then adaptive local contrast (needs ImageMagick 7.0.8+)
+# Turn it off for flat graphics, logos and line art, or when you want the
+# image's own contrast kept.
+# enhance=full                # Options: off, stretch, full
+
 # Export defaults
 # format=text                 # Options: text, ansi, html, svg, png, gif
 # background=#1e1e1e          # Background color for html/svg/png exports

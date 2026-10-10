@@ -128,3 +128,6 @@ docs/.cache-loader/
 
 # Legacy docsify files (can be removed)
 docs-backup/
+
+# Benchmark output
+bench/out/

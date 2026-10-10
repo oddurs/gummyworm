@@ -3,12 +3,35 @@
 # gummyworm/lib/cli.sh - Command-line interface
 # ============================================================================
 # Handles argument parsing, help display, and user interaction.
-# Requires: lib/config.sh, lib/utils.sh, lib/palettes.sh
+# Requires: lib/config.sh, lib/utils.sh, lib/palettes.sh, lib/image.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_CLI_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_CLI_LOADED=1
+_GUMMYWORM_CLI_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
+# shellcheck source=lib/utils.sh
+source "${GUMMYWORM_LIB_DIR}/utils.sh"
+# shellcheck source=lib/palettes.sh
+source "${GUMMYWORM_LIB_DIR}/palettes.sh"
+# shellcheck source=lib/image.sh
+source "${GUMMYWORM_LIB_DIR}/image.sh"
 
 # ============================================================================
 # Banner & Help
@@ -34,7 +57,7 @@ EOF
 show_help() {
     show_banner
     echo -e "${COLOR_BOLD}USAGE:${COLOR_RESET}"
-    echo "    $GUMMYWORM_NAME [OPTIONS] <image_file> [image_file2 ...]"
+    echo "    $GUMMYWORM_NAME [OPTIONS] [--] <image_file> [image_file2 ...]"
     echo "    $GUMMYWORM_NAME [OPTIONS] < image_data    (stdin)"
     echo "    cat image.png | $GUMMYWORM_NAME [OPTIONS]"
     echo ""
@@ -64,6 +87,8 @@ show_help() {
     echo "    -q, --quiet           Suppress info messages"
     echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --enhance <mode>      Spread tones across the palette: off, stretch, full"
+    echo "                          (default: $DEFAULT_ENHANCE). off keeps the image as it is."
     echo "    --char-aspect <N>     Terminal cell height:width (default: $DEFAULT_CHAR_ASPECT)"
     echo "                          Raise if output looks too tall, lower if too wide."
     echo "                          ~1.67 tight line spacing, 2.0 typical, 2.2+ loose."
@@ -185,6 +210,7 @@ parse_args() {
     ARG_QUIET="$CONFIG_QUIET"
     ARG_PRESERVE_ASPECT="$CONFIG_PRESERVE_ASPECT"
     ARG_CHAR_ASPECT="$CONFIG_CHAR_ASPECT"
+    ARG_ENHANCE="$CONFIG_ENHANCE"
     ARG_ANIMATE="$CONFIG_ANIMATE"
     ARG_FRAME_DELAY="$CONFIG_FRAME_DELAY"
     ARG_MAX_FRAMES="$CONFIG_MAX_FRAMES"
@@ -276,6 +302,7 @@ parse_args() {
                 ;;
             --background)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                is_valid_color "$2" || die_usage "Background must be a hex colour (#RGB or #RRGGBB) or a named colour"
                 ARG_BACKGROUND="$2"
                 shift 2
                 ;;
@@ -343,6 +370,14 @@ parse_args() {
                 ARG_PRESERVE_ASPECT="false"
                 shift
                 ;;
+            --enhance)
+                [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
+                if ! [[ "$2" =~ $RE_CFG_ENHANCE ]]; then
+                    die_usage "Enhance must be one of: off, stretch, full"
+                fi
+                ARG_ENHANCE="$2"
+                shift 2
+                ;;
             --char-aspect)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 if ! [[ "$2" =~ ^[0-9]*\.?[0-9]+$ ]]; then
@@ -363,6 +398,16 @@ parse_args() {
                 show_version
                 exit 0
                 ;;
+            --)
+                # End of options: everything after is an input, even if it
+                # starts with a dash (e.g. a file named -cover.png).
+                shift
+                while [[ $# -gt 0 ]]; do
+                    ARG_IMAGES+=("$1")
+                    shift
+                done
+                break
+                ;;
             -*)
                 die_usage "Unknown option: $1"
                 ;;
@@ -380,20 +425,39 @@ parse_args() {
     CONFIG_CHAR_ASPECT="$ARG_CHAR_ASPECT"
     export CONFIG_CHAR_ASPECT
 
+    # Likewise for enhance: image_extract_pixels reads it, not ARG_*.
+    CONFIG_ENHANCE="$ARG_ENHANCE"
+    export CONFIG_ENHANCE
+
     # Now expand directories and handle special inputs
     # Only process if we have inputs (handles empty array in strict mode)
+    # Whether any input argument was given at all. Stdin is only the source
+    # when none was; an explicit directory that yields no images is an error
+    # about that directory, not a cue to read stdin.
+    local had_input_args="false"
     if [[ ${#ARG_IMAGES[@]} -gt 0 ]]; then
+        had_input_args="true"
         local raw_inputs=("${ARG_IMAGES[@]}")
         ARG_IMAGES=()
-        
+        # For each image, the directory argument it was expanded from, or "" if
+        # it was named directly. Output naming uses this to mirror the input
+        # tree, so two files with the same name in different subdirectories do
+        # not write to the same output path. Index-aligned with ARG_IMAGES.
+        ARG_IMAGE_ROOTS=()
+
         for input in "${raw_inputs[@]}"; do
             if is_url "$input"; then
                 ARG_IMAGES+=("$input")
+                ARG_IMAGE_ROOTS+=("")
             elif [[ -d "$input" ]]; then
                 # Directory input - expand to image files
                 local found_images=0
+                # Normalise away a trailing slash so stripping the root later
+                # leaves a clean relative path.
+                local root="${input%/}"
                 while IFS= read -r -d '' img; do
                     ARG_IMAGES+=("$img")
+                    ARG_IMAGE_ROOTS+=("$root")
                     found_images=$((found_images + 1))
                 done < <(find_images_in_dir "$input" "$ARG_RECURSIVE")
                 if [[ $found_images -eq 0 ]]; then
@@ -402,10 +466,17 @@ parse_args() {
             else
                 # Regular file
                 ARG_IMAGES+=("$input")
+                ARG_IMAGE_ROOTS+=("")
             fi
         done
     fi
     
+    # Inputs were named but none of them produced an image. Each empty
+    # directory has already been warned about above.
+    if [[ "$had_input_args" == "true" && ${#ARG_IMAGES[@]} -eq 0 ]]; then
+        die "No images found in the given input"
+    fi
+
     # Check for stdin input if no images provided
     if [[ ${#ARG_IMAGES[@]} -eq 0 ]]; then
         if [[ ! -t 0 ]]; then

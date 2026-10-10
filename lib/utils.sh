@@ -3,12 +3,29 @@
 # gummyworm/lib/utils.sh - Utility functions
 # ============================================================================
 # Common utility functions for logging, output formatting, and error handling.
-# Requires: lib/config.sh
+# Requires: lib/config.sh (loaded below)
 # ============================================================================
 
 # Guard against multiple inclusion
 [[ -n "${_GUMMYWORM_UTILS_LOADED:-}" ]] && return 0
-readonly _GUMMYWORM_UTILS_LOADED=1
+_GUMMYWORM_UTILS_LOADED=1  # plain, not readonly: see config.sh's guard
+
+# Load declared dependencies. Each module is include-guarded, so one that is
+# already loaded returns immediately. Sourced here at top level, never from
+# inside a function: under zsh a readonly created while sourcing inside a
+# function can be local to it, and `declare` is local in every shell.
+if [[ -z "${_GUMMYWORM_CONFIG_LOADED:-}" ]]; then
+    # Loaded on its own rather than via lib/all.sh: find config.sh beside us.
+    if [[ -n "${BASH_VERSION:-}" ]]; then
+        _gw_here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        # shellcheck disable=SC2296
+        _gw_here="$(cd "$(dirname "${(%):-%x}")" && pwd)"
+    fi
+    # shellcheck source=lib/config.sh
+    source "$_gw_here/config.sh"
+    unset _gw_here
+fi
 
 # ============================================================================
 # Character Width Functions
@@ -137,6 +154,20 @@ is_positive_int() {
 # Usage: is_non_negative_int <value>
 is_non_negative_int() {
     [[ "$1" =~ $RE_INTEGER ]]
+}
+
+# Escape a string for safe interpolation into HTML/SVG markup.
+# Usage: escape_markup <string>
+escape_markup() {
+    # sed rather than ${var//&/&amp;}: bash 5.2 reads an unquoted & in a
+    # substitution replacement as the matched text, so the parameter-expansion
+    # form yields "<lt;" instead of "&lt;" -- and it behaves differently again
+    # on the bash 3.2 this project still supports. & must be replaced first.
+    printf '%s' "$1" | sed -e 's/&/\&amp;/g' \
+                           -e 's/</\&lt;/g' \
+                           -e 's/>/\&gt;/g' \
+                           -e 's/"/\&quot;/g' \
+                           -e "s/'/\&#39;/g"
 }
 
 # ============================================================================

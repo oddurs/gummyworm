@@ -4,7 +4,7 @@
 
 ## v2.3.0 — Proportionally accurate output
 
-`##########` 100% · 8 of 8 done
+`##########` 100% · 9 of 9 done · due 2026-09-20
 
 Correct the aspect-ratio maths so default output is proportionally accurate, and let people tune it to their own terminal.
 
@@ -15,15 +15,103 @@ Correct the aspect-ratio maths so default output is proportionally accurate, and
 - [x] [`0006`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0006-svg-html-export-hardcodes-its-own-7-2-14-4-font-metrics-duplicating-the-aspect-constant.md) SVG/HTML export hardcodes its own 7.2/14.4 font metrics, duplicating the aspect constant <sup>bug · p2</sup>
 - [x] [`0007`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0007-update-calc-dimensions-tests-for-the-corrected-aspect-ratio.md) Update calc_dimensions tests for the corrected aspect ratio <sup>chore · p2</sup>
 - [x] [`0008`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0008-regenerate-readme-and-website-examples-after-the-aspect-fix.md) Regenerate README and website examples after the aspect fix <sup>docs · p2</sup>
+- [x] [`0009`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0009-export-to-png-fails-librsvg-is-an-undeclared-unchecked-dependency.md) Export to PNG fails: librsvg is an undeclared, unchecked dependency <sup>bug · p2</sup>
 - [x] [`0010`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0010-stale-version-assertion-in-test-zsh-compat-sh-pins-2-1-0.md) Stale version assertion in test_zsh_compat.sh pins 2.1.0 <sup>bug · p1</sup>
 - [x] [`0011`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0011-run-all-sh-runs-only-5-of-8-test-suites.md) run_all.sh runs only 5 of 8 test suites <sup>bug · p1</sup>
 - [x] [`0012`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0012-changelog-version-history-table-missing-the-2-3-0-row.md) CHANGELOG version history table missing the 2.3.0 row <sup>docs · p2</sup>
 
-## Unscheduled
+## v2.3.1 — Correctness patch
 
-`##########` 100% · 1 of 1 done
+`##########` 100% · 8 of 8 done · due 2026-09-22
+
+Ship the fixes that landed after the v2.3.0 tag, and make the release installable.
 
 ### done
 
-- [x] [`0009`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0009-export-to-png-fails-librsvg-is-an-undeclared-unchecked-dependency.md) Export to PNG fails: librsvg is an undeclared, unchecked dependency <sup>bug · p2</sup>
+- [x] [`0013`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0013-background-is-never-validated-and-is-interpolated-unescaped-into-svg-html.md) --background is never validated and is interpolated unescaped into SVG/HTML <sup>bug · p1</sup>
+- [x] [`0015`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0015-add-test-cli-sh-covering-the-argument-parser-directly.md) Add test_cli.sh covering the argument parser directly <sup>chore · p1</sup>
+- [x] [`0016`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0016-test-runner-discards-a-failing-assertion-unless-it-is-the-test-s-last-line.md) Test runner discards a failing assertion unless it is the test's last line <sup>bug · p0</sup>
+- [x] [`0017`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0017-palette-characters-and-corrupt-output-the-built-in-detailed-palette-is-affected.md) Palette characters | and \ corrupt output; the built-in 'detailed' palette is affected <sup>bug · p1</sup>
+- [x] [`0018`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0018-recursive-batch-silently-overwrites-outputs-that-share-a-basename-then-reports-success.md) Recursive batch silently overwrites outputs that share a basename, then reports success <sup>bug · p1</sup>
+- [x] [`0019`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0019-a-directory-containing-no-images-falls-through-to-stdin-and-reports-a-stdin-error.md) A directory containing no images falls through to stdin and reports a stdin error <sup>bug · p2</sup>
+- [x] [`0020`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0020-release-sh-prints-a-sha256-that-can-never-match-the-url-it-prints.md) release.sh prints a SHA256 that can never match the URL it prints <sup>bug · p2</sup>
+- [x] [`0035`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0035-numeric-config-values-are-evaluated-as-shell-arithmetic-so-a-project-gummywormrc-can-execute-commands.md) Numeric config values are evaluated as shell arithmetic, so a project .gummywormrc can execute commands <sup>bug · p0</sup>
+
+## v2.4.0 — Measured rendering
+
+`##########` 100% · 3 of 3 done · due 2026-10-09
+
+The first release with a way to measure rendering fidelity (bench/), and the first change judged by it: tone enhancement as a choice (--enhance).
+
+### done
+
+- [x] [`0038`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0038-build-a-benchmark-corpus-and-scoring-harness-for-rendering-fidelity.md) Build a benchmark corpus and scoring harness for rendering fidelity <sup>feature · p1</sup>
+- [x] [`0039`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0039-before-after-comparison-of-renders-across-the-whole-corpus.md) Before/after comparison of renders across the whole corpus <sup>feature · p1</sup>
+- [x] [`0044`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0044-local-contrast-enhancement-before-quantizing.md) Local contrast enhancement before quantizing <sup>feature · p2</sup>
+
+## later — Someday
+
+`··········` 0% · 0 of 3 done
+
+Good ideas without a date yet.
+
+### backlog
+
+- [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
+- [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
+- [ ] [`0034`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0034-multi-byte-palettes-emit-ragged-rows-and-invalid-utf-8-under-a-c-or-posix-locale.md) Multi-byte palettes emit ragged rows and invalid UTF-8 under a C or POSIX locale <sup>bug · p2</sup>
+
+## foundations — Foundations
+
+`#######···` 67% · 4 of 6 done
+
+Fix the connective tissue between modules, and put a safety net under it.
+
+### backlog
+
+- [ ] [`0028`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0028-svg-and-html-export-spawn-two-processes-per-output-row.md) SVG and HTML export spawn two processes per output row <sup>chore · p2</sup>
+- [ ] [`0029`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0029-adopt-one-convention-for-passing-data-from-bash-into-awk.md) Adopt one convention for passing data from bash into awk <sup>chore · p2</sup>
+
+### done
+
+- [x] [`0021`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0021-calc-dimensions-divides-by-zero-when-given-empty-or-zero-source-dimensions.md) calc_dimensions divides by zero when given empty or zero source dimensions <sup>bug · p3</sup>
+- [x] [`0022`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0022-no-end-of-options-marker-so-a-filename-starting-with-a-dash-cannot-be-passed.md) No -- end-of-options marker, so a filename starting with a dash cannot be passed <sup>bug · p3</sup>
+- [x] [`0026`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0026-run-the-test-suite-and-shellcheck-in-ci-on-every-push-and-pull-request.md) Run the test suite and shellcheck in CI on every push and pull request <sup>chore · p1</sup>
+- [x] [`0027`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0027-libraries-declare-their-dependencies-but-never-load-them-load-order-is-hand-maintained.md) Libraries declare their dependencies but never load them; load order is hand-maintained <sup>chore · p1</sup>
+
+## v2.5.0 — Library boundaries
+
+`··········` 0% · 0 of 3 done
+
+Make `lib/` a library: functions that return errors, take their inputs
+
+### backlog
+
+- [ ] [`0030`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0030-library-functions-exit-the-process-instead-of-returning-errors.md) Library functions exit the process instead of returning errors <sup>chore · p2</sup>
+- [ ] [`0031`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0031-layers-communicate-through-global-arg-and-config-variables.md) Layers communicate through global ARG_ and CONFIG_ variables <sup>chore · p2</sup>
+- [ ] [`0032`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0032-split-bin-gummyworm-and-replace-long-positional-signatures.md) Split bin/gummyworm and replace long positional signatures <sup>chore · p3</sup>
+
+## fidelity — Rendering fidelity
+
+`··········` 0% · 0 of 12 done
+
+Make gummyworm's output the most faithfully comprehensible rendering of a real image that a terminal can show. Measure first, then improve against the measurement.
+
+### backlog
+
+- [ ] [`0037`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0037-decide-whether-maximum-fidelity-is-ascii-only-or-includes-unicode-modes.md) Decide whether maximum fidelity is ASCII-only or includes Unicode modes <sup>chore · p1</sup>
+- [ ] [`0041`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0041-256-colour-mode-picks-the-nearest-palette-colour-not-a-truncated-cube-index.md) 256-colour mode picks the nearest palette colour, not a truncated cube index <sup>bug · p2</sup>
+- [ ] [`0042`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0042-detect-background-polarity-instead-of-requiring-invert.md) Detect background polarity instead of requiring --invert <sup>feature · p1</sup>
+- [ ] [`0043`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0043-measure-the-cell-pixel-size-instead-of-assuming-an-aspect-of-2-2.md) Measure the cell pixel size instead of assuming an aspect of 2.2 <sup>feature · p2</sup>
+- [ ] [`0045`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0045-check-how-alpha-is-handled-in-the-pixel-pipeline.md) Check how alpha is handled in the pixel pipeline <sup>chore · p2</sup>
+- [ ] [`0046`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0046-build-palette-ramps-from-measured-glyph-coverage.md) Build palette ramps from measured glyph coverage <sup>feature · p1</sup>
+- [ ] [`0047`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0047-glyph-shape-matching-renderer.md) Glyph shape-matching renderer <sup>feature · p1</sup>
+- [ ] [`0048`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0048-unicode-subpixel-modes-half-blocks-braille-sextants-octants.md) Unicode subpixel modes: half-blocks, braille, sextants, octants <sup>feature · p1</sup>
+- [ ] [`0049`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0049-choose-glyph-and-colours-jointly-against-the-terminal-background.md) Choose glyph and colours jointly against the terminal background <sup>feature · p2</sup>
+- [ ] [`0050`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0050-evaluate-dithering-against-shape-matching.md) Evaluate dithering against shape matching <sup>chore · p3</sup>
+- [ ] [`0051`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0051-human-recognition-study-across-renderers-and-widths.md) Human recognition study across renderers and widths <sup>chore · p2</sup>
+
+### in progress
+
+- [ ] [`0040`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0040-tone-mapping-in-linear-light-and-lab-l-not-gamma-encoded-srgb.md) Tone mapping in linear light and Lab L*, not gamma-encoded sRGB <sup>feature · p1</sup>
 

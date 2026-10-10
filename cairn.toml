@@ -10,7 +10,7 @@
 
 # On-disk format version. cairn refuses to open a project written in a format it
 # does not know, rather than misreading it. See "Compatibility" in the manual.
-format = 3
+format = 5
 
 [project]
 name = "gummyworm"

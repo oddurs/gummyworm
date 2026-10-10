@@ -35,7 +35,7 @@ _gummyworm_completions() {
         -r --recursive
         -l --list-palettes
         -q --quiet
-        --continue-on-error --no-aspect --char-aspect
+        --continue-on-error --no-aspect --char-aspect --enhance
         --help --version
     "
 
@@ -58,6 +58,10 @@ _gummyworm_completions() {
         --gamma)
             # Gamma values
             COMPREPLY=($(compgen -W "0.5 0.7 1.0 1.2 1.5 2.0 2.2" -- "$cur"))
+            return
+            ;;
+        --enhance)
+            COMPREPLY=($(compgen -W "off stretch full" -- "$cur"))
             return
             ;;
         --char-aspect)
