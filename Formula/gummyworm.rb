@@ -4,9 +4,9 @@
 class Gummyworm < Formula
   desc "gummyworm - Transform images into glorious ASCII art"
   homepage "https://github.com/oddurs/gummyworm"
-  url "https://github.com/oddurs/gummyworm/archive/refs/tags/v2.4.0.tar.gz"
-  sha256 "68c4ae1d59d805fa790db281c34e76f3b434c6c6a481d1f1550b1c005cd146eb"
-  version "2.4.0"
+  url "https://github.com/oddurs/gummyworm/archive/refs/tags/v2.5.0.tar.gz"
+  sha256 "c3ab87d4c5be4fb895f4aa0c22d5d12d8b2e36186fc3e7cfc9274d3dc75e9fc4"
+  version "2.5.0"
   license "MIT"
   head "https://github.com/oddurs/gummyworm.git", branch: "main"
 
