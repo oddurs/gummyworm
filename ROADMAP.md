@@ -96,14 +96,13 @@ Make `lib/` a library: functions that return errors, take their inputs
 
 ## fidelity — Rendering fidelity
 
-`··········` 0% · 0 of 13 done
+`#·········` 8% · 1 of 13 done
 
 Make gummyworm's output the most faithfully comprehensible rendering of a real image that a terminal can show. Measure first, then improve against the measurement.
 
 ### backlog
 
 - [ ] [`0037`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0037-decide-whether-maximum-fidelity-is-ascii-only-or-includes-unicode-modes.md) Decide whether maximum fidelity is ASCII-only or includes Unicode modes <sup>chore · p1</sup>
-- [ ] [`0041`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0041-256-colour-mode-picks-the-nearest-palette-colour-not-a-truncated-cube-index.md) 256-colour mode picks the nearest palette colour, not a truncated cube index <sup>bug · p2</sup>
 - [ ] [`0042`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0042-detect-background-polarity-instead-of-requiring-invert.md) Detect background polarity instead of requiring --invert <sup>feature · p1</sup>
 - [ ] [`0043`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0043-measure-the-cell-pixel-size-instead-of-assuming-an-aspect-of-2-2.md) Measure the cell pixel size instead of assuming an aspect of 2.2 <sup>feature · p2</sup>
 - [ ] [`0045`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0045-check-how-alpha-is-handled-in-the-pixel-pipeline.md) Check how alpha is handled in the pixel pipeline <sup>chore · p2</sup>
@@ -118,6 +117,10 @@ Make gummyworm's output the most faithfully comprehensible rendering of a real i
 ### in progress
 
 - [ ] [`0040`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0040-tone-mapping-in-linear-light-and-lab-l-not-gamma-encoded-srgb.md) Tone mapping in linear light and Lab L*, not gamma-encoded sRGB <sup>feature · p1</sup>
+
+### done
+
+- [x] [`0041`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0041-256-colour-mode-picks-the-nearest-palette-colour-not-a-truncated-cube-index.md) 256-colour mode picks the nearest palette colour, not a truncated cube index <sup>bug · p2</sup>
 
 ## cli-polish — CLI polish
 
@@ -140,4 +143,17 @@ Make the command behave the way command-line tools are expected to: output on th
 - [x] [`0059`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0059-warn-when-palette-looks-like-a-mistyped-palette-name.md) Warn when --palette looks like a mistyped palette name <sup>feature · p3</sup>
 - [x] [`0060`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0060-f-svg-html-png-and-gif-without-o-silently-print-plain-text.md) -f svg, html, png and gif without -o silently print plain text <sup>bug · p1</sup>
 - [x] [`0061`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0061-h-should-show-help-add-v-and-accept-for-stdin.md) -h should show help; add -V and accept - for stdin <sup>feature · p1</sup>
+
+## color-engine — Colour engine
+
+`##########` 100% · 4 of 4 done
+
+Make colour output show the colour the image has, given that a glyph covers only part of its cell and is drawn on a dark background. Choose glyph and foreground together so that coverage times foreground, mixed with the background, lands on the target. Judged by a perceptual colour score in the benchmark.
+
+### done
+
+- [x] [`0066`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0066-perceptual-colour-score-in-the-benchmark.md) Perceptual colour score in the benchmark <sup>feature · p1</sup>
+- [x] [`0067`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0067-measure-glyph-ink-coverage-in-the-export-font.md) Measure glyph ink coverage in the export font <sup>feature · p1</sup>
+- [x] [`0068`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0068-256-colour-mode-snaps-to-the-nearest-colour-in-the-real-palette.md) 256-colour mode snaps to the nearest colour in the real palette <sup>bug · p2</sup>
+- [x] [`0069`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0069-optical-colour-engine-choose-glyph-and-foreground-together.md) Optical colour engine: choose glyph and foreground together <sup>feature · p1</sup>
 
