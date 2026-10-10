@@ -3,10 +3,11 @@ id: 14
 uid: d5731291-5a13-4df5-8b60-0827aa325bc9
 title: -h is bound to --height, so 'gummyworm -h' errors instead of showing help
 type: bug
-status: backlog
+status: done
 milestone: later
 created: 2026-09-20
-updated: 2026-09-20
+updated: 2026-10-09
+closed_at: 2026-10-09
 priority: p2
 effort: s
 area: cli
@@ -47,3 +48,7 @@ the two, and `--height` stays either way.
 - [ ] A decision is recorded here with its reasoning
 - [ ] The chosen behaviour is implemented and tested
 - [ ] README, docs site, and both completion files agree with the code
+
+## 2026-10-09
+
+Being fixed under 0061: -h shows help, and '-h N' keeps working as a deprecated height with a warning.

@@ -51,15 +51,18 @@ The first release with a way to measure rendering fidelity (bench/), and the fir
 
 ## later — Someday
 
-`··········` 0% · 0 of 3 done
+`####······` 33% · 1 of 3 done
 
 Good ideas without a date yet.
 
 ### backlog
 
-- [ ] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
 - [ ] [`0033`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0033-decide-whether-to-keep-supporting-bash-3-2.md) Decide whether to keep supporting bash 3.2 <sup>chore · p3</sup>
 - [ ] [`0034`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0034-multi-byte-palettes-emit-ragged-rows-and-invalid-utf-8-under-a-c-or-posix-locale.md) Multi-byte palettes emit ragged rows and invalid UTF-8 under a C or POSIX locale <sup>bug · p2</sup>
+
+### done
+
+- [x] [`0014`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0014-h-is-bound-to-height-so-gummyworm-h-errors-instead-of-showing-help.md) -h is bound to --height, so 'gummyworm -h' errors instead of showing help <sup>bug · p2</sup>
 
 ## foundations — Foundations
 
@@ -93,7 +96,7 @@ Make `lib/` a library: functions that return errors, take their inputs
 
 ## fidelity — Rendering fidelity
 
-`··········` 0% · 0 of 12 done
+`··········` 0% · 0 of 13 done
 
 Make gummyworm's output the most faithfully comprehensible rendering of a real image that a terminal can show. Measure first, then improve against the measurement.
 
@@ -110,8 +113,31 @@ Make gummyworm's output the most faithfully comprehensible rendering of a real i
 - [ ] [`0049`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0049-choose-glyph-and-colours-jointly-against-the-terminal-background.md) Choose glyph and colours jointly against the terminal background <sup>feature · p2</sup>
 - [ ] [`0050`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0050-evaluate-dithering-against-shape-matching.md) Evaluate dithering against shape matching <sup>chore · p3</sup>
 - [ ] [`0051`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0051-human-recognition-study-across-renderers-and-widths.md) Human recognition study across renderers and widths <sup>chore · p2</sup>
+- [ ] [`0064`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0064-sanity-check-the-fidelity-scorer-against-known-cases.md) Sanity-check the fidelity scorer against known cases <sup>chore · p2</sup>
 
 ### in progress
 
 - [ ] [`0040`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0040-tone-mapping-in-linear-light-and-lab-l-not-gamma-encoded-srgb.md) Tone mapping in linear light and Lab L*, not gamma-encoded sRGB <sup>feature · p1</sup>
+
+## cli-polish — CLI polish
+
+`########··` 80% · 8 of 10 done
+
+Make the command behave the way command-line tools are expected to: output on the right streams, honest exit codes, standard flags, no surprises when piped.
+
+### backlog
+
+- [ ] [`0062`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0062-decide-whether-the-default-width-should-follow-the-terminal.md) Decide whether the default width should follow the terminal <sup>feature · p3</sup>
+- [ ] [`0063`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0063-ship-a-man-page.md) Ship a man page <sup>docs · p3</sup>
+
+### done
+
+- [x] [`0054`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0054-info-success-and-warning-messages-go-to-stdout-so-pipelines-carry-them.md) Info, success and warning messages go to stdout, so pipelines carry them <sup>bug · p1</sup>
+- [x] [`0055`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0055-colour-codes-ignore-no-color-and-whether-the-stream-is-a-terminal.md) Colour codes ignore NO_COLOR and whether the stream is a terminal <sup>bug · p1</sup>
+- [x] [`0056`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0056-usage-errors-exit-1-the-same-as-runtime-failures.md) Usage errors exit 1, the same as runtime failures <sup>chore · p2</sup>
+- [x] [`0057`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0057-stdout-is-padded-with-blank-lines-and-the-palette-list-prints-the-banner-when-piped.md) stdout is padded with blank lines and the palette list prints the banner when piped <sup>bug · p2</sup>
+- [x] [`0058`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0058-an-unwritable-o-path-shows-a-raw-bash-error-with-a-library-line-number.md) An unwritable -o path shows a raw bash error with a library line number <sup>bug · p2</sup>
+- [x] [`0059`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0059-warn-when-palette-looks-like-a-mistyped-palette-name.md) Warn when --palette looks like a mistyped palette name <sup>feature · p3</sup>
+- [x] [`0060`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0060-f-svg-html-png-and-gif-without-o-silently-print-plain-text.md) -f svg, html, png and gif without -o silently print plain text <sup>bug · p1</sup>
+- [x] [`0061`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0061-h-should-show-help-add-v-and-accept-for-stdin.md) -h should show help; add -V and accept - for stdin <sup>feature · p1</sup>
 
