@@ -40,6 +40,11 @@
 #   2.2   loose line spacing
 # char_aspect=2.0             # Range: 0.5 to 5.0
 
+# Classic rendering
+# One switch for the look before 2.4: enhance=off and color_engine=plain.
+# An explicit enhance or color_engine below still wins.
+# classic=false               # Options: true, false
+
 # Colour engine
 # A character inks only part of its cell, so a colour reaches the eye dimmer
 # than it was given. optical picks the character and its colour together to

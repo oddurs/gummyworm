@@ -146,7 +146,7 @@ Make the command behave the way command-line tools are expected to: output on th
 
 ## color-engine — Colour engine
 
-`##########` 100% · 4 of 4 done
+`##########` 100% · 5 of 5 done
 
 Make colour output show the colour the image has, given that a glyph covers only part of its cell and is drawn on a dark background. Choose glyph and foreground together so that coverage times foreground, mixed with the background, lands on the target. Judged by a perceptual colour score in the benchmark.
 
@@ -156,4 +156,5 @@ Make colour output show the colour the image has, given that a glyph covers only
 - [x] [`0067`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0067-measure-glyph-ink-coverage-in-the-export-font.md) Measure glyph ink coverage in the export font <sup>feature · p1</sup>
 - [x] [`0068`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0068-256-colour-mode-snaps-to-the-nearest-colour-in-the-real-palette.md) 256-colour mode snaps to the nearest colour in the real palette <sup>bug · p2</sup>
 - [x] [`0069`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0069-optical-colour-engine-choose-glyph-and-foreground-together.md) Optical colour engine: choose glyph and foreground together <sup>feature · p1</sup>
+- [x] [`0070`](https://github.com/oddurs/gummyworm/blob/main/cairn/items/0070-a-classic-switch-for-the-previous-rendering.md) A --classic switch for the previous rendering <sup>feature · p1</sup>
 

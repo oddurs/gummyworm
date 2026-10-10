@@ -37,7 +37,7 @@ _gummyworm_completions() {
         -r --recursive
         -l --list-palettes
         -q --quiet
-        --continue-on-error --no-aspect --char-aspect --enhance --color-engine
+        --continue-on-error --no-aspect --char-aspect --enhance --color-engine --classic
     "
 
     # Built-in palettes

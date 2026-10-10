@@ -147,6 +147,7 @@ _gummyworm() {
         '(-q --quiet)'{-q,--quiet}'[Suppress info messages]' \
         '--continue-on-error[Continue if one file fails]' \
         '--no-aspect[Do not preserve aspect ratio]' \
+        '--classic[Render as before 2.4: enhance off, plain colour engine]' \
         '--color-engine[How colour is chosen (default optical)]:colour engine:_gummyworm_color_engine' \
         '--enhance[Spread tones across the palette (default full)]:enhance mode:_gummyworm_enhance' \
         '--char-aspect[Terminal cell height:width (default 2.0)]:character aspect:_gummyworm_char_aspect' \

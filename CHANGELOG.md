@@ -28,6 +28,10 @@ listed under Changed.
   piped to a file no longer contain escape codes.
 
 ### Added
+- **`--classic` and the `classic` config key** restore the rendering before 2.4
+  in one switch: `--enhance off` and `--color-engine plain`. An explicit
+  `--enhance` or `--color-engine` still wins, on the command line and in a
+  config file, in either order.
 - **`--color-engine <plain|optical>` and the `color_engine` config key.** A
   character inks only part of its cell, so a colour reached the eye at a
   fraction of its brightness, and dark colours disappeared into a dark

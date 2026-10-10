@@ -357,6 +357,7 @@ CONFIG_KEY_CASES=(
     "format:svg:pdf"
     "enhance:stretch:bright"
     "color_engine:plain:fancy"
+    "classic:true:maybe"
     "background:#1e1e1e:notacolor"
 )
 
@@ -392,6 +393,33 @@ test_config_validator_leaves_unknown_keys_alone() {
     local rc=0
     _config_value_valid "no_such_key" "whatever" || rc=$?
     assert_equals "2" "$rc" "an unknown key is reported as unknown, not invalid"
+}
+
+# What config_load_files resolves from a .gummywormrc containing <content>,
+# printed as "<enhance> <engine>".
+_resolved_from_rc() {
+    local content="$1" out
+    setup_config_tests
+    printf '%s\n' "$content" > "$TEST_TMP_DIR/.gummywormrc"
+    out=$(
+        cd "$TEST_TMP_DIR" || exit 1
+        HOME="$TEST_TMP_DIR/home" XDG_CONFIG_HOME="$TEST_TMP_DIR/xdg" \
+            config_load_files >/dev/null 2>&1
+        printf '%s %s' "$CONFIG_ENHANCE" "$CONFIG_COLOR_ENGINE"
+    )
+    cleanup_config_tests
+    printf '%s' "$out"
+}
+
+test_config_classic_sets_enhance_off_and_plain_engine() {
+    assert_equals "off plain" "$(_resolved_from_rc 'classic=true')" "classic=true is enhance off and the plain engine"
+    assert_equals "full optical" "$(_resolved_from_rc 'classic=false')" "classic=false changes nothing"
+}
+
+test_config_explicit_keys_beat_classic_in_either_order() {
+    assert_equals "full plain" "$(_resolved_from_rc $'classic=true\nenhance=full')" "enhance after classic"
+    assert_equals "full plain" "$(_resolved_from_rc $'enhance=full\nclassic=true')" "enhance before classic"
+    assert_equals "off optical" "$(_resolved_from_rc $'color_engine=optical\nclassic=true')" "color_engine before classic"
 }
 
 test_config_invalid_value_keeps_default_and_warns() {

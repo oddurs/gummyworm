@@ -379,6 +379,15 @@ test_color_engine_and_background_are_published_to_config_globals() {
     assert_equals "plain #102030" "$out" "the engine and background reach the converter"
 }
 
+test_classic_stands_in_for_enhance_off_and_plain_engine() {
+    assert_equals "off plain" "$(cli_value ARG_ENHANCE --classic) $(cli_value ARG_COLOR_ENGINE --classic)" \
+        "--classic sets both"
+    assert_equals "full" "$(cli_value ARG_ENHANCE --classic --enhance full)" "an explicit --enhance after --classic wins"
+    assert_equals "full" "$(cli_value ARG_ENHANCE --enhance full --classic)" "an explicit --enhance before --classic wins"
+    assert_equals "optical" "$(cli_value ARG_COLOR_ENGINE --classic --color-engine optical)" "an explicit --color-engine wins"
+    assert_equals "full optical" "$(cli_value ARG_ENHANCE) $(cli_value ARG_COLOR_ENGINE)" "without --classic the new defaults apply"
+}
+
 test_enhance_is_published_to_config_global() {
     # image_extract_pixels reads CONFIG_ENHANCE, not ARG_ENHANCE.
     local out

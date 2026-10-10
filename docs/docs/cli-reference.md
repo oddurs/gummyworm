@@ -316,6 +316,48 @@ gummyworm -c -i photo.jpg
 
 ### Image Preprocessing Options
 
+#### `--classic`
+
+Render the way gummyworm did before 2.4: `--enhance off` and `--color-engine plain`
+together.
+
+|             |         |
+| ----------- | ------- |
+| **Default** | off     |
+| **Type**    | Flag    |
+
+The tone enhancement and the optical colour engine are the defaults because they
+score better on the benchmark corpus, but they change how every image looks. If
+you prefer the plain mapping, or you have output you need to reproduce exactly,
+`--classic` switches both off at once.
+
+Either setting can still be chosen on its own, and an explicit one wins over
+`--classic`:
+
+```bash
+gummyworm --classic photo.jpg                   # both off
+gummyworm --classic --enhance full photo.jpg    # enhance on, plain colours
+gummyworm --classic --color-engine optical -c photo.jpg
+```
+
+Across the benchmark corpus the four combinations score as follows. Colour error
+is OKLab delta-E against the unenhanced source (lower is better), so it counts
+the enhancement's deliberate tone changes against it.
+
+| Settings                       | SSIM  | Colour error | Brightness needed | Saturation kept |
+| ------------------------------ | ----- | ------------ | ----------------- | --------------- |
+| `--classic` (off + plain)      | 0.5745 | 11.25       | ×37               | 74%             |
+| `--enhance off`, optical       | 0.5765 | **8.90**    | ×20               | 87%             |
+| `--enhance full`, plain        | 0.5792 | 11.13       | ×23               | 78%             |
+| **default** (full + optical)   | **0.5838** | 9.74    | **×16**           | **92%**         |
+
+The default has the best structure and the best brightness and saturation.
+`--enhance off` with the optical engine has the lowest colour error, because it
+leaves the image's tones alone.
+
+Set it permanently with `classic=true` in your config file — see
+[Configuration](configuration.md).
+
 #### `--enhance <mode>`
 
 Spread the image's tones across the whole palette before they are turned into

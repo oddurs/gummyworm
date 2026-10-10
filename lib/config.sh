@@ -204,6 +204,12 @@ CONFIG_PRESERVE_ASPECT="$DEFAULT_PRESERVE_ASPECT"
 CONFIG_CHAR_ASPECT="$DEFAULT_CHAR_ASPECT"
 CONFIG_ENHANCE="$DEFAULT_ENHANCE"
 CONFIG_COLOR_ENGINE="$DEFAULT_COLOR_ENGINE"
+# classic = enhance off + the plain colour engine, the rendering before 2.4.
+# _CFG_*_SET record that a key was given explicitly, so an explicit value beats
+# the preset whatever order the keys appear in.
+CONFIG_CLASSIC="false"
+_CFG_ENHANCE_SET=""
+_CFG_ENGINE_SET=""
 
 # Colour patterns for background validation. Hex is #RGB or #RRGGBB; the named
 # set is the conservative intersection of CSS named colours and the names
@@ -262,6 +268,8 @@ _config_value_valid() {
             [[ "$value" =~ $RE_CFG_ENHANCE ]] ;;
         color_engine)
             [[ "$value" =~ $RE_CFG_COLOR_ENGINE ]] ;;
+        classic)
+            [[ "$value" =~ $RE_CFG_BOOL ]] ;;
         background)
             is_valid_color "$value" ;;
         palette)
@@ -343,8 +351,9 @@ _load_config_file() {
                 quiet)           CONFIG_QUIET="$value" ;;
                 preserve_aspect) CONFIG_PRESERVE_ASPECT="$value" ;;
                 char_aspect)     CONFIG_CHAR_ASPECT="$value" ;;
-                enhance)         CONFIG_ENHANCE="$value" ;;
-                color_engine)    CONFIG_COLOR_ENGINE="$value" ;;
+                enhance)         CONFIG_ENHANCE="$value"; _CFG_ENHANCE_SET=1 ;;
+                color_engine)    CONFIG_COLOR_ENGINE="$value"; _CFG_ENGINE_SET=1 ;;
+                classic)         CONFIG_CLASSIC="$value" ;;
             esac
         fi
     done < "$config_file"
@@ -363,13 +372,20 @@ config_load_files() {
     _load_config_file "$HOME/.gummywormrc"
     _load_config_file ".gummywormrc"
 
+    # classic=true is a preset for the two settings it names. It fills in
+    # whichever of them the files did not set themselves.
+    if [[ "$CONFIG_CLASSIC" == "true" ]]; then
+        [[ -n "$_CFG_ENHANCE_SET" ]] || CONFIG_ENHANCE="off"
+        [[ -n "$_CFG_ENGINE_SET" ]] || CONFIG_COLOR_ENGINE="plain"
+    fi
+
     # Export config values for use by other modules
     export CONFIG_WIDTH CONFIG_HEIGHT CONFIG_PALETTE CONFIG_INVERT
     export CONFIG_COLOR CONFIG_TRUECOLOR CONFIG_FORMAT CONFIG_BACKGROUND
     export CONFIG_PADDING CONFIG_BRIGHTNESS CONFIG_CONTRAST CONFIG_GAMMA
     export CONFIG_ANIMATE CONFIG_FRAME_DELAY CONFIG_MAX_FRAMES CONFIG_LOOPS
     export CONFIG_QUIET CONFIG_PRESERVE_ASPECT CONFIG_CHAR_ASPECT
-    export CONFIG_ENHANCE CONFIG_COLOR_ENGINE
+    export CONFIG_ENHANCE CONFIG_COLOR_ENGINE CONFIG_CLASSIC
 }
 
 # ============================================================================

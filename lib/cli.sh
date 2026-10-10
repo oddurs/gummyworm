@@ -89,6 +89,7 @@ show_help() {
     echo "    -q, --quiet           Suppress info messages"
     echo "    --continue-on-error   Continue processing if one file fails"
     echo "    --no-aspect           Don't preserve aspect ratio"
+    echo "    --classic             Render as before 2.4: --enhance off --color-engine plain"
     echo "    --color-engine <e>    How colour is chosen: plain, optical (default: $DEFAULT_COLOR_ENGINE)"
     echo "                          optical compensates for glyphs covering part of their cell."
     echo "    --enhance <mode>      Spread tones across the palette: off, stretch, full"
@@ -216,6 +217,9 @@ parse_args() {
     ARG_CHAR_ASPECT="$CONFIG_CHAR_ASPECT"
     ARG_ENHANCE="$CONFIG_ENHANCE"
     ARG_COLOR_ENGINE="$CONFIG_COLOR_ENGINE"
+    ARG_CLASSIC="false"
+    ARG_ENHANCE_SET="false"
+    ARG_ENGINE_SET="false"
     ARG_ANIMATE="$CONFIG_ANIMATE"
     ARG_FRAME_DELAY="$CONFIG_FRAME_DELAY"
     ARG_MAX_FRAMES="$CONFIG_MAX_FRAMES"
@@ -391,12 +395,17 @@ parse_args() {
                 ARG_PRESERVE_ASPECT="false"
                 shift
                 ;;
+            --classic)
+                ARG_CLASSIC="true"
+                shift
+                ;;
             --color-engine)
                 [[ -z "${2:-}" ]] && die_usage "Option $1 requires an argument"
                 if ! [[ "$2" =~ $RE_CFG_COLOR_ENGINE ]]; then
                     die_usage "Color engine must be one of: plain, optical"
                 fi
                 ARG_COLOR_ENGINE="$2"
+                ARG_ENGINE_SET="true"
                 shift 2
                 ;;
             --enhance)
@@ -405,6 +414,7 @@ parse_args() {
                     die_usage "Enhance must be one of: off, stretch, full"
                 fi
                 ARG_ENHANCE="$2"
+                ARG_ENHANCE_SET="true"
                 shift 2
                 ;;
             --char-aspect)
@@ -458,6 +468,13 @@ parse_args() {
     # < config file < CLI) as the config global both already read.
     CONFIG_CHAR_ASPECT="$ARG_CHAR_ASPECT"
     export CONFIG_CHAR_ASPECT
+
+    # --classic stands in for the two settings it names, except where the same
+    # command line set one of them itself. It beats the config file.
+    if [[ "$ARG_CLASSIC" == "true" ]]; then
+        [[ "$ARG_ENHANCE_SET" == "true" ]] || ARG_ENHANCE="off"
+        [[ "$ARG_ENGINE_SET" == "true" ]] || ARG_COLOR_ENGINE="plain"
+    fi
 
     # Likewise for enhance: image_extract_pixels reads it, not ARG_*.
     CONFIG_ENHANCE="$ARG_ENHANCE"
