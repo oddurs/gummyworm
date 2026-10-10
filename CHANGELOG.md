@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+The command now behaves the way command-line tools are expected to when piped,
+scripted or run without a terminal. **Several behaviours change**; each is
+listed under Changed.
+
+### Changed
+- **`-h` shows help; the height flag is now `-H`** (`--height` is unchanged).
+  `-h <number>` still sets the height for now, with a deprecation warning, so
+  existing scripts keep working.
+- **Progress, success and warning messages go to standard error.** They used to
+  go to standard output, so `gummyworm photo.jpg | pbcopy` copied the
+  `Converting:` line along with the art. Standard output is now the art alone.
+- **Usage errors exit with status 2**; runtime failures (a missing image, a
+  failed conversion) still exit 1. Running with no input and a terminal on
+  stdin prints a short usage line and exits 2 instead of dumping the help.
+- **Piped output has no blank padding lines and no banner.** Those appear only
+  on a terminal, so `gummyworm img > art.txt` is the art and nothing else, and
+  `--list-palettes` is greppable.
+- **Colour in help and messages follows the terminal and `NO_COLOR`.** Errors
+  piped to a file no longer contain escape codes.
+
+### Added
+- `-V` as a short form of `--version`, and `-` to read the image from standard
+  input.
+
+### Fixed
+- **`-f svg`, `html`, `ansi`, `png` and `gif` without `-o` printed plain text**
+  and exited 0. They now write the requested format to standard output; `png`
+  and `gif` refuse a terminal and write to a pipe or redirect.
+- An unwritable `-o` path reported a raw bash redirection error with a library
+  line number. It is now checked up front and reported plainly.
+- A mistyped palette name such as `-p blokcs` silently rendered with its own
+  letters. A plain word that names no palette now warns on standard error.
+
 ## [2.4.0] - 2026-10-09
 
 Adds a way to measure how faithfully gummyworm renders an image, and the first

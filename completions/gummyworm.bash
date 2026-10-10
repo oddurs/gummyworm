@@ -20,7 +20,9 @@ _gummyworm_completions() {
     # All options
     local opts="
         -w --width
-        -h --height
+        -H --height
+        -h --help
+        -V --version
         -p --palette
         -c --color
         --truecolor --no-truecolor
@@ -36,7 +38,6 @@ _gummyworm_completions() {
         -l --list-palettes
         -q --quiet
         --continue-on-error --no-aspect --char-aspect --enhance
-        --help --version
     "
 
     # Built-in palettes
@@ -46,7 +47,7 @@ _gummyworm_completions() {
     local formats="text ansi html svg png gif"
 
     case "$prev" in
-        -w|--width|-h|--height|--frame-delay|--max-frames|--loops|--padding)
+        -w|--width|-H|--height|--frame-delay|--max-frames|--loops|--padding)
             # Numeric argument - no completion
             return
             ;;

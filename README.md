@@ -132,6 +132,7 @@ gummyworm [OPTIONS] <image> [image2 ...]
 | Option | Description |
 |--------|-------------|
 | `-w, --width <N>` | Output width (default: 80) |
+| `-H, --height <N>` | Output height in lines (`-h` shows help) |
 | `-p, --palette <name>` | Palette: standard, blocks, emoji, etc. |
 | `-c, --color` | Enable 256-color output |
 | `--truecolor` | Enable true color (24-bit RGB) |

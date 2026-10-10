@@ -96,10 +96,21 @@ test_width_validation() {
 }
 
 test_height_validation() {
-    assert_true  'cli_accepts -h 40'        "--height accepts a positive integer"
-    assert_true  'cli_accepts -h 0'         "--height accepts zero (auto)"
-    assert_equals "40" "$(cli_value ARG_HEIGHT -h 40)" "--height is stored"
-    assert_true  'cli_rejects -h abc'       "--height rejects non-numeric"
+    assert_true  'cli_accepts -H 40'        "--height accepts a positive integer"
+    assert_true  'cli_accepts -H 0'         "--height accepts zero (auto)"
+    assert_equals "40" "$(cli_value ARG_HEIGHT -H 40)" "--height is stored"
+    assert_equals "40" "$(cli_value ARG_HEIGHT --height 40)" "--height long form is stored"
+    assert_true  'cli_rejects -H abc'       "--height rejects non-numeric"
+}
+
+test_dash_h_number_is_a_deprecated_height() {
+    assert_equals "40" "$(cli_value ARG_HEIGHT -h 40)" "-h <N> still sets the height"
+}
+
+test_usage_errors_exit_status_2() {
+    local rc=0
+    ( parse_args -w abc "$DUMMY_IMAGE" >/dev/null 2>&1 </dev/null ) || rc=$?
+    assert_equals "2" "$rc" "a usage error exits 2"
 }
 
 test_padding_validation() {
@@ -211,7 +222,7 @@ test_enhance_accepts_only_the_three_modes() {
 
 test_flags_require_an_argument() {
     local flag
-    for flag in -w --width -h --height -p --palette --brightness --contrast \
+    for flag in -w --width -H --height -p --palette --brightness --contrast \
                 --gamma -f --format --background --padding -o --output \
                 -d --output-dir --frame-delay --max-frames --loops --char-aspect --enhance; do
         assert_true "cli_rejects_bare $flag" "$flag alone is a usage error"

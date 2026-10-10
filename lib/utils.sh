@@ -101,31 +101,35 @@ sys.exit(1)
 # Print error message to stderr
 # Usage: log_error <message>
 log_error() {
-    echo -e "${COLOR_RED}✖ Error:${COLOR_RESET} $*" >&2
+    echo -e "${ERR_RED}✖ Error:${ERR_RESET} $*" >&2
 }
+
+# Success, info and warning messages are diagnostics, so they go to stderr:
+# stdout carries only the art, and `gummyworm photo.jpg | pbcopy` must not copy
+# a "Converting:" line along with it.
 
 # Print success message
 # Usage: log_success <message>
 log_success() {
-    echo -e "${COLOR_GREEN}✔${COLOR_RESET} $*"
+    echo -e "${ERR_GREEN}✔${ERR_RESET} $*" >&2
 }
 
 # Print info message
 # Usage: log_info <message>
 log_info() {
-    echo -e "${COLOR_CYAN}ℹ${COLOR_RESET} $*"
+    echo -e "${ERR_CYAN}ℹ${ERR_RESET} $*" >&2
 }
 
 # Print warning message
 # Usage: log_warn <message>
 log_warn() {
-    echo -e "${COLOR_YELLOW}⚠${COLOR_RESET} $*"
+    echo -e "${ERR_YELLOW}⚠${ERR_RESET} $*" >&2
 }
 
 # Print debug message (only if DEBUG is set)
 # Usage: log_debug <message>
 log_debug() {
-    [[ -n "${DEBUG:-}" ]] && echo -e "${COLOR_DIM}[DEBUG]${COLOR_RESET} $*" >&2
+    [[ -n "${DEBUG:-}" ]] && echo -e "${ERR_DIM}[DEBUG]${ERR_RESET} $*" >&2
 }
 
 # ============================================================================
@@ -251,11 +255,12 @@ die() {
     exit "${2:-1}"
 }
 
-# Die with usage hint
+# Die with usage hint. Exit status 2 is the shell convention for misuse of a
+# command, so a script can tell a bad invocation from a failed conversion (1).
 # Usage: die_usage <message>
 die_usage() {
     log_error "$1"
     echo "Use --help for usage information" >&2
-    exit 1
+    exit 2
 }
 

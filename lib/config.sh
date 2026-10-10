@@ -376,6 +376,16 @@ readonly RE_INTEGER='^[0-9]+$'
 readonly RE_GRAPHICAL_FORMAT='^(html|svg|png)$'
 readonly RE_TEXT_FORMAT='^(text|ansi)$'
 
+# Colour is for people. Use it only when the stream is a terminal, never when
+# NO_COLOR is set (https://no-color.org) or the terminal is "dumb". Help and the
+# palette list go to stdout, so the COLOR_* set follows stdout; diagnostics go
+# to stderr, so the ERR_* set follows stderr. Each is empty when colour is off,
+# which makes every `echo -e "${COLOR_X}text${COLOR_RESET}"` print plain text.
+# Usage: _color_ok <fd>
+_color_ok() {
+    [[ -z "${NO_COLOR:-}" && "${TERM:-}" != "dumb" && -t "$1" ]]
+}
+
 # ANSI color codes - bash 3.x compatible (no associative arrays)
 COLOR_RESET="\033[0m"
 COLOR_BOLD="\033[1m"
@@ -387,6 +397,21 @@ COLOR_BLUE="\033[34m"
 COLOR_MAGENTA="\033[35m"
 COLOR_CYAN="\033[36m"
 COLOR_WHITE="\033[37m"
+
+ERR_RESET="$COLOR_RESET"
+ERR_RED="$COLOR_RED"
+ERR_GREEN="$COLOR_GREEN"
+ERR_YELLOW="$COLOR_YELLOW"
+ERR_CYAN="$COLOR_CYAN"
+ERR_DIM="$COLOR_DIM"
+
+if ! _color_ok 1; then
+    COLOR_RESET="" COLOR_BOLD="" COLOR_DIM="" COLOR_RED="" COLOR_GREEN=""
+    COLOR_YELLOW="" COLOR_BLUE="" COLOR_MAGENTA="" COLOR_CYAN="" COLOR_WHITE=""
+fi
+if ! _color_ok 2; then
+    ERR_RESET="" ERR_RED="" ERR_GREEN="" ERR_YELLOW="" ERR_CYAN="" ERR_DIM=""
+fi
 
 # Export for subshells
 export GUMMYWORM_VERSION GUMMYWORM_NAME GUMMYWORM_ROOT

@@ -12,7 +12,7 @@ Complete command-line reference for gummyworm.
 ```bash
 gummyworm [OPTIONS] [--] <image_file> [image_file2 ...]
 gummyworm [OPTIONS] <url>
-gummyworm [OPTIONS] < image_data
+gummyworm [OPTIONS] - < image_data
 cat image.png | gummyworm [OPTIONS]
 ```
 
@@ -65,6 +65,16 @@ cat photo.jpg | gummyworm -w 60
 gummyworm < photo.jpg
 ```
 
+A lone `-` names standard input explicitly. It can be combined with files, and
+it is how you read stdin when something else is also on the command line:
+
+```bash
+curl -s https://example.com/image.png | gummyworm -w 60 -
+```
+
+Run with no input and a terminal on stdin, gummyworm prints a short usage line
+and exits with status 2 rather than waiting for you to type.
+
 ## Options Reference
 
 ### Dimension Options
@@ -89,7 +99,7 @@ gummyworm -w 200 landscape.jpg
 gummyworm -w $(tput cols) photo.jpg
 ```
 
-#### `-h, --height <N>`
+#### `-H, --height <N>`
 
 Set the output height in lines.
 
@@ -100,11 +110,16 @@ Set the output height in lines.
 
 ```bash
 # Fixed height
-gummyworm -h 30 photo.jpg
+gummyworm -H 30 photo.jpg
 
 # Both dimensions specified
-gummyworm -w 100 -h 50 photo.jpg
+gummyworm -w 100 -H 50 photo.jpg
 ```
+
+> **Changed:** `-h` used to mean `--height`. It now shows help, as in
+> most command-line tools, and the height flag is `-H`. A number straight after
+> `-h` (`-h 30`) still works as a height for now, with a deprecation warning, so
+> existing scripts keep running.
 
 #### `--no-aspect`
 
@@ -112,7 +127,7 @@ Disable aspect ratio preservation. The image will be stretched to fill the speci
 
 ```bash
 # Stretch to exact dimensions
-gummyworm -w 80 -h 40 --no-aspect photo.jpg
+gummyworm -w 80 -H 40 --no-aspect photo.jpg
 ```
 
 #### `--char-aspect`
@@ -362,6 +377,15 @@ gummyworm -f png -o poster.png photo.jpg
 gummyworm -f gif -o animation.gif animated.gif
 ```
 
+Without `-o`, the result goes to standard output. That works for every
+format; `png` and `gif` are binary, so gummyworm refuses to write them to a
+terminal and writes them to a pipe or redirect:
+
+```bash
+gummyworm -f svg photo.jpg | pbcopy
+gummyworm -f png photo.jpg > poster.png
+```
+
 See [Export Formats](export-formats.md) for detailed format documentation.
 
 #### `-o, --output <FILE>`
@@ -543,7 +567,7 @@ Suppress informational messages. Only errors and actual output are shown.
 gummyworm -q photo.jpg > art.txt
 ```
 
-#### `--help`
+#### `-h, --help`
 
 Display help message with usage information.
 
@@ -551,14 +575,38 @@ Display help message with usage information.
 gummyworm --help
 ```
 
-#### `--version`
+#### `-V, --version`
 
 Display version information.
 
 ```bash
 gummyworm --version
-# Output: gummyworm 2.1.1
+# Output: gummyworm version 2.4.0
 ```
+
+## Streams, Colour and Exit Status
+
+gummyworm follows the usual command-line conventions, so it behaves in
+pipelines and scripts.
+
+**Standard output carries only the art** (or the exported file, when no `-o` is
+given). Progress, success and warning messages go to standard error, so
+`gummyworm photo.jpg | pbcopy` copies the picture and nothing else. Output sent
+to a pipe or file has no blank padding lines and no banner; those are added only
+on a terminal.
+
+**Colour is for terminals.** Help and messages use colour only when the stream
+is a terminal and the `NO_COLOR` environment variable is unset
+([no-color.org](https://no-color.org)). Colour in the *art* is a separate choice
+made with `-c` or `--truecolor`.
+
+**Exit status**
+
+| Status | Meaning                                                              |
+| ------ | -------------------------------------------------------------------- |
+| `0`    | Success, including `--help` and `--version`                          |
+| `1`    | A runtime failure: a missing or unreadable image, a failed conversion |
+| `2`    | A usage error: an unknown option, a bad value, no input              |
 
 ## Common Command Combinations
 
